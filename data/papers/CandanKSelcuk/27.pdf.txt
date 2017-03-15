@@ -1,0 +1,347 @@
+LR-PPR: Locality-Sensitive, Re-use Promoting, Approximate Personalized PageRank Computation
+Jung Hyun Kim
+Arizona State University Tempe, AZ 85287, USA
+
+
+
+K. Selçuk Candan
+Arizona State University Tempe, AZ 85287, USA
+
+Maria Luisa Sapino
+University of Torino I-10149 Torino, Italy
+
+jkim294@asu.edu ABSTRACT
+
+candan@asu.edu
+
+mlsapino@di.unito.it
+G
+v1 d c a b v2
+
+Personalized PageRank (PPR) based measures of node proximity have been shown to be highly effective in many prediction and recommendation applications. The use of personalized PageRank for large graphs, however, is difficult due to its high computation cost. In this paper, we propose a Locality-sensitive, Re-use promoting, approximate personalized PageRank (LR-PPR) algorithm for efficiently computing the PPR values relying on the localities of the given seed nodes on the graph: (a) The LR-PPR algorithm is locality sensitive in the sense that it reduces the computational cost of the PPR computation process by focusing on the local neighborhoods of the seed nodes. (b) LR-PPR is re-use promoting in that instead of performing a monolithic computation for the given seed node set using the entire graph, LR-PPR divides the work into localities of the seeds and caches the intermediary results obtained during the computation. These cached results are then reused for future queries sharing seed nodes. Experiment results for different data sets and under different scenarios show that LR-PPR algorithm is highly-efficient and accurate.
+
+v3
+
+Figure 1: Key questions: Given a graph, G, and a seed set of nodes S = {v1 , v2 , v3 } in G, can we rank the remaining nodes in the graph regarding their relationships to the set S ? Which of the nodes a through d is the most interesting given the seed set of nodes v1 through v3 ? node relatedness, on the other hand, also take into account the density of the edges: unlike in path-based definitions, random walkbased definitions of relatedness also consider how tightly connected two nodes are and argue that nodes that have many paths between them can be considered more related. Random-walk based techniques encode the structure of the network in the form a transition matrix of a stochastic process from which the node relationships can be inferred. When it exists, the convergence probability of a node n gives the ratio of the time spent at that node in a sufficiently long random walk and, therefore, neatly captures the connectivity of the node n in the graph. Therefore, many web search and recommendation algorithms, such as PageRank [5], rely on random-walks to identify significant nodes in the graph: let us consider a weighted, directed graph G(V, E ), where the weight of the edge ej  E is denoted as wj ( 0) and where = 1.0. The PageRank score of the node ej outedge(vi ) wj vi  V is the stationary distribution of a random walk on G, where at each step with probability 1- , the random walk moves along an outgoing edge of the current node with a probability proportional to the edge weights and with probability  , the walk jumps to a random node in V . In other words, if we denote all the PageRank scores of the nodes in V with a vector  , then  = (1 -  )TG ×  +  j, where TG denotes the transition matrix corresponding to the graph G (and the underlying edge weights) and j is a teleportation vector 1 . where all entries are V
+
+Categories and Subject Descriptors
+H.3 [Information Storage and Retrieval]: Miscellaneous
+
+Keywords
+Personalized PageRank; Locality-Sensitivity; Reuse-Promotion
+
+1.
+
+INTRODUCTION
+
+Node distance/proximity measures are commonly used for quantifying how nearby or otherwise related to two or more nodes on a graph are. Path-length based definitions [17] are useful when the relatedness can be captured solely based on the properties of the nodes and edges on the shortest path (based on some definition of path-length). Random-walk based definitions, such as hitting distance [16] and personalized page rank (PPR) score [4, 13, 21] of
+ This work is supported by NSF Grant 1043583 "MiNC: NSDL Middleware for Network- and Context-aware Recommendations".
+
+Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. CIKM'13, Oct. 27­Nov. 1, 2013, San Francisco, CA, USA. Copyright is held by the owner/author(s). Publication rights licensed to ACM. ACM 978-1-4503-2263-8/13/10 ...$15.00. http://dx.doi.org/10.1145/2505515.2505651.
+
+1.1 Proximity and PageRank
+An early attempt to contextualize the PageRank scores is the topic sensitive PageRank [12] approach which adjusts the PageRank scores of the nodes by assigning the teleportation probabilities in vector j in a way that reflects the graph nodes' degrees of
+
+G
+G1
+v1 v2
+
+G2
+
+G1
+
+incoming bnd. node of G1
+
+G
+G2
+
+a shared node
+v1
+v3
+
+v2
+
+G3
+
+Figure 2: Locality-sensitivity: Computation of PPR should focus on the neighborhoods (localities) of the seeds
+G
+G1
+v1 v2
+
+outgoing bnd. node of G1
+
+G
+G1
+v1 v7
+
+G2
+
+G7
+
+Figure 4: Incoming and outgoing boundary nodes/edges and a node shared between two localities · locality sensitive in the sense that it reduces the computational cost of the PPR computation process and improve accuracy by focusing on the neighborhoods of the seed nodes (Figure 2); and · re-use promoting in that it enables caching and re-use of significant portions of the intermediary work for the individual seed nodes in future queries (Figure 3). In the following section, we first formally introduce the problem and then present our solution for locality-sensitive, re-use promoting, approximate personalized PageRank computations. We evaluate LR-PPR for different data sets and under different scenarios in Section 3. We conclude in Section 4.
+
+v3
+
+v6
+
+v9
+
+G3
+
+G6 G9
+
+(a) PPR query 1
+
+(b) PPR query 2
+
+Figure 3: Re-use promotion: Two PPR queries sharing a seed node (v1 ) should also share relevant work match to the search topic. [6, 7] were among the first works which recognized that random-walks can also be used for measuring the degree of association, relatedness, or proximity of the graph nodes to a given seed node set, S  V (Figure 1). An alternative to this approach is to modify (as in topic sensitive PageRank [12]) the teleportation vector, j : instead of jumping to a random node in V with probability  , the random walk jumps to one of the nodes in the seed set, S , given by the user. More specifically, if we denote the personalized PageRank scores of the nodes in V with a vector , then  = (1 -  )TG ×  + s,
+1 where s is a re-seeding vector, such that if vi  S , then s[i] = S and s[i] = 0, otherwise. One key advantage of this approach over modifying the transition matrix as in [6] is that the term  can be used to directly control the degree of seeding (or personalization) of the PPR score. However, the use of personalized PageRank for large graphs is difficult due to the high cost of solving for the vector , given  , transition matrix TG , and the seeding vector s. One way to obtain  is to solve the above equation for  mathematically. Alternatively, PowerIteration methods [14] simulate the dissemination of probability mass by repeatedly applying the transition process to an initial distribution 0 until a convergence criterion is satisfied. For large data sets, both of these processes are prohibitively expensive. Recent advances on personalized PageRank includes top-k and approximate personalized PageRank algorithms [1, 3, 8, 10, 11, 20, 22] and parallelized implementations on MapReduce or Pregel based batch data processing systems [2, 15]. The FastRWR algorithm presented in [22] for example partitions the graph into subgraphs and indexes partial intermediary solutions. Unfortunately, for large data sets, FastRWR requires large number of partitions to ensure that the intermediary metadata (which requires dense matrix representation) fits into the available memory and this negatively impacts execution time and accuracy.
+
+2. PROPOSED APPROACH
+Let G = (V, E ) be a directed graph. For the simplicity of the discussion, without any loss of generality, let us assume that G is unweighted1 . Let us be given a set S  V of seed nodes (Figure 1) and a personalization parameter,  . Let GS = {Gh (Vh , Eh ) | 1  h  K } be K = S subgraphs of G, such that · for each vi  S , there exists a corresponding Gi  GS such that vi  Vi and · for all Gh  GS , Gh G . We first formalize the locality-sensitivity goal (Figure 2): Desideratum 1: Locality-Sensitivity. Our goal is to compute an approximate PPR vector, apx , using GS instead of G, such that apx  , where  represents the true PPR scores of the nodes in V relative to S : i.e., apx   = (1 -  )TG ×  + s, where TG is the transition matrix corresponding to G and s is the re-seeding vector corresponding to the seed nodes in S . We next formalize the re-use promotion goal (Figure 3): Desideratum 2: Reuse-Promotion. Let S1 and S2 be two sets of seed nodes and let vi be a node such that vi  S1  S2 . Let also the approximate PPR vector, apx,1 corresponding to S1 have already been computed using GS1 and let us assume that the approximate PPR vector, apx,2 corresponding to S2 is being requested. The part of the work performed when processing Gi  GS1 (corresponding to vi ) should not need to be re-performed when processing Gi  GS2 , when computing apx,2 using GS2 .
+
+1.2 Contributions of this Paper
+In this paper, we argue that we can improve both scalability and accuracy through a Locality-sensitive, Re-use promoting, approximate personalized PageRank (LR-PPR) algorithm: LR-PPR is
+
+2.1
+1
+
+Combined Locality and its Boundary
+
+Unlike existing approximate PPR algorithms [1, 3, 8, 10, 11, 20, 22], LR-PPR is location sensitive. Therefore, given the set, S , of Extending the proposed algorithms to weighted graphs is trivial.
+
+G1
+v1 v2
+
+G2
+v3
+
+G3
+
+GK
+vK
+
+
+
+A node shared by multiple seed locality graphs
+
+ 0 V2 × V1  ...  0 VK × V1 01× V1
+
+M1
+
+0 0
+
+V1 × V2
+
+M2 ...
+
+01×
+
+VK × V2 V2
+
+. . . 0 V1 × VK . . . 0 V2 × VK ... ... ... MK ... 01× VK
+
+0 0
+
+V1 ×1 V2 ×1
+
+   , 
+
+0 VK ×1 MK +1
+
+...
+
+Figure 5: An equivalence set consists of the copies of a node shared across multiple seed locality graphs seed nodes and the corresponding localities, GS , the computation focuses on the combined locality G+ (V + , E + )  G, where V+ =
+1lK
+
+Vl and E + =
+1lK
+
+El .
+
+Given a combined locality, G+ , we can also define its external graph, G- (V - , E - ), as the set of nodes and edges of G that are outside of G+ and boundary nodes and edges. As shown in Figure 4, we refer to vi  Vl as an outgoing boundary node of Gl if there is an outgoing edge ei,j = [vi  vj ]  E , where vj  / Vl ; the edge ej is also referred to as an outgoing boundary edge of Gl . The set of all outgoing boundary nodes of Gl is denoted as Voutbound,l and the set of all outgoing boundary edges of Gl is denoted as Eoutbound,l. Note that Voutbound,l  Vl , whereas Eoutbound,l  El = . We also define incoming boundary nodes (Vinbound,l ) and incoming boundary edges (Einbound,l ) similarly to the outgoing boundary nodes and edges of Gl , but considering inbound edges to these subgraphs. More specifically, Einbound,l consists of edges of the form [vi  vj ]  E , where vj  Vl and vi  / Vl .
+
+where MK +1 is equal to the 1 × 1 matrix 01×1 . Intuitively, Mbd combines the K subgraphs into one transition matrix, without considering common nodes/edges or incoming/outgoing boundary edges and ignoring all outgoing and incoming edges. All the external nodes in G- are accounted by a single node represented by the 1 × 1 matrix MK +1 . A key advantage of Mbd is that it is block-diagonal and, hence, there are efficient ways to process it. However, this block-diagonal matrix, Mbd , cannot accurately represent the graph G as it ignores potential overlaps among the individual localities and ignores all the nodes and edges outside of G+ . We therefore need a compensation matrix to · make sure that nodes and edges shared between the localities are not double counted during PPR computation and · take into account the topology of the graph external to both localities G1 through GK .
+
+2.2.3 Compensation Matrix, M 0
+Let t be ( V1 + V2 + . . . + VK + 1). The compensation matrix, M0 , is a t × t matrix accounting for the boundary edges of the seed localities as well as the nodes/edges in G- . M0 also ensures that the common nodes in V1 through VK are not double counted during PPR calculations. M0 is constructed as follows: Row/column indexing: Let vl,i be a vertex in Vl . We introduce a row/column indexing function, ind(), defined as follows:   ind(l, i) = 
+1h<l
+
+2.2 Localized Transition Matrix
+Since LR-PPR focuses on the combined locality, G+ , the next step is to combine the transition matrices of the individual localities into a combined transition matrix. To produce accurate approximations, this localized transition matrix, however, should nevertheless take the external graph, G- , and the boundaries between G- and G+ , into account.
+
+Vh  + i
+
+2.2.1 Transition Matrices of Individual Localities
+Let v(l,i) (1  l  K ) denote a re-indexing of vertices in Vl . If v(l,i)  Vl and vc  V s.t. v(l,i) = vc , we say that v(l,i) is a member of an equivalence set, Vc (Figure 5). Intuitively, the equivalence sets capture the common parts across the localities of the individual seed nodes. Given Gl (Vl , El )  G and an appropriate re-indexing, we define the corresponding local transition matrix, Ml , as a Vl × Vl matrix, where · ei,j = [v(l,i)  v(l,j ) ]  El  Ml [j, i] = 0 and
+1 , out(v(l,i) )
+
+Intuitively the indexing function, ind(), maps the relevant nodes in the graph to their positions in the M0 matrix. Compensation for the common nodes: Let el,i,j be an edge [v(l,i)  v(l,j ) ]  El and let v(l,j ) be a member of the equivalence set Vc for some vc  V . Then, if Vc > 1 -1 1 × out(G,v and · M0 [ind(l, j ), ind(l, i)] = - Vc Vc l,i ) · v(h,k)  Vc s.t. v(h,k) = v(l,j ) , we have M0 [ind(h, k), ind(l, i)] = - 1 1 × , Vc out(G, vl,i )
+
+· ei,j = [v(l,i)  v(l,j ) ]  El  Ml [j, i] =
+
+where out(v(l,i) ) is the number of outgoing edges of vi .
+
+2.2.2 Localization of the Transition Matrix
+Given the local transition matrices, M1 through MK , we localize the transition matrix of G by approximating it as Mapx = Mbd + M0 , where Mbd is a block-diagonal matrix of the form
+
+where out(G, v ) is the outdegree of node v in G. Intuitively, the compensation matrix re-routes a portion of the transitions going towards a shared node in a given locality Vl to the copies in other seed localities. This prevents the transitions to and from the shared node from being mis-counted. Compensation for outgoing boundary edges: The compensation matrix needs to account also for outgoing boundary edges that are not accounted for by the neighborhood transition matrices M1 through MK : · Accounting for boundary edges from nodes in Vl to nodes in Vh : [v(l,i)  v(h,j ) ]  Eoutbound,l ­ M0 [ind(h, j ), ind(l, i)] =
+1 out(v(l,i) )
+
+· Accounting for boundary edges from nodes in Vl to graph nodes that are in V - : if [v(l,i)  v ]  Eoutbound,l s.t. v  V -
+
+­ M0 [t, ind(l, i)] =
+
+the number of edges of the form [v(l,i)  v ]  Eoutbound,l where v  V - else M0 [t, ind(l, i)] = 0 The compensation matrix records all outgoing edges, whether they cross into another locality or they are into external nodes in G- . If a node has more than one outgoing edge into the nodes in G- , all such edges are captured using one single compensation edge which aggregates all the corresponding transition probabilities. Compensation for incoming boundary edges (from G- ): Similarly to the outgoing boundary edges, the compensation matrix needs also to account for incoming boundary edges that are not accounted for by the neighborhood transition matrices M1 through MK . Since incoming edges from other localities have been accounted for in the previous step, here we only need to consider incoming boundary edges (from G- ). Following the formulation in [23], we account for incoming edges where the source is external to G+ and the destination is a vertex v(l,i) in Vl by inserting an edge from the dummy node to v(l,i) with a weight that considers the outdegrees of all external source nodes; i.e., v(l,i) s.t. [vk  v(l,i) ]  Einbound,l where vk  V - and v(l,i) is in the equivalence set Vc for a vc  V , M0 [ind(l, i), t] is equal to 1 Vc
+([vk v(l,i) ]Einbound,l )(vk V
+-)
+
+bnd(v(l,i) ) , out(v(l,i) )
+
+where bnd(v(l,i) ) is
+
+the nodes in V + . In particular, we rely on the following result due to [22], which itself relies on the Sherman-Morisson lemma [18]: Let C = A + USV. Let also (I - cA)-1 = Q-1 . Then, the equation r = (1 - c)(I - cA)-1 e has the solution r = (1 - c)(Q-1 e + cQ-1 UVQ-1 e), where  = (S-1 - cVQ-1 U)-1 . If A is a block diagonal matrix consisting of k blocks, A1 through Ak , then Q-1 is also a block diagonal matrix con1 -1 sisting of k corresponding blocks, Q- 1 through Qk , where -1 -1 Qi = (I - cAi ) . We use the above observation to efficiently obtain PPR scores by setting c = (1 -  ), C = Mapx , A = Mbd , and USV = M0 . In particular, we divide the PPR computation into two steps: a locality-sensitive and re-usable step involving the computation of the Q-1 term using the local transition matrices and a run-time computation step involving the compensation matrix.
+1 2.4.1 Locality-sensitive and Re-usable Q - bd
+
+1 out(G,vk )
+
+V-
+
+,
+
+where out(G, v ) is the outdegree of node v in G. Compensation for the edges in G- : We account for edges that are entirely in G- by creating a self-loop that represents the sum of outdegree flow between all external nodes averaged by the number of external nodes; i.e., M0 [t, t] =
+v V - out(G- ,v ) out(G,v ) V-
+
+,
+
+where out(G- , v ) and out(G, v ) are the outdegrees of node v in G- and G, respectively. Completion: For any matrix position p, q not considered above, no compensation is necessary; i.e., M0 [p, q ] = 0.
+
+Local transition matrices, M1 through MK corresponding to the seeds v1 through vK are constant (unless the graph itself evolves -1 1 is computed over time). Therefore, if Q- h = (I - (1 -  )Mh ) 1 and cached once, it can be reused for obtaining Q- bd , which is a 1 -1 block diagonal matrix consisting of Q- 1 through QK +1 (as before, -1 the last block, QK +1 , is simply equal to 11×1 ):   1 Q- 0 V1 × V2 . . . 0 V1 × VK 0 V1 ×1 1 - 1 0 V × V Q2 . . . 0 V2 × VK 0 V2 ×1  2 1    . . . . . . . . . . . . ...  ,  -1  0 V × V1 0 . . . Q 0 V × V V × 1 K 2 K K K -1 01× V1 01× V2 ... 01× VK QK +1
+
+2.4.2 Computation of the LR-PPR Scores
+In order to be able to use the above formulation for obtaining the PPR scores of the nodes in V + , in the query time, we need to decompose the compensation matrix, M0 , into U0 S0 V0 . While obtaining a precise decomposition in run-time would be prohibitively expensive, since M0 is sparse and since we are looking for an approximation of the PPR scores, we can obtain a fairly accurate lowrank approximation of M0 efficiently [22]: M0 ~ 0S ~0V ~ 0. U
+
+2.3 L-PPR: Locality Sensitive PPR
+Once the block-diagonal local transition matrix, Mbd , and the compensation matrix, M0 , are obtained, the next step is to obtain the PPR scores of the nodes in V + . This can be performed using any fast PPR computation algorithm discussed in Section 1.1. Note that the overall transition matrix Mapx = Mbd + M0 is approximate in the sense that all the nodes external to G+ are clustered into a single node, represented by the last row and column of the matrix. Otherwise, the combined matrix Mapx accurately represents the nodes and edges in the "merged localities graph" combining the seed localities, G1 through GK . As we see in Section 3, this leads to highly accurate PPR scores with better scalability than existing techniques.
+
+Given this decomposition, the result vector apx , which contains the (approximate) PPR scores of the nodes in V + , is computed as
+1 -1 ~ -1 ~ apx =  Q- bd s + (1 -  )Qbd U0 V0 Qbd s ,
+
+where
+1 -1 ~ ~- ~ = S 0 - (1 -  )V0 Qbd U0 -1
+
+2.4 LR-PPR: Locality Sensitive and Reuse Promoting PPR
+Our goal is not only to leverage locality-sensitivity as in L-PPR, but also to boost sub-result re-use. Remember that, as discussed above, the localized transition matrix Mapx is equal to Mbd + M0 where (by construction) Mbd is a block-diagonal matrix, whereas M0 (which accounts for shared, boundary, and external nodes) is relatively sparse. We next use these two properties of the decomposition of Mapx to efficiently compute approximate PPR scores of
+
+.
+
+Note that the compensation matrix M0 is query specific and, thus, the work done for the last step cannot be reused across queries. However, as we experimentally verify in Section 3, the last step is relatively cheap and the earlier(costlier) steps involve re-usable work. Thus, caching and re-use through LR-PPR enables significant savings in execution time. We discuss the overall complexity and the opportunities for re-use next.
+
+2.5 Complexity and Re-use
+Analysis of LR-PPR points to the following advantages: First of all, computation is done using only local nodes and edges. Secondly, most of the results of the expensive sub-tasks can be cached and re-used. Moreover, costly matrix inversions are limited to the smaller matrices representing localities and small matrices of size r × r . Various subtasks have complexity proportional to V + 2 , where V + = 1lK Vl . While in theory the locality Vl can be arbitrarily large, in practice we select localities with a bounded number of nodes; i.e., 1lK , Vl  L for some L V . As described above LR-PPR algorithm supports caching and reuse of some of the intermediary work. The process results in local transition matrices, each of which can be cached in O( El ) space (where El is the number edges in the locality) assuming a sparse representation. The algorithm also involves a matrix inversion, which results in a dense matrix; as a result, caching the inverted matrix takes O( Vl 2 ) space (where Vl is the number of vertices in the locality). If the locality is size-constrained, this leads to constant space usage of O(L2 ), where L is the maximum number of nodes in the locality. If the inverted matrix of a locality is cached, then the local transition matrix does not need to be maintained further. For cache replacement, any frequency-based or predictive cache-replacement policy can be used.
+" 
+&%
+
+ 1 "    
+ ( )!
+%.. %.. %.' %.%., %-, %.* %.* %,( %*' %'. %-%-+ %-' %,*
+
+%*
+
+%%
+
+*
+
+&% 
+
+'*  1   
+
+*%
+
+,*
+
+Figure 6: Accuracies of L-PPR, LR-PPR, and FastRWR against the Global PPR for different numbers of target nodes Accuracy: For different algorithm pairs, we report the Spearman's rank correlation
+i (x i i (x i
+
+-x ¯)(yi - y ¯)
+i (yi
+
+-x ¯ )2
+
+-y ¯)2
+
+,
+
+3.
+
+EXPERIMENTAL EVALUATION
+
+In this section, we present results of experiments assessing the efficiency and effectiveness of the Locality-Sensitive, Re-use Promoting Approximate Personalized PageRank (LR-PPR) algorithm. Table 1 provides overviews of the three data sets (from http : //snap.stanford.edu/data/ ) considered in the experiments. We considered graphs with different sizes and edge densities. We also varied numbers of seeds and the distances between the seeds (thereby varying the overlaps among seed localities). We also considered seed neighborhoods (or localities) of different sizes. Experiments were carried out using a 4-core Intel Core i5-2400, 3.10GHz, machine with 8GB memory and 64-bit Windows 7 Enterprise. Codes were executed using Matlab 7.11.0(2010b). All experiments were run 10 times and averages are reported.
+
+which measures the agreement between two rankings (nodes with the same score are assigned the average of their positions in the ranking). Here, x and y are rankings by two algorithms and x ¯ and y ¯ are average ranks. To compute the rank coefficient, a portion of the highest ranked nodes in the merged graph according to x are considered. As default, we considered 10% highest ranked nodes; but we also varied the target percentage (5%, 10%, 25%, 50%, 75%) to observe how the accuracy varies with result size. Memory: We also report the amount of data read from the cache.
+
+3.3 Results and Discussions
+Table 2 presents experimental results for FastRWR, L-PPR, and LR-PPR. First of all, all three algorithms are much faster than Global PPR. As expected, in small data sets (Epinions and Slashdot) FastRWR works faster than L-PPR and LR-PPR, though in many cases, it requires more memory. In large data sets, however, L-PPR and LR-PPR significantly outperform FastRWR in terms of query processing efficiency and run-time memory requirement. In terms of accuracy, the proposed locality sensitive techniques, L-PPR and LR-PPR, constantly outperform FastRWR. This is because, FastRWR tries to approximate the whole graph, whereas the proposed algorithms focus on the relevant localities. FastRWR requires large number of partitions to ensure that the intermediary metadata (which requires dense matrix representation) fits into memory and this negatively impacts accuracy. Our localitysensitive algorithms, L-PPR and LR-PPR, avoid this and provide high accuracy with low memory consumption, especially in large graphs, like WikiTalk. Figure 6 confirms that the accuracies of L-PPR and LR-PPR both stay high as we consider larger numbers of top ranked network nodes for accuracy assessment, whereas the accuracy of FastRWR suffers significantly when we consider larger portions of the merged locality graph. Figure 7 studies the execution time behavior for L-PPR, LRPPR, and FastRWR for different number of seed nodes. As the figure shows, the time cost increases for both L-PPR and LR-PPR algorithms as the number of seeds increases. But, the cost of LRPPR (which leverages re-use) increases much slower than the cost of L-PPR and both remain significantly cheaper than FastRWR.
+
+3.1 Alternative Approaches
+Global PPR: This is the default approach where the entire graph is used for PPR computation. We compute the PPR scores by solving the equation presented in Section 1.1. FastRWR: This is an approximation algorithm, referred to as NB_LIN in [22]. The algorithm reduces query execution times by partitioning the graph into subgraphs and preprocessing each partition. The pre-computed files are stored on disk and loaded to the memory during the query stage. To be fair to FastRWR, we selected the number of partitions in a way that minimizes its execution time and memory and maximizes its quality. L-PPR: This is our locality sensitive algorithm, where instead of using the whole graph, we use the localized graph created by combining the locality nodes and edges as described in Section 2.2. Once the localized transition matrix is created, the PPR scores are computed by solving the equation presented in Section 1.1. LR-PPR: This is the locality sensitive and re-use promoting algorithm proposed described in detail in Section 2.4. The restart probability,  , is set to 0.15 for all approaches.
+
+3.2 Evaluation Measures
+Efficiency: This is the amount of time taken to load the relevant (cached) data from the disk plus the time needed to carry out the operations to obtain the PPR scores.
+
+Table 1: Data sets
+Data Set Epinions SlashDot WikiTalk Overall Graph Characteristics # nodes # edges 76K 500K 82K 870K 2.4M 5M Seeds Data set Epinions 76K nodes 500K edges SlashDot 82K nodes 870K edges WikiTalk 2.4M nodes 5M edges # seeds 2 2 3 3 2 2 3 3 2 2 3 3 Dist (#hops) 3 4 3 4 3 4 3 4 3 4 3 4 Locality Graph Characteristics # nodes per neighborhood # edges per neighborhood from 200 to 2000 from 10K to 75K from 700 to 5000 from 10K to 75K from 700 to 6000 from 10K to 75K Execution Time (sec.) Global PPR 27.81 27.58 27.30 27.90 21.79 21.85 21.74 22.93 681.08 693.44 701.34 706.26 Fast RWR 0.21 0.22 0.21 0.22 0.35 0.35 0.36 0.38 16.28 16.22 16.32 16.34 LPPR 0.37 0.51 0.58 0.76 0.70 0.78 1.12 1.39 0.75 0.73 0.75 0.78 LRPPR 0.14 0.20 0.26 0.36 0.53 0.42 0.95 0.83 0.37 0.37 0.37 0.36 # seeds 2-3 2-3 2-8 Seeds seed distances (hops) 3-4 3-4 3-4
+
+Table 2: Summary of the results for different configurations (in all scenarios, individual seed localities have 75K edges)
+Merged Network Avg # nodes 2.2K 3.0K 2.7K 3.5K 5.9K 5.7K 7.1K 7.2K 5.7K 5.8K 6.3K 6.7K Avg # edges 90K 99K 108K 120K 117K 125K 141K 159K 102K 100K 101K 103K Top-10% Spearman's Correl. (vs. Global PPR) Fast LLRRWR PPR PPR 0.963 0.997 0.990 0.960 0.998 0.990 0.967 0.998 0.990 0.967 0.997 0.991 0.955 0.973 0.990 0.943 0.965 0.983 0.957 0.971 0.990 0.958 0.976 0.986 0.868 0.958 0.944 0.870 0.930 0.909 0.877 0.937 0.902 0.869 0.976 0.967 Memory usage(MB) Fast RWR 178.3 LPPR 2.9 3.1 4.6 4.7 5.0 4.9 7.6 7.2 15.5 16.2 24.0 28.7 LRPPR 36.3 55.2 57.6 77.7 228.1 172.8 325.9 256.0 114.5 120.7 211.6 197.5
+
+302.1
+
+1429.0
+
+     #  
+   "* +( (* 
+!
+',) ',) ',*
+
+
+',+
+
+
+
+
+
+&- &*
+  
+
+
+(&
+
+)& &
+
+*& '( ',
+
+
+#  
+ 
+
+
+
+Figure 7: Execution times of L-PPR, LR-PPR, and FastRWR for different numbers of seed nodes
+
+4.
+
+CONCLUSIONS
+
+In this paper, we presented a Locality-sensitive, Re-use promoting, approximate Personalized PageRank (LR-PPR) algorithm for efficiently computing the PPR values relying on the localities of the seed nodes on the graph. Instead of performing a monolithic computation for the given seed node set using the entire graph, LRPPR divides the work into localities of the seeds and caches the intermediary results obtained during the computation. These cached results can then be reused for future queries sharing seed nodes. Experiments showed that the proposed LR-PPR approach provides significant gains in execution time relative to existing approximate PPR computation techniques, where the PPR scores are computed from scratch using the whole network. LR-PPR also outperforms L-PPR, where the PPR scores are computed in a locality-sensitive manner, but without significant re-use.
+
+5.
+
+REFERENCES
+[1] K. Avrachenkov, N. Litvak, D. Nemirovsky, E. Smirnova, and M. Sokol. Quick Detection of Top-k Personalized PageRank Lists. WAW'11, 2011. [2] B.Bahmani, K.Chakrabarti, and D. Xin. Fast personalized PageRank on MapReduce. In SIGMOD'11. 973-984. 2011. [3] B.Bahmani, A.Chowdhury, and A.Goel. Fast incremental and personalized PageRank. PVLDB. 4, 3, 173-184, 2010. [4] A. Balmin, V. Hristidis, and Y.Papakonstantinou. ObjectRank: Authority-based keyword search in databases. VLDB, 2004.
+
+[5] S. Brin and L. Page. "The anatomy of a large-scale hypertextual Web search engine". Computer Networks and ISDN Systems 30: 107-117, 1998. [6] K. S. Candan and W.-S. Li. Using random walks for mining web document associations. In PAKDD, pp. 294-305, 2000. [7] K. S. Candan and W.-S. Li. Reasoning for Web document associations and its applications in site map construction. Data Knowl. Eng. 43(2), 2002. [8] K. Csalogany, D.Fogaras, B. Racz, and T. Sarlos. Towards Scaling Fully Personalized PageRank: Algorithms, Lower Bounds, and Experiments Internet Math. 2,3, 333-358, 2005. [9] F. Fouss, A. Pirotte, J. Renders, and M. Saerens. Random-walk computation of similarities between nodes of a graph with application to collaborative recommendation. TKDE, 2007. [10] Y. Fujiwara, M. Nakatsuji, M. Onizuka, and M. Kitsuregawa. Fast and exact top-k search for random walk with restart. PVLDB. 5, 5, 442-453. 2012. [11] M. Gupta, A. Pathak, and S. Chakrabarti. Fast algorithms for Top-k Personalized PageRank Queries. In WWW'08. 1225-1226. 2008. [12] T.H. Haveliwala. Topic-sensitive PageRank. WWW'02. 517-526. 2002. [13] G. Jeh and J. Widom. Scaling personalized web search. Stanford University Technical Report. 2002. [14] S.D. Kamvar, T.H. Haveliwala, C.D. Manning, and G.H. Golub. Extrapolation methods for accelerating PageRank computations. In WWW'03 261-270. 2003. [15] G. Malewicz, et al. Pregel: a system for large-scale graph processing. SIGMOD'10, 2010. [16] Q. Mei, D. Zhou, and K. Church. Query suggestion using hitting time, CIKM'08, 2008. [17] C. Palmer, P. Gibbons, and C. Faloutsos. Anf: a fast and scalable tool for data mining in massive graphs. KDD'02, 2002. [18] W. Piegorsch and G. E. Casella. Inverting a sum of matrices. In SIAM Review, 1990. [19] P. Sarkar, A.W. Moore, and A. Prakash. Fast incremental proximity search in large graphs. ICML'08, 2008. [20] H. H. Song, et al. Scalable proximity estimation and link prediction in online social networks. In Internet Measurement Conference, pp. 322­335. 2009. [21] H. Tong, C. Faloutsos, and Y. Koren. Fast direction-aware proximity for graph mining. KDD, pp. 747­756, 2007. [22] H. Tong, C. Faloutsos, and J.-Y. Pan. Fast Random Walk with Restart and Its Applications. In ICDM'06. 613-622. 2006. [23] Y. Wu and L. Raschid, ApproxRank: Estimating Rank for a Subgraph, ICDE'09, 54-65, 2009.
+
+    !
+
+

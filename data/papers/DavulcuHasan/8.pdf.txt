@@ -1,0 +1,1184 @@
+SIAM J. SCI. COMPUT. Vol. 37, No. 1, pp. A488­A514
+
+c 2015 Society for Industrial and Applied Mathematics
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ORTHOGONAL RANK-ONE MATRIX PURSUIT FOR LOW RANK MATRIX COMPLETION
+ZHENG WANG , MING-JUN LAI , ZHAOSONG LU§ , WEI FAN¶, HASAN DAVULCU ,
+AND JIEPING YE#
+
+Abstract. In this paper, we propose an efficient and scalable low rank matrix completion algorithm. The key idea is to extend the orthogonal matching pursuit method from the vector case to the matrix case. We further propose an economic version of our algorithm by introducing a novel weight updating rule to reduce the time and storage complexity. Both versions are computationally inexpensive for each matrix pursuit iteration and find satisfactory results in a few iterations. Another advantage of our proposed algorithm is that it has only one tunable parameter, which is the rank. It is easy to understand and to use by the user. This becomes especially important in large-scale learning problems. In addition, we rigorously show that both versions achieve a linear convergence rate, which is significantly better than the previous known results. We also empirically compare the proposed algorithms with several state-of-the-art matrix completion algorithms on many real-world datasets, including the large-scale recommendation dataset Netflix as well as the MovieLens datasets. Numerical results show that our proposed algorithm is more efficient than competing algorithms while achieving similar or better prediction performance. Key words. low rank, singular value decomposition, rank minimization, matrix completion, matching pursuit AMS subject classifications. 15A83, 68W40, 90C06 DOI. 10.1137/130934271
+
+1. Introduction. Recently, low rank matrix learning has attracted significant attention in machine learning and data mining due to its wide range of applications, such as collaborative filtering, dimensionality reduction, compressed sensing, multiclass learning, and multitask learning. See [1, 2, 3, 7, 9, 23, 34, 40, 37] and the references therein. In this paper, we consider the general form of low rank matrix completion: given a partially observed real-valued matrix Y  n×m , the low rank matrix completion problem is to find a matrix X  n×m with minimum rank that best approximates the matrix Y on the observed elements. The mathematical formulation is given by (1.1)
+X
+
+min s.t.
+
+n ×m
+
+rank(X) P (X) = P (Y),
+
+ Submitted to the journal's Methods and Algorithms for Scientific Computing section August 26, 2013; accepted for publication (in revised form) November 18, 2014; published electronically February 19, 2015. This research was partially supported by NSF (IIS-0953662, CCF-1025177, IIS-1421057), NIH (LM010730), China 973 Fundamental R&D Program (2014CB340304), NSERC Discovery Grant and a collaboration grant from the Simons Foundation. http://www.siam.org/journals/sisc/37-1/93427.html  Department of Computational Medicine and Bioinformatics, University of Michigan, Ann Arbor, MI 48109 (zhengwang@umich.edu).  Department of Mathematics, University of Georgia, Athens, GA 30602 (mjlai@math.uga.edu). § Department of Mathematics, Simon Fraser University, Burnaby, BC V5A 156, Canada (zhaosong@sfu.ca). ¶ Huawei Noah's Ark Lab, Units 520­530 Core Building 2, Hong Kong Science Park, Hong Kong (wei.fan@gmail.com). School of Computing, Informatics, and Decision Systems Engineering, Arizona State University, Tempe, AZ 85287 (hasandavulcu@asu.edu). # Department of Computational Medicine and Bioinformatics, and Department of Electrical Engineering and Computer Science, University of Michigan, Ann Arbor, MI 48109 (jpye@umich.edu).
+
+A488
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A489
+
+where  is the set of all index pairs (i, j ) of observed entries, and P is the orthogonal projector onto the span of matrices vanishing outside of .
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1.1. Related works. As it is intractable to minimize the matrix rank exactly in the general case, many approximate solutions have been proposed to attack the problem (1.1) (cf., e.g., [7, 24, 28]). A widely used convex relaxation of matrix rank is the trace norm or nuclear norm [7]. The matrix trace norm is defined by the Schatten p-norm with p = 1. For matrix X with rank r, its Schatten p-norm is defined by r p 1/p ) , where {i } are the singular values of X and without loss of generality ( i=1 i we assume they are sorted in descending order. Thus, the trace norm of X is the 1 r norm of the matrix spectrum as ||X|| = i=1 |i |. Then the convex relaxation for problem (1.1) is given by (1.2)
+XRn×m
+
+min s.t.
+
+||X|| P (X) = P (Y).
+
+Cai, Cand` es, and Shen [6] propose an algorithm to solve (1.2) based on soft singular value thresholding (SVT). Keshavan and Oh [21] and Jain, Meka, and Dhillon [18] develop more efficient algorithms by using the top-k singular pairs. Many other algorithms have been developed to solve the trace norm penalized problem: (1.3)
+XRn×m
+
+min
+
+||P (X) - P (Y)||2 F + ||X|| .
+
+Ji and Ye [20], Liu, Sun, and Toh [27], and Toh and Yun [44] independently propose to employ the proximal gradient algorithm to improve the algorithm of [6] by significantly  reducing the number of iterations. They obtain an -accurate solution in O(1/ ) steps. More efficient soft singular vector thresholding algorithms are proposed in [29, 30] by investigating the factorization property of the estimated matrix. Each step of the algorithms requires the computation of a partial singular value decomposition (SVD) for a dense matrix. In addition, several methods approximate the trace norm using its variational characterizations [32, 40, 46, 37] and proceed by alternating optimization. However, these methods lack global convergence guarantees. Solving these low rank or trace norm problems is computationally expensive for large matrices, as it involves computing SVD. Most of the methods above involve the computation of SVD or truncated SVD iteratively, which is not scalable to largescale problems. How to solve these problems efficiently and accurately for large-scale problems has attracted much attention in recent years. Recently, the coordinate gradient descent method has been demonstrated to be efficient in solving sparse learning problems in the vector case [11, 39, 47, 48]. The key idea is to solve a very simple one-dimensional problem (for one coordinate) in each iteration. One natural question is whether and how such a method can be applied to solve the matrix completion problem. Some progress has been made recently in this direction. Dud´ ik, Harchaoui, and Malick [9] propose a coordinate gradient descent solution for the trace norm penalized problem. They recast the nonsmooth objective in problem (1.3) as a smooth one in an infinite dimensional rank-one matrix space, then apply the coordinate gradient algorithm on the collection of rank-one matrices. Zhang, Yu, and Schuurmann [49] further improve the efficiency using the boosting method, and the improved algorithm guarantees an -accuracy within O(1/ ) iterations. Although these algorithms need slightly more iterations than the proximal
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A490
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+
+methods, they are more scalable as they only need to compute the top singular vector pair in each iteration. Note that the top singular vector pair can be computed efficiently by the power method or Lanczos iterations [13]. Jaggi and Sulovsk´ y [17] propose an algorithm which achieves the same iteration complexity as the algorithm in [49] by directly applying Hazan's algorithm [15]. Tewari, Ravikumar, and Dhillon [42] solve a more general problem based on a greedy algorithm. Shalev-Shwartz, Gonen, and Shamir [38] further reduce the number of iterations based on heuristics without theoretical guarantees. Most methods based on the top singular vector pair include two main steps in each iteration. The first step involves computing the top singular vector pair, and the second step refines the weights of the rank-one matrices formed by all top singular vector pairs obtained up to the current iteration. The main differences among these algorithms lie in how they refine the weights. Jaggi's algorithm (JS) [17] directly applies Hazan's algorithm [15], which relies on the Frank­Wolfe algorithm [10]. It updates the weights with a small step size and does not consider further refinement. It does not choose the optimal weights in each step, which leads to a slow convergence rate. Similar to JS, Tewari, Ravikumar, and Dhillon [42] use a small update step size for a general structure constrained problem. The greedy efficient component optimization (GECO) [38] optimizes the weights by solving another time-consuming optimization problem. It involves a smaller number of iterations than the JS algorithm. However, the sophisticated weight refinement leads to a higher total computational cost. The lifted coordinate gradient descent algorithm [9] updates the weights with a constant step size in each iteration and conducts a LASSO-type algorithm [43] to fully correct the weights. The weights for the basis update are difficult to tune as a large value leads to divergence and a small value makes the algorithm slow [49]. The matrix norm boosting approach (Boost) [49] learns the update weights and designs a local refinement step by a nonconvex optimization problem which is solved by alternating optimization. It has a sublinear convergence rate. We summarize their common drawbacks as follows: · Some weight refinement steps are inefficient, resulting in a slow convergence rate. The current best convergence rate is O(1/ ). Some refinement steps themselves contain computationally expensive iterations [9, 49], which do not scale to large-scale data. · They have heuristic-based tunable parameters which are not easy to use. However, these parameters severely affect their convergence speed and the approximation result. In some algorithms, an improper parameter even makes the algorithm diverge [6, 9]. In this paper, we present a simple and efficient algorithm to solve the low rank matrix completion problem. The key idea is to extend the orthogonal matching pursuit (OMP) procedure [35] from the vector case to the matrix case. In each iteration, a rank-one basis matrix is generated by the left and right top singular vectors of the current approximation residual. In the standard version of the proposed algorithm, we fully update the weights for all rank-one matrices in the current basis set at the end of each iteration; this is achieved by performing an orthogonal projection of the observation matrix onto the spanning subspace of those rank-one matrices. The most time-consuming step of the proposed algorithm is to calculate the top singular vector pair of a sparse matrix, which involves O(||) operations in each iteration. An appealing feature of the proposed algorithm is that it has a linear convergence rate. This is different from traditional OMP or weak orthogonal greedy algorithms, whose convergence rate for sparse vector recovery is sublinear, as shown in [26]. See also
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A491
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+[8], [41], [45] for an extensive study on various greedy algorithms. With this rate of convergence, we only need O(log(1/ )) iterations for achieving an -accuracy solution. One drawback of the standard algorithm is that it needs to store all rank-one matrices in the current basis set for full weight updating, which contains r|| elements in the rth iteration. This makes the storage complexity of the algorithm dependent on the number of iterations, which restricts the approximation rank especially for largescale matrices. To tackle this problem, we propose an economic weight updating rule for this algorithm. In this economic version of the proposed algorithm, we only track two matrices in each iteration. One is the current estimated matrix and the other is the pursued rank-one matrix. When restricted to the observations in , each has || nonzero elements. Thus the storage requirement, i.e., 2||, remains the same in different iterations, which is the same as the greedy algorithms [17, 42]. Interestingly, we show that using this economic updating rule we still retain the linear convergence rate. Besides the convergence property, we also analyze the recovery guarantee of our proposed algorithm. Specifically, we extend our proposed algorithm to a more general matrix sensing problem and show the recovery guarantee of the proposed algorithm under the rank-restricted isometry property [25]. We verify the efficiency of our algorithm empirically on large-scale matrix completion problems, such as MovieLens [31] and Netflix [4, 5]. The main contributions of our paper are as follows: · We propose a computationally efficient and scalable algorithm for matrix completion, which extends OMP from the vector case to the matrix case. · We theoretically prove the linear convergence rate of our algorithm. As a result, we only need O(log(1/ )) iterations to obtain an -accuracy solution, and in each iteration we only need to compute the top singular vector pair, which can be computed efficiently. · We further reduce the storage complexity of our algorithm based on an economic weight updating rule while retaining the linear convergence rate. This version of our algorithm has a constant storage complexity which is independent of the approximation rank and is more practical for large-scale matrices. · We extend our proposed algorithm to a more general matrix sensing problem and show the recovery guarantee of the proposed algorithm under the rankrestricted isometry property. · Both versions of our algorithm have only one free parameter, i.e., the rank of the estimated matrix. The proposed algorithm is guaranteed to converge, i.e., no risk of divergence. 1.2. Notation and organization. Let Y = (y1 , . . . , ym )  n×m be an n × m real matrix, and let   {1, . . . , n} × {1, . . . , m} denote the indices of the observed entries of Y. P is the projection operator onto the space spanned by the matrices vanishing outside of  so that the (i, j )th component of P (Y) equals to Yi,j for (i, j )   and zero otherwise. The Frobenius norm of Y is defined as ||Y||F =
+i,j 2 . Yi,j T T T Let vec(Y) = (y1 , . . . , ym ) denote a vector reshaped from matrix Y by concate = vec (Y) = {(y1 , . . . , y|| )T  i  } nating all its column vectors. Let y denote a vector generated by concatenating all observed elements of Y indexed by . The Frobenius inner product of two matrices X and Y is defined as X, Y = trace(XT Y), which also equals the componentwise inner product of the corresponding vectors as vec(X), vec(Y) . Given a matrix A  n×m , we denote P (A) by A . For any two matrices A, B  n×m , we define A, B  = A , B and
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A492
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+A  = A, A  . Without further declaration, the matrix norm refers to the Frobenius norm, which is also written as A = A, A . The rest of the paper is organized as follows. We present the standard version of our algorithm in section 2. Section 3 analyzes the convergence rate of the standard version of our algorithm; we further propose an economic version of our algorithm and prove its linear convergence rate in Section 4. Section 5 extends the proposed algorithm to a more general matrix sensing case and presents its guarantee of finding the optimal solution under the rank-restricted isometry property condition. In section 6 we analyze the stability of both versions of our algorithm; empirical evaluations are presented in section 7 to verify the efficiency and effectiveness of our algorithm. We finally conclude our paper in section 8. 2. Orthogonal rank-one matrix pursuit. It is well-known that any matrix X  n×m can be written as a linear combination of rank-one matrices, that is, (2.1) X = M( ) =
+iI
+
+i M i ,
+
+where {Mi : i  I } is the set of all n × m rank-one matrices with unit Frobenius norm. Clearly, there are infinitely many choices of Mi 's. Such a representation can be obtained via the standard SVD of X. The original low rank matrix approximation problem aims to minimize the zeronorm of  subject to the constraint (2.2) min || ||0
+
+
+s.t.
+
+P (M( )) = P (Y),
+
+where || ||0 denotes the number of nonzero elements of the vector  . If we reformulate the problem as min (2.3)
+
+
+||P (M( )) - P (Y)||2 F || ||0  r,
+
+s.t.
+
+we could solve it by an OMP type algorithm using rank-one matrices as the basis. In particular, we are to find a suitable subset of overcomplete rank-one matrix coordinates and learn the weight for each selected coordinate. This is achieved by executing two steps alternatively: one is to pursue the basis, and the other is to learn the weight of the basis. Suppose that after the (k - 1)th iteration, the rank-one basis matrices M1 , . . . , Mk-1 and their current weight vector  k-1 are already computed. In the k th iteration, we are to pursue a new rank-one basis matrix Mk with unit Frobenius norm, which is mostly correlated with the current observed regression residual Rk = P (Y) - Xk-1 , where Xk-1 = (M( k-1 )) =
+k -1 i=1 k -1 i (Mi ) .
+
+Therefore, Mk can be chosen to be an optimal solution of the following problem: (2.4) max { M, Rk : rank(M) = 1, M
+M F
+
+= 1} .
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A493
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Notice that each rank-one matrix M with unit Frobenius norm can be written as the product of two unit vectors, namely, M = uvT for some u  n and v  m with u = v = 1. We then see that problem (2.4) can be equivalently reformulated as (2.5) max{uT Rk v :
+u,v
+
+u = v = 1} .
+
+Clearly, the optimal solution (u , v ) of problem (2.5) is a pair of top left and right singular vectors of Rk . It can be efficiently computed by the power method [17, 9]. T . The new rank-one basis matrix Mk is then readily available by setting Mk = u v k After finding the new rank-one basis matrix Mk , we update the weights  for all currently available basis matrices {M1 , . . . , Mk } by solving the following least squares regression problem:
+k
+
+(2.6)
+
+
+
+min ||
+k
+
+i Mi - Y||2 .
+
+i=1
+
+ and m  i , we can easily see By reshaping the matrices (Y) and (Mi ) into vectors y that the optimal solution  k of (2.6) is given by (2.7) ¯ -1 M ¯T ¯T ,  k = (M k Mk ) ky
+
+¯ k = [m  1, . . . , m  k ] is the matrix formed by all reshaped basis vectors. The where M ¯ k is the total number of observed entries. It is computationally row size of matrix M expensive to directly calculate the matrix multiplication. We simplify this step by an incremental process and give the implementation details in the appendix. We run the above two steps iteratively until some desired stopping condition is satisfied. We can terminate the method based on the rank of the estimated matrix or the approximation residual. In particular, one can choose a preferred rank of the solution matrix. Alternatively, one can stop the method once the residual Rk is less than a tolerance parameter . The main steps of orthogonal rank-one matrix pursuit (OR1MP) are given in Algorithm 1. Algorithm 1. OR1MP. Input: Y and stopping criterion. Initialize: Set X0 = 0,  0 = 0 and k = 1. repeat Step 1: Find a pair of top left and right singular vectors (uk , vk ) of the observed T residual matrix Rk = Y - Xk-1 and set Mk = uk vk . k Step 2: Compute the weight vector  using the closed form least squares solu¯ k )-1 M ¯ Ty ¯ TM tion  k = (M k k . k k Step 3: Set Xk = i=1 i (Mi ) and k  k + 1. until stopping criterion is satisfied ^ = k  k Mi . Output: Constructed matrix Y i=1 i Remark 2.1. In our algorithm, we adapt OMP on the observed part of the matrix. This is similar to the GECO algorithm. However, GECO constructs the estimated matrix by projecting the observation matrix onto a much larger subspace, which is a product of two subspaces spanned by all left singular vectors and all right singular vectors obtained up to the current iteration. So it has a much higher computational complexity. Lee and Bresler [25] recently proposed the ADMiRA algorithm, which is
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A494
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+also a greedy approach. In each step it first chooses 2r components by top-2r truncated SVD and then uses another top-r truncated SVD to obtain a rank-r estimated matrix. Thus, the ADMiRA algorithm is computationally more expensive than the proposed algorithm. The difference between the proposed algorithm and ADMiRA is somewhat similar to the difference between OMP [35] for learning sparse vectors and CoSaMP [33]. In addition, the performance guarantees (including recovery guarantee and convergence property) of ADMiRA rely on strong assumptions, i.e., the matrix involved in the loss function satisfies a rank-restricted isometry property [25]. 3. Convergence analysis of Algorithm 1. In this section, we will show that Algorithm 1 is convergent and achieves a linear convergence rate. This result is given in the following theorem. Theorem 3.1. OR1MP satisfies ||Rk ||  1 1- min(m, n)
+k -1
+
+Y
+
+
+
+k  1.
+
+Before proving Theorem 3.1, we need to establish some useful and preparatory properties of Algorithm 1. The first property says that Rk+1 is perpendicular to all previously generated Mi for i = 1, . . . , k . Property 3.2. Rk+1 , Mi = 0 for i = 1, . . . , k . Proof. Recall that  k is the optimal solution of problem (2.6). By the first-order optimality condition, one has
+k
+
+Y-
+i=1
+
+k i Mi , Mi 
+
+= 0 for i = 1, . . . , k,
+k
+
+k which together with Rk = Y - Xk-1 and Xk = i=1 i (Mi ) implies that Rk+1 , Mi = 0 for i = 1, . . . , k . The following property shows that as the number of rank-one basis matrices Mi increases during our learning process, the residual Rk does not increase. Property 3.3. Rk+1  Rk for all k  1. Proof. We observe that for all k  1, 2 k 2 } 2 }
+
+Rk+1
+
+= min { Y -
+
+k
+
+i M i
+i=1 k -1
+
+ min { Y -
+
+k -1
+
+i M i
+i=1
+
+=
+
+Rk
+
+2
+
+,
+
+and hence the conclusion holds. We next establish that {(Mi ) }k i=1 is linearly independent unless Rk = 0. It follows that formula (2.7) is well-defined and hence  k is uniquely defined before the algorithm stops. ¯ i has a full Property 3.4. Suppose that Rk = 0 for some k  1. Then, M column rank for all i  k . Proof. Using Property 3.3 and the assumption Rk = 0 for some k  1, we see that Ri = 0 for all i  k . We now prove the statement of this lemma by induction ¯ 1 = 0. Hence the conclusion holds for on i. Indeed, since R1 = 0, we clearly have M
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A495
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+i = 1. We now assume that it holds for i - 1 < k and need to show that it also holds ¯ i-1 has a full column rank. Suppose for for i  k . By the induction hypothesis, M ¯ contradiction that Mi does not have a full column rank. Then, there exists   i-1 such that
+i-1
+
+(Mi ) =
+j =1
+
+j (Mj ) ,
+
+which together with Property 3.2 implies that Ri , Mi = 0. It follows that 1 (Ri ) = uT i Ri vi = Ri , Mi = 0, and hence Ri = 0, which contradicts the fact that Rj = 0 for all j  i. Therefore, ¯ i has a full column rank and the conclusion holds for general i. M We next build a relationship between two consecutive residuals Rk+1 and Rk . k -1 = 0 and let For convenience, define k  k =  k -1 +  k . In view of (2.6), one can observe that
+k
+
+(3.1) Let
+
+ = arg min ||
+k  i=1
+
+i Mi - Rk ||2 .
+
+k
+
+(3.2)
+
+Lk =
+i=1
+
+k i (Mi ) .
+
+By the definition of Xk , one can also observe that Xk = Xk-1 + Lk , Rk+1 = Rk - Lk . Property 3.5. ||Rk+1 ||2 = ||Rk ||2 - ||Lk ||2 and ||Lk ||2  Mk , Rk 2 , where Lk is defined in (3.2). k (Mi ) , it follows from Property 3.2 that Rk+1 , Lk = Proof. Since Lk = ik i 0. We then have ||Rk+1 ||2 = ||Rk - Lk ||2 = ||Rk ||2 - 2 Rk , Lk + ||Lk ||2 = ||Rk ||2 - 2 Rk+1 + Lk , Lk + ||Lk ||2 = ||Rk ||2 - 2 Lk , Lk + ||Lk ||2 = ||Rk ||2 - ||Lk ||2 . We next bound Lk 2 from below. If Rk = 0, ||Lk ||2  Mk , Rk 2 clearly holds. We now suppose throughout the remaining proof that Rk = 0. It then follows from ¯ k has a full column rank. Using this fact and (3.1), we have Property 3.4 that M ¯ ¯T k = M k Mk
+-1
+
+¯T  k, M kr
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A496
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+ik k i (Mi ) ,
+
+ k is the reshaped residual vector of Rk . Invoking that Lk = where r we then obtain
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+(3.3)
+
+¯ ¯ T ¯ -1 M ¯T  k. T ||Lk ||2 = r k Mk (Mk Mk ) kr
+
+¯ k = QU be the QR factorization of M ¯ k , where QT Q = I and U is a k × k Let M ¯ k )k = m  k , where nonsingular upper triangular matrix. One can observe that (M ¯ ¯  (Mk )k denotes the k th column of the matrix Mk and mk is the reshaped vector of T ¯ k )k  1. Due to QT Q = I, (Mk ) . Recall that Mk = uk vk = 1. Hence, (M ¯ Mk = QU, and the definition of U, we have 0 < |Ukk |  In addition, by Property 3.2, we have (3.4) ¯T  k = [0, . . . , 0, Mk , Rk ]T . M kr
+2 T -1 ¯ T ¯ k T Mk r = r k Mk (U U)
+
+Uk
+
+=
+
+¯ k )k (M
+
+ 1.
+
+¯ k = QU into (3.3), and using QT Q = I and (3.4), we obtain that Substituting M Lk = [0, . . . , 0, Mk , Rk ] U-1 U-T [0, . . . , 0, Mk , Rk ] = Mk , Rk 2 /(Ukk )2  Mk , Rk 2 , where the last equality follows since U is upper triangular and the last inequality is due to |Ukk |  1. We are now ready to prove Theorem 3.1. Proof of Theorem 3.1. Using the definition of Mk , we have Mk , Rk = 
+T uk vk , Rk T
+
+= 1 (Rk ) Rk 2  rank(Rk ) Rk 2 . min(m, n)
+2
+
+2 (R ) i k = rank(Rk ) i
+
+Using this inequality and Property 3.5, we obtain that ||Rk+1 ||2 = ||Rk ||2 - ||Lk ||2  ||Rk ||2 - Mk , Rk  (1 -
+1 2 min(m,n) )||Rk || . 2 ,
+
+In view of this relation and the fact that R1 = Y ||Rk ||  1- 1 min(m, n)
+
+we easily conclude that Y
+.
+
+k -1
+
+This completes the proof. Remark 3.6. If  is the entire set of all indices of {(i, j ), i = 1, . . . , n, j = 1, . . . , m}, our OR1MP algorithm equals the standard SVD using the power method. In particular, when  is the set of all indices while the given entries are noisy values of an exact matrix, our OR1MP algorithm can help remove the noise. Remark 3.7. In a standard study of the convergence rate of OMP or the orthogonal greedy algorithm, one can only get | Mk , Rk |  Rk 2 , which leads to a sublinear convergence. Our Mk is a data dependent construction which is based on the top left and right singular vectors of the residual matrix Rk . It thus has a better estimate which gives us the linear convergence.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A497
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Algorithm 2. EOR1MP. Input: Y and stopping criterion. Initialize: Set X0 = 0,  0 = 0 and k = 1. repeat Step 1: Find a pair of top left and right singular vectors (uk , vk ) of the observed T residual matrix Rk = Y - Xk-1 and set Mk = uk vk . k Step 2: Compute the optimal weights  for Xk-1 and Mk by solving min ||1 Xk-1 + 2 (Mk ) - Y ||2 .
+k -1 k k k k k 1 for i < k ; Step 3: Set Xk = k 1 Xk-1 + 2 (Mk ) ; k = 2 and i = i k  k + 1. until stopping criterion is satisfied ^ = k  k Mi . Output: Constructed matrix Y i=1 i 
+
+4. An economic OR1MP algorithm. The proposed OR1MP algorithm has to track all pursued bases and save them in the memory. It demands O(r||) storage complexity to obtain a rank-r estimated matrix. For large-scale problems, such storage requirement is not negligible and restricts the rank of the matrix to be estimated. To adapt our algorithm to large-scale problems with a large approximation rank, we simplify the orthogonal projection step by only tracking the estimated matrix Xk-1 and the rank-one update matrix Mk . In this case, we only need to estimate the weights for these two matrices by solving the following least squares problem: (4.1) k = arg
+={1 ,2 }
+
+min
+
+||1 Xk-1 + 2 Mk - Y||2 .
+
+This still fully corrects all weights of the existed bases, though the correction is suboptimal. If we write the estimated matrix as a linear combination of the bases, we k -1 k k k k k 1 , for i < k . The detailed have Xk = k i=1 i (Mi ) with k = 2 and i = i procedure of this simplified method is given in Algorithm 2. The proposed economic orthogonal rank-one matrix pursuit algorithm (EOR1MP) uses the same amount of storage as the greedy algorithms [17, 42], which is significantly smaller than that required by our OR1MP algorithm, i.e., Algorithm 1. Interestingly, we can show that the EOR1MP algorithm is still convergent and retains the linear convergence rate. The main result is given in the following theorem. Theorem 4.1. Algorithm 2, the EOR1MP algorithm, satisfies ||Rk ||  1 1- min(m, n)
+k -1
+
+Y
+
+
+
+k  1.
+
+Before proving Theorem 4.1, we present several useful properties of our Algorithm 2. The first property says that Rk+1 is perpendicular to matrix Xk-1 and matrix Mk . Property 4.2. Rk+1 , Xk-1 = 0 and Rk+1 , Mk = 0. Proof. Recall that k is the optimal solution of problem (4.1). By the first-order optimality condition according to Xk-1 and Mk , one has
+k Y - k 1 Xk-1 - 2 Mk , Xk-1 
+
+=0
+
+and
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A498
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+k Y - k 1 Xk-1 - 2 Mk , Mk 
+
+= 0,
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+which together with Rk = Y - Xk-1 imply that Rk+1 , Xk-1 = 0 and Rk+1 , Mk = 0. Property 4.3. Rk+1 2 = Y 2 - Xk 2 for all k  1. Proof. We observe that for all k  1, Y
+2
+
+= Rk+1 + Xk = Rk+1 = Rk+1
+2
+
+2 2 2
+
++ Xk 2 + Xk
+
++ 2 Rk+1 , Xk
+
+k as Rk+1 , Xk = k 1 Rk+1 , Xk-1 + 2 Rk+1 , Mk = 0, and hence the conclusion holds. The following property shows that as the number of rank-one basis matrices Mi increases during our iterative process, the residual Rk decreases. Property 4.4. Rk+1  Rk for all k  1. Proof. We observe that for all k  1,
+
+Rk
+
+2
+
+= min2 Y - 1 Xk-2 - 2 Mk-1
+
+
+2  2 
+
+-1 -1 = Y - (k Xk-2 + k M k -1 ) 1 2  
+
+-1 -1  min2 Y - 1 (k Xk-2 + k Mk-1 ) - 2 Mk 1 2
+
+2 
+
+= min2 Y - 1 Xk-1 - 2 Mk = Rk+1 2 ,
+
+2 
+
+and hence the conclusion holds. Let Ak = BT k Bk = Xk-1 , Xk-1 Mk , Xk-1 Xk-1 , Mk Mk , Mk
+
+
+1 and Bk = [vec(Xk-1 ), vec((Mk ) )]. The solution of problem (4.1) is k = A- k BT k vec(Y ). We next establish that vec(Xk-1 ) and vec((Mk ) ) are linearly independent unless Rk = 0. It follows that Ak is invertible and hence k is uniquely defined before the algorithm stops. Property 4.5. If Xk-1 =  (Mk ) for some  = 0, then Rk+1 = Rk . Proof. If Xk-1 =  (Mk ) with nonzero  , we get
+
+Rk+1
+
+2
+
+= min2 Y - 1 Xk-1 - 2 Mk
+   
+
+2  2 
+
+= min2 Y - (1 + 2 / )Xk-1 = min Y -  Xk-1
+2 
+
+-1 -1 = min Y - k Xk-2 - k M k -1 1 2
+
+2 
+
+ min Y - 1 Xk-2 - 2 Mk-1 2
+
+
+2 
+
+= Y - Xk-1 = Rk
+2
+
+2 
+
+,
+2
+
+and hence the conclusion holds with Rk
+
+ Rk+1
+
+2
+
+given in Property 4.4.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A499
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Property 4.6. Let 1 (Rk ) be the maximum singular value of Rk . Mk , Rk = for all k  1. 1 (Rk )   Rk
+min(m,n)
+
+Proof. The optimum Mk in our algorithm satisfies Mk , Rk =
+rank(M)=1
+
+max
+
+M, Rk = 1 (Rk ).
+
+Using the fact that rank(Rk )1 (Rk )  Rk and rank(Rk )  min(m, n), we get the conclusion. Property 4.7. Suppose that Rk = 0 for some k  1. Then, Xk-1 =  (Mk ) for all  = 0. Proof. If Xk-1 =  (Mk ) with  = 0, we have Rk+1
+2
+
+= Y - Xk 2  = min2 Y - 1 Xk-1 - 2 Mk
+  
+
+2  2 
+
+= min2 Y - (1 + 2 / )Xk-1 = min Y -  Xk-1 = Y -  k Xk-1 = Rk 2 = Y - Xk-1
+2 . 2  2 
+
+As Rk = 0, we have (Mk ) = 0 and Xk-1 = 0. Then from the above equality, we conclude that  k = 1 is the unique optimal solution of the minimization in terms of  , and thus we obtain its first-order optimality condition: Xk-1 , Rk = 0. However, this contradicts Xk-1 , Rk =  Mk , Rk = 1 (Rk ) = 0. This completes the proof. We next build a relationship between two consecutive residuals Rk+1 and Rk .  2 (R k ) . Property 4.8. Rk+1 2  Rk 2 - M1 k ,Mk  Proof. Rk+1
+2
+
+= min2 Y - 1 Xk-1 - 2 Mk
+
+
+2 
+
+ min Y - Xk-1 - 2 Mk
+2  2 
+
+2 
+
+= min Rk - 2 Mk This has a closed form solution as  2 = into the formulation, we get Rk+1
+2 Rk ,M k Mk ,Mk  .
+
+2 .
+
+Plugging this optimum  2 back
+2 
+
+ Rk -
+2
+
+Rk , Mk Mk Mk , Mk  - - Rk , Mk Mk , Mk
+2 
+
+= Rk
+
+= Rk This completes the proof.
+
+2
+
+2 (Rk ) 1 . Mk , Mk 
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A500
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+We are now ready to prove Theorem 4.1. Proof of Theorem 4.1. Using the definition of Mk with its normalization property Mk , Mk   1, Property 4.8, and Property 4.6, we obtain that ||Rk+1 ||2  ||Rk ||2 -  1-
+2 1 (R k ) Mk ,Mk 
+
+2  ||Rk ||2 - 1 (Rk )
+
+1 min(m,n)
+
+||Rk ||2 .
+2 ,
+
+In view of this relation and the fact that R1 = Y ||Rk ||  This completes the proof. 1 1- min(m, n)
+
+we easily conclude that Y
+.
+
+k -1
+
+5. An extension to the matrix sensing problem and its convergence analysis. In this section, we extend our algorithm to deal with the following matrix sensing problem (cf. [36, 25, 18, 19]): (5.1)
+X
+
+min
+
+n ×m
+
+rank(X) : A(X) = A(Y),
+
+where Y is a target low rank matrix and A is a linear operator, e.g., A consists of a set of measurements Ai , X = Ai , Y for a sequence of matrices {Ai }. A(X) could be written in a compact form as   vec(A1 )T   . . A(X) =   vec(X) . vec(Ad )T for d measurements. Clearly, the matrix completion studied in the previous sections is a special case of the above problem by setting the linear operator A to be the observation operator P . We first explain how to use our algorithm to solve this matrix sensing problem (5.1). Recall a linear operator vec which maps a matrix X of size n × m to a vector vec(X) of size mn × 1. We now define an inverse operator matnm which converts a vector v of size mn × 1 to a matrix V = matnm (v) of size n × m. Note that when X is vectorized into vec(X), the linear operator A can be expressed in terms T of matrix A = [vec(A1 ), . . . , vec(Ad )] . That is, A(X) = A(Y) can be rewritten as Avec(X) = Avec(Y). For convenience, we can write A = Avec. It is clear that A is a matrix of size d × mn. Certainly, one can find its pseudoinverse A which is A (AA )-1 as we have assumed that A is of full row rank. We note that since d << mn, AA = Id while A A = Imn , where Id and Imn are the identity matrices of size d × d and mn × mn, respectively. For convenience, we let A-1 denote matnm  A , where  is the Hadamard product. The linear operators satisfy AA-1 b = b for any vector b of size d × 1, while A-1 A is not an identity operator. We are now ready to tackle the matrix sensing problem (5.1) as follows: let b = A(Y) = Avec(Y) and R0 = A-1 (b) be the given matrix. We apply Algorithm 3 to obtain M( k ) in k  r steps.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A501
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Algorithm 3. Rank-one matrix pursuit for matrix sensing. Input: R0 and stopping criterion. Initialize: Set X0 = 0 and k = 1. repeat Step 1: Find a pair of top left and right singular vectors (uk , vk ) of the residual T matrix Rk by using the power method and set Mk = uk vk . k Step 2: Compute the weight vector  using the closed form least squares approximation of R0 by the best rank-one matrices Mi , i = 1, . . . , k :
+k
+
+ = arg min
+k k
+
+1 ,...,k
+
+R0 -
+i=1
+
+i A-1 A(Mi )
+
+2 F.
+
+k Step 3: Set M( k ) = i=1 i Mi , Rk+1 = R0 - A-1 A(M( k )) and set k  k + 1. until stopping criterion is satisfied ^ = M( k ). Output: the constructed matrix Y
+
+We shall show that M( k ) converges to the exact rank-r matrix Y. First of all, Algorithm 3 can also be proved to be linearly convergent using the same procedure as in the proof of Theorem 3.1. We thus have the following theorem without presenting a detailed proof. Theorem 5.1. Each step in Algorithm 3 satisfies ||Rk ||  1 1- min(m, n)
+k -1
+
+A-1 (b)
+
+k  1.
+
+This holds for all matrices Y of rank at most r. We now show M( k ) approximates the exact matrix Y for a large k . In the setting of matrix sensing, we are able to use the rank-RIP condition. Let us recall the following. Definition 5.2. Let A be a linear map on linear space of matrices of size n × m with n  m. For every integer r with 1  r  n, let the rank-r restricted isometry constant be the smallest number r (A) such that (1 - r (A)) X
+2 F
+
+ A(X)
+
+2 2
+
+ (1 + r (A)) X
+
+2 F
+
+holds for all matrices X of rank at most r. It is known that for some random matrices A, A = Avec satisfies the rank-RIP condition with high probability [36]. Armed with the rank-RIP condition, we are able to establish the following result. Theorem 5.3. Let Y be a matrix of rank r. Suppose the measurement mapping A(X) satisfies rank-RIP for rank-r0 with r0 = r0 (A) < 1 with r0  2r. The output matrix M( k ) from Algorithm 3 approximates the exact matrix Y in the following sense: there is a positive constant  < 1 such that M( k ) - Y
+F
+
+
+
+C k 1 - r 0
+
+for all k = 1, . . . , r0 - r, where C > 0 is a constant dependent on A.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A502
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+
+Proof. Using the definition of r0 , for k + r  r0 , we have
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+(1 - r0 ) M( k ) - Y
+
+2 F
+
+ A(M( k )) - A(Y) = A(Rk )  A
+2 2 2 2 2 2
+
+2 2 2 2
+
+= Avec(Rk ) = A
+2 F, 2 2
+
+vec(Rk )
+
+Rk
+
+2 F
+
+2k  A 2 A-1 (b) 2
+
+where the last inequality follows from Theorem 5.1 with  = follows that M( k ) - Y
+2 F
+
+1-
+
+1 min{m,n} .
+
+It
+
+
+
+2k A 2 2 A-1 (b) 1 - r 0
+
+2 F.
+
+Therefore, we have the desired result. Similarly we can extend our economic algorithm to the setting of matrix sensing. We leave it to the interested reader. In the above convergence analysis, we require k  r0 - r, which guarantees the matrix-RIP condition for all estimated matrices during the learning process. It will be interesting to explore if a similar result can be obtained for any k > 0. 6. Effect of inexact top singular vectors. In our rank-one matrix pursuit algorithms, we need to calculate the top singular vector pair of the residual matrix in each iteration. We rewrite it here as (6.1) max uT Rk v :
+u,v
+
+u = v =1 .
+
+We solve this problem efficiently by the power method, which is an iterative method. In practice, we obtain a solution with approximation error less than a small tolerance k  0, that is, (6.2) ~ T Rk v ~  (1 - k ) u
+u = v =1
+
+max
+
+{ uT R k v } .
+
+We show that the proposed algorithms still retain the linear convergence rate when the top singular pair computed at each iteration satisfies (6.2) for 0  k < 1. This result is given in the following theorem. Theorem 6.1. Assume that there is a tolerance parameter 0   < 1 such that k   for all k . Then the orthogonal rank-one matrix pursuit algorithms achieve a linear convergence rate ||Rk ||  q2 1- min(m, n)
+k -1
+
+Y
+
+,
+
+where q = 1 -  satisfies 0 < q  1. Proof. In Step 1 of our algorithms, we iteratively solve the problem (6.1) using the power method. In this method, we stop the iteration such that ~T ~ k  (1 - k ) u k Rk v
+u =1, v =1
+
+max
+
+uT R k v  0
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A503
+
+T ~k=u ~k ~kv with 0  k   < 1. Denote M as the generated basis. Next, we show that the following holds for both OR1MP and EOR1MP:
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Rk+1
+
+2
+
+ Rk
+
+2
+
+~ k , Rk 2 . - M
+
+For the OR1MP algorithm, we have Rk+1
+2 k
+
+= min Y -
+
+k
+
+~i i M
+i=1
+
+2  2 
+
+~k  min Y - Xk-1 - k M
+k  k 
+
+~k = min Rk - k M For the EOR1MP algorithm, we have Rk+1
+2
+
+2 .
+
+~k = min2 Y - 1 Xk-1 - 2 M
+
+
+2 
+
+~k  min Y - Xk-1 - 2 M
+2  2 
+
+2 
+
+~k = min Rk - 2 M
+
+2 . ~
+
+Rk ,M k In both cases, we obtain closed form solutions as M ~ k ,M ~ k  . Plugging the optimum solution into the corresponding formulations, we get 2
+
+Rk+1
+
+ Rk - = Rk
+2
+
+~k Rk , M ~ M ~ k, M ~k  k M -
+
+2 
+
+~k 2 Rk , M ~ k, M ~k M ~ k, M ~k 2 M  ~ k 2,  Rk 2 - Rk , M ~ k, M ~k as M
+
+
+
+
+ 1. It follows from Properties 4.5 and 4.6 that ~ k  (1 - k )1 (Rk )  (1 - k ) Rk , M Rk . rank(Rk )
+
+Combining the above two results, we get Rk+1
+2
+
+
+
+1-
+
+(1 - k )2 min(m, n)
+
+Rk
+
+2
+
+. we conclude that
+
+In view of this relation and the fact that R1 = Y ||Rk ||  q2 1- min(m, n)
+k -1
+
+2 ,
+
+Y
+
+,
+
+where q = 1 -   inf(1 - k ) = 1 - sup k and is a constant between (0, 1]. This completes the proof.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A504
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+7. Experiments. In this section, we compare the two versions of our algorithm, e.g., OR1MP and EOR1MP, with several state-of-the-art matrix completion methods in the literature. The competing algorithms include SVP [18], SVT [7], Jaggi's fast algorithm for trace norm constraint (JS) [17], the spectral regularization algorithm (SoftImpute) [30], low rank matrix fitting (LMaFit) [46], a boosting-type accelerated matrix-norm penalized solver (Boost) [49], atomic decomposition for minimum rank approximation (ADMiRA) [25], and GECO [38]. The first three solve trace norm constrained problems; the next three solve trace norm penalized problems; the last two directly solve the low rank constrained problem. The general greedy method [42] is not included in our comparison, as it includes JS and GECO (included in our comparison) as special cases for matrix completion. The lifted coordinate descent method [9] is not included in our comparison as it is sensitive to the parameters and is less efficient than Boost proposed in [49]. The codes for most of these methods are available online: · SVP, http://www.cs.utexas.edu/pjain/svp; · SVT, http://svt.stanford.edu; · SoftImpute, http://www-stat.stanford.edu/rahulm/software.html; · LMaFit, http://lmafit.blogs.rice.edu; · Boost, http://webdocs.cs.ualberta.ca/xinhua2/boosting.zip; · GECO, http://www.cs.huji.ac.il/shais/code/geco.zip. We compare these algorithms in two applications: image recovery and collaborative filtering or recommendation problem. The data size for image recovery is relatively small, and the recommendation problem is large-scale. All the competing methods are implemented in MATLAB1 and call some external packages for fast computation of SVD2 and sparse matrix computations. The experiments are run on a PC with the windows 7 system, Intel 4 core 3.4-GHz CPU, and 8G RAM. In the following experiments, we follow the recommended settings of the parameters for the competing algorithms. If no recommended parameter value is available, we choose the best one from a candidate set using cross validation. For our OR1MP and EOR1MP algorithms, we only need a stopping criterion. For simplicity, we stop our algorithms after r iterations. In this way, we approximate the ground truth using a rank-r matrix. We present the experimental results using two metrics, peak signalto-noise ratio (PSNR) [16] and root-mean-square error (RMSE) [22]. PSNR is a test metric specific for images. A higher value in PSNR generally indicates better quality [16]. RMSE is a general metric for prediction. It measures the approximation error of the corresponding result. 7.1. Convergence and efficiency. Before we present the numerical results from these comparison experiments, we shall include another algorithm called the forward rank-one matrix pursuit algorithm (FR1MP), which extends the matching pursuit method from the vector case to the matrix case. The detailed procedure of this method is given in Algorithm 4. In FR1MP, we add the pursued rank-one matrix with an optimal weight in each iteration, which is similar to the forward selection rule [14]. This is a standard algorithm to find SVD of any matrix Y if all its entries are given. In this case, the FR1MP algorithm is more efficient in finding SVD of the matrix than our two proposed alis written in C++ and we call its executable file in MATLAB. is used in SVP, SVT, SoftImpute and Boost. It is an efficient SVD package, which is implemented in C and Fortran. It can be downloaded from http://soi.stanford.edu/ rmunk/PROPACK.
+2 PROPACK 1 GECO
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A505
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Algorithm 4. FR1MP. Input: Y and stopping criterion. Initialize: Set X0 = 0,  0 = 0 and k = 1. repeat Step 1: Find a pair of top left and right singular vectors (uk , vk ) of the observed T residual matrix Rk = Y - Xk-1 and set Mk = uk vk . k -1 k T k for i  k - 1. Step 2: Set k = (uk Rk vk )/ Mk  , and i = i k Step 3: Set Xk = Xk-1 + k (Mk ) ; k  k + 1. until stopping criterion is satisfied ^ = k  k Mi . Output: Constructed matrix Y i=1 i
+
+gorithms. However, when only partial entries are known, the FR1MP algorithm will not be able to find the best low rank solution. The computational step to find  k in our proposed algorithms is necessary. The empirical results for convergence efficiency of our proposed algorithms are reported in Figures 1 and 2. They are based on an image recovery experiment as well as an experiment of a movie recommendation dataset, Netflix [22, 4, 5]. The Netflix dataset has 108 ratings of 17,770 movies by 480,189 Netflix3 customers. This is a large-scale dataset, and most of the competing methods are not applicable for this dataset. In Figure 1, we present the convergence characteristics of the proposed OR1MP algorithm. As the memory demand is increasing w.r.t. the iterations, we can run it for only about 40 iterations on the Netflix dataset. The EOR1MP algorithm has no such limitation. The results in Figure 2 show that our EOR1MP algorithm rapidly reduces the approximation error. We also present the same residual curves in logarithmic scale with a relatively large number of iterations in Figure 3, which verify the linear convergence property of our algorithms. These results are consistent with our theoretical analysis. In the convergence analysis, we derive the upper bound for the convergence speed of our proposed algorithms. From Theorems 3.1 and 4.1, the convergence 2 speed is controlled by the value of Rk 2 F /k, , where k, is the maximum singular value of the residual matrix Rk in the k th iteration. A smaller value indicates a faster convergence of our algorithms. Though it has a worst-case upper bound of 2 Rk 2 F /k,  rank(Rk )  min(m, n), in the following experiments, we empirically verify that its value is much smaller than the theoretical worst case. Thus the convergence speed of our algorithms is much faster than the theoretical worst case. We 2 present the values of Rk 2 F /k, at different iterations on the Lenna image and the MovieLens1M dataset for both of our algorithms in Figure 4. The results show that 2 the quantity Rk 2 F /k, is much smaller than min(m, n). In the following experiments, we plot the residual curves over iterations for different rank-one matrix pursuit algorithms, including our OR1MP algorithm, our EOR1MP algorithm, and the FR1MP algorithm. The evaluations are conducted on the Lenna image and the MovieLens1M dataset, which are given in Figure 5. The results show that among the three algorithms, EOR1MP and OR1MP perform better than the forward pursuit algorithm. It is interesting to note that EOR1MP achieves a similar performance as OR1MP, while it demands much less computational cost.
+3 http://www.netflixprize.com.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A506
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+Lenna
+8
+
+Lenna
+7
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+0.04 0.035 0.03
+
+Time (seconds)
+100 200 300
+
+6 5 4 3 2 1 0 0 50 100 150 200 250 300 350
+
+RMSE
+
+0.025 0.02 0.015 0.01 0.005 0 0
+
+rank Netflix
+0.02 0.018 8000 7000
+
+rank Netflix
+
+Time (seconds)
+10 20 30 40
+
+6000 5000 4000 3000 2000 1000
+
+RMSE
+
+0.016 0.014 0.012 0.01 0
+
+0 0
+
+10
+
+20
+
+30
+
+40
+
+rank
+
+rank
+
+Fig. 1. Illustration of convergence of the proposed OR1MP algorithm on the Lenna image and the Netflix dataset: the x-axis is the rank, the y-axis is the RMSE (left column), and the running time is measured in seconds (right column).
+Lenna 0.04 0.035 0.03 0.7 0.025 RMSE 0.02 0.015 0.01 0.2 0.005 0 0 50 100 150 200 Iteration Netflix 0.02 0.019 0.018 Time (seconds) 0.017 0.016 RMSE 0.015 0.014 0.013 0.012 0.011 0.01 0 20 40 60 Iteration 80 100 4500 4000 3500 3000 2500 2000 1500 1000 500 0 0 20 40 60 Iteration 80 100 250 300 0.1 0 0 50 100 150 200 Iteration Netflix 250 300 Time (seconds) 0.6 0.5 0.4 0.3 1 0.9 0.8 Lenna
+
+Fig. 2. Illustration of convergence of the proposed EOR1MP algorithm on the Lenna image and the Netflix dataset: the x-axis is the rank, the y-axis is the RMSE (left column), and the running time is measured in seconds (right column).
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+Netflix
+
+A507
+
+10
+
+-1
+
+Lenna
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+RMSE
+
+10
+
+-2
+
+RMSE
+10
+-2
+
+10
+
+-3
+
+0
+
+50
+
+100
+
+150
+
+200
+
+250
+
+300
+
+0
+
+5
+
+10
+
+15
+
+20
+
+25
+
+30
+
+35
+
+40
+
+rank
+10
+-1
+
+rank
+
+Lenna
+
+Netflix
+
+RMSE
+
+10
+
+-2
+
+10
+
+-3
+
+RMSE
+50 100 150 200 250 300 10
+-2
+
+0
+
+20
+
+40
+
+60
+
+80
+
+100
+
+rank
+
+rank
+
+Fig. 3. Illustration of the linear convergence of different rank-one matrix pursuit algorithms on the Lenna image and the Netflix dataset: the x-axis is the iteration, and the y-axis is the RMSE in log scale. The curves in the first row are the results for OR1MP and the curves in the second row are the results for EOR1MP.
+OR1MP on Lenna 5000 ||R|| / 600 500 400 300 200 1000 100 0 0 0 0 3000
+2
+
+OR1MP on MovieLens1M 2 * 4000 ||R||2 / 2 * min(m,n)
+
+min(m,n)
+
+2000
+
+20
+
+40 60 Iteration EOR1MP on Lenna
+
+80
+
+100
+
+10
+
+20 30 Iteration
+
+40
+
+50
+
+EOR1MP on MovieLens1M 5000 ||R||2 / 2 * min(m,n) 4000 ||R||2 / 2 * min(m,n)
+
+600 500 400 300 200
+
+3000
+
+2000
+
+1000 100 0 0 0 0
+
+20
+
+40 60 Iteration
+
+80
+
+100
+
+10
+
+20 30 Iteration
+
+40
+
+50
+
+2 at different iterations and the value of min(m, n) Fig. 4. Illustration of the values of R 2 / on the Lenna image and MovieLens1M for both R1MP and ER1MP algorithms: the x-axis is the iteration number; the y-axis is the value.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A508
+0.04 0.035 0.03 RMSE
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+Lenna OR1MP EOR1MP FR1MP 0.0175 0.017 0.0165 0.016 RMSE 0.0155 0.015 0.0145 0.014 0.01 0.005 0 0.0135 20 40 60 Iteration 80 100 0.013 0 20 40 60 Iteration 80 100 MovieLens1M OR1MP EOR1MP FR1MP
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+0.025 0.02 0.015
+
+Fig. 5. Illustration of convergence speed of different rank-one matrix pursuit algorithms on the Lenna image and the MovieLens1M dataset: the x-axis is the iteration; the y-axis is the RMSE.
+OR1MP on MovieLens1M iteration = 1 iteration = 2 iteration = 5 iteration = 10 iteration = 20 RMSE EOR1MP on MovieLens1M iteration = 1 iteration = 2 iteration = 5 iteration = 10 iteration = 20
+
+0.018
+
+0.018
+
+0.017 RMSE
+
+0.017
+
+0.016
+
+0.016
+
+0.015
+
+0.015
+
+0.014
+
+0.014
+
+0.013 0
+
+20
+
+40
+
+60 Iteration
+
+80
+
+100
+
+0.013 0
+
+20
+
+40
+
+60 Iteration
+
+80
+
+100
+
+Fig. 6. Illustration of convergence property of the proposed algorithms with different iteration numbers in the power method on the MovieLens1M dataset: the x-axis is the outer iteration number; the y-axis is the RMSE.
+
+7.2. Inexact top singular vectors. We empirically analyze the performance of our algorithms with inexact singular vector computation. In the experiments, we control the total number of iterations in the power method for computing the top singular vector pair. The numbers of iterations are set as {1, 2, 5, 10, 20}. We plot the learning curves for the OR1MP and EOR1MP algorithms on the MovieLens1M dataset in Figure 6. The results show that the linear convergence speed is preserved for different iteration numbers. However, the results under the same outer iterations depend on the accuracy of the power methods. This verifies our theoretical results. Our empirical results also suggest that in practice we need to run more than 5 iterations in the power method, as the learning curves for 5, 10, and 20 power method iterations are close to each other but are far away from the other two curves, especially for the EOR1MP algorithm. 7.3. Recovery on synthetic data. In this experiment, we use synthetic data to evaluate the recovery performance of different matrix completion algorithms. We generate a square n × n matrix Y of rank r as the ground truth. We construct Y by first generating a random matrix with i.i.d. entries drawn from the standard normal distribution and then setting its ith singular value to 2r-i+1 . Given this matrix Y, we
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+1 Recovery Error 0.8 0.6 0.4 0.2 0 0 1 Recovery Error 0.8 0.6 0.4 0.2 0 0 1 Recovery Error 0.8 0.6 0.4 0.2 0 0 0.1 0.2 0.3 0.4 0.5 0.6 Observation Ratio 0.7 0.8 0.9
+SVT SVP LMaFit ADMiRA SoftImpute JS OR1MP EOR1MP SVT SVP LMaFit ADMiRA SoftImpute JS OR1MP EOR1MP SVT SVP LMaFit ADMiRA SoftImpute JS OR1MP EOR1MP
+
+A509
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+0.1
+
+0.2
+
+0.3
+
+0.4
+
+0.5 0.6 Observation Ratio
+
+0.7
+
+0.8
+
+0.9
+
+1
+
+0.1
+
+0.2
+
+0.3
+
+0.4
+
+0.5 0.6 Observation Ratio
+
+0.7
+
+0.8
+
+0.9
+
+1
+
+1
+
+Fig. 7. Comparison of recovery performance of different matrix completion algorithms with different percentages of observations: the three figures correspond to the results on three rank-10 random matrices of size 50 × 50 without noise (top figure), size 100 × 100 without noise (middle figure), and size 100 × 100 with Gaussion noise (bottom figure); the x-axis is the percentage of observations; the y-axis is the recovery error.
+
+sample a subset  of l entries uniformly at random as the observations. We run the experiment in two different settings--noise-free matrix completion and noisy matrix completion. We fix the rank of the ground truth matrices as r = 10 in all experiments. In the noise-free case, we use two different matrix sizes in the experiment: n = 50 and n = 100. In the noisy case, we use n = 100 with 5% Gaussion noise. The entries of the noise matrix are drawn from the standard normal distribution and are normalized to make the matrix Frobenius norm equal to 0.05 Y F . We evaluate the recovery performance of the algorithms based on the relative reconstruction error calculated as ^ F Y -Y ^ Y F , with Y as the reconstructed matrix. In the experiment, we fix the number of iterations to 200 for the JS algorithm. For OR1MP and EOR1MP, we stop the algorithm after 50 iterations. For other algorithms, we use the true rank r = 10 for the estimated matrix. For each algorithm, we present its average result with 50 runs at different percentages of observations in Figure 7. We can observe from the figure that for most algorithms the recovery error decreases with an increasing number of observations. The proposed algorithms are very competitive in most cases, particularly when the observations are scarce.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A510
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE Table 1 Image recovery results measured in terms of the PSNR.
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Dataset Barbara Cameraman Clown Couple Crowd Girl Goldhill Lenna Man Peppers
+
+SVT 26.9635 25.6273 28.5644 23.1765 26.9644 29.4688 28.3097 28.1832 27.0223 25.7202
+
+SVP SoftImpute LMaFit ADMiRA JS OR1MP EOR1MP 25.2598 25.6073 25.9589 23.3528 23.5322 26.5314 26.4413 25.9444 26.7183 24.8956 26.7645 24.6238 27.8565 27.8283 19.0919 26.9788 27.2748 25.7019 25.2690 28.1963 28.2052 23.7974 26.1033 25.8252 25.6260 24.4100 27.0707 27.0310 22.2959 25.4135 26.0662 24.0555 18.6562 26.0535 26.0510 27.5461 27.7180 27.4164 27.3640 26.1557 30.0878 30.0565 16.1256 27.1516 22.4485 26.5647 25.9706 28.5646 28.5101 25.4586 26.7022 23.2003 26.2371 24.5056 28.0115 27.9643 25.3246 25.7912 25.7417 24.5223 23.3060 26.5829 26.5049 26.0223 26.8475 27.3663 25.8934 24.0979 28.0781 28.0723
+
+7.4. Image recovery. In the image recovery experiments, we use the following benchmark test images: Barbara, Cameraman, Clown, Couple, Crowd, Girl, Goldhill, Lenna, Man, and Peppers.4 The size of each image is 512 × 512. We randomly exclude 50% of the pixels in the image, and the remaining ones are used as the observations. As the image matrix is not guaranteed to be low rank, we use rank 50 for the estimated matrix for each experiment. In our OR1MP and EOR1MP algorithms, we stop the algorithms after 150 iterations. The JS algorithm does not explicitly control the rank, thus we fix its number of iterations to 2000. The numerical results in terms of the PSNR are listed in Table 1. We also present the images recovered by different algorithms for Lenna in Figure 8. The results show SVT, our OR1MP, and EOR1MP achieve the best numerical performance. However, our algorithm is much better than SVT for Cameraman, Couple, Peppers but only slightly worse than SVT for Lenna, Barbara, and Clown. Besides, our algorithm is much faster and more stable than SVT (SVT may diverge). For each image, EOR1MP uses around 3.5 seconds, but SVT consumes around 400 seconds. Image recovery needs a relatively higher approximation rank; both GECO and Boost fail to find a good recovery in most cases, so we do not include them in the result tables. 7.5. Recommendation. In the following experiments, we compare different matrix completion algorithms using large recommendation datasets: Jester [12] and MovieLens [31]. We use six datasets: Jester1, Jester2, Jester3, MovieLens100K, MovieLens1M, and MovieLens10M. The statistics of these datasets are given in Table 2. The Jester datasets were collected from a joke recommendation system. They contain anonymous ratings of 100 jokes from the users. The ratings are real values ranging from -10.00 to +10.00. The MovieLens datasets were collected from the MovieLens website.5 They contain anonymous ratings of the movies on this web made by its users. For MovieLens100K and MovieLens1M, there are 5 rating scores (1­5), and for MovieLens10M there are 10 levels of scores with a step size 0.5 in the range of 0.5 to 5. In the following experiments, we randomly split the ratings into training and test sets. Each set contains 50% of the ratings. We compare the running time and the prediction result from different methods. In the experiments, we use 100 iterations for the JS algorithm, and for other algorithms we use the same rank for the estimated matrices; the values of the rank are {10, 10, 5, 10, 10, 20} for the six corresponding datasets. We first show the running time of different methods in
+4 Images
+
+are downloaded from http://www.utdallas.edu/ cxc123730/mh bcs spl.html.
+
+5 http://movielens.umn.edu.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A511
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Original
+
+SVT
+
+SVP
+
+SoftImpute
+
+LMafit
+
+ADMiRA
+
+JS
+
+OR1MP
+
+EOR1MP
+
+Fig. 8. The original image and images recovered by different methods used on the Lenna image. Table 2 Characteristics of the recommendation datasets. Dataset Jester1 Jester2 Jester3 MovieLens100k MovieLens1M MovieLens10M # row 24983 23500 24983 943 6040 69878 # column 100 100 100 1682 3706 10677 # rating 106 106 6×105 105 106 107
+
+Table 3. The reconstruction results in terms of the RMSE are given in Table 4. We can observe from the above experiments that our EOR1MP algorithm is the fastest among all competing methods to obtain satisfactory results.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A512
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE Table 3 The running time (measured in seconds). Boost fails on MovieLens10M.
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Dataset Jester1 Jester2 Jester3 MovieLens100K MovieLens1M MovieLens10M
+
+SVP 18.35 16.85 16.58 1.32 18.90 > 103
+
+SoftImpute 161.49 152.96 10.55 128.07 59.56 > 103
+
+LMaFit 3.68 2.42 8.45 2.76 30.55 154.38
+
+Boost 93.91 261.70 245.79 2.87 93.91 ­
+
+JS 29.68 28.52 12.94 2.86 13.10 130.13
+
+GECO > > 104 > 103 10.83 > 104 > 105 104
+
+OR1MP 1.83 1.68 0.93 0.04 0.87 23.05
+
+EOR1MP 0.99 0.91 0.34 0.04 0.54 13.79
+
+Table 4 Recommendation results measured in terms of the RMSE. Dataset Jester1 Jester2 Jester3 MovieLens100K MovieLens1M MovieLens10M SVP 4.7311 4.7608 8.6958 0.9683 0.9085 0.8611 SoftImpute 5.1113 5.1646 5.4348 1.0354 0.8989 0.8534 LMaFit 4.7623 4.7500 9.4275 1.2308 0.9232 0.8625 Boost 5.1746 5.2319 5.3982 1.1244 1.0850 ­ JS 4.4713 4.5102 4.6866 1.0146 1.0439 0.8728 GECO 4.3680 4.3967 5.1790 1.0243 0.9290 0.8668 OR1MP 4.3418 4.3649 4.9783 1.0168 0.9595 0.8621 EOR1MP 4.3384 4.3546 5.0145 1.0261 0.9462 0.8692
+
+8. Conclusion. In this paper, we propose an efficient and scalable low rank matrix completion algorithm. The key idea is to extend the OMP method from the vector case to the matrix case. We also propose a novel weight updating rule under this framework to reduce the storage complexity and make it independent of the approximation rank. Our algorithms are computationally inexpensive for each matrix pursuit iteration and find satisfactory results in a few iterations. Another advantage of our proposed algorithms is they have only one tunable parameter, which is the rank. It is easy to understand and to use by the user. This becomes especially important in large-scale learning problems. In addition, we rigorously show that both algorithms achieve a linear convergence rate, which is significantly better than the previous known results (a sublinear convergence rate). We also extend our proposed algorithm to a more general matrix sensing case and analyze its recovery guarantee under rankrestricted isometry property. We empirically compare the proposed algorithms with state-of-the-art matrix completion algorithms, and our results show that the proposed algorithms are more efficient than competing algorithms while achieving similar or better prediction performance. We plan to generalize our theoretical and empirical analysis to other loss functions in the future. Appendix A. Inverse matrix update. In our OR1MP algorithm, we use the least squares solution to update the weights for the rank-one basis matrices. ¯ k )-1 . To directly compute this inverse is ¯ TM In this step, we need to calculate (M k ¯ k has a large row size. We implement computationally expensive, as the matrix M this efficiently using an incremental method. As ¯ ¯ ¯ k -1 , m ¯T  k ]T [ M  k ], M k Mk = [Mk-1 , m its inverse can be written in block matrix form: ¯T M ¯ k -1 -1 ¯ -1 = MkT ¯T (M k Mk ) ¯T  kM m k -1 ¯T m M k -1  k T k m km
+-1
+
+.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+RANK-ONE MATRIX PURSUIT FOR MATRIX COMPLETION
+
+A513
+
+Then it is calculated by blockwise inverse as
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+A + dAbbT A -dAb , -dbT A d ¯ k-1 )-1 is the corresponding inverse matrix in the last step, b = ¯T M where A = (M k -1 T ¯  k is a vector with || elements, and d = (bT b - bT Ab)-1 = 1/(bT b - bT Ab) M k -1 m ¯T y ¯ Ty  is also calculated incrementally by [M ,m  Ty  ], as y  is fixed. is a scalar. M
+k k -1 k
+
+REFERENCES [1] A. Argyriou, T. Evgeniou, and M. Pontil, Convex multi-task feature learning, Mach. Learn., 73 (2008), pp. 243­272. [2] F. Bach, Consistency of trace norm minimization, J. Mach. Learn. Res., 9 (2008), pp. 1019­ 1048. [3] L. Balzano, R. Nowak, and B. Recht, Online identification and tracking of subspaces from highly incomplete information, in Proceedings of the Allerton Conference on Communication, Control and Computing, 2010. [4] R. Bell and Y. Koren, Lessons from the netflix prize challenge, ACM SIGKDD Explorations, 9 (2007), pp. 75­79. [5] J. Bennett and S. Lanning, The netflix prize, in Proceedings of KDD Cup and Workshop, 2007. [6] J.-F. Cai, E. J. Cand` es, and Z. Shen, A singular value thresholding algorithm for matrix completion, SIAM J. Optim., 20 (2010), pp. 1956­1982. [7] E. J. Cand` es and B. Recht, Exact matrix completion via convex optimization, Found. Comput. Math., 9 (2009), pp. 717­772. [8] R. A. DeVore and V. N. Temlyakov, Some remarks on greedy algorithms, Adv. Comput. Math., 5 (1996), pp. 173­187. [9] M. Dud´ ik, Z. Harchaoui, and J. Malick, Lifted coordinate descent for learning with tracenorm regularization, in Proceedings of the 15th International Conference on Artificial Intelligence and Statistics (AISTATS), 2012. [10] M. Frank and P. Wolfe, An algorithm for quadratic programming, Naval Res. Logist. Quart., 3 (1956), pp. 95­110. [11] J. H. Friedman, T. Hastie, and R. Tibshirani, Regularization paths for generalized linear models via coordinate descent, J. Statist. Software, 33 (2010), pp. 1­22. [12] K. Goldberg, T. Roeder, D. Gupta, and C. Perkins, Eigentaste: A constant time collaborative filtering algorithm, Inform. Retrieval, 4 (2001), pp. 133­151. [13] G. H. Golub and C. F. V. Loan, Matrix Computations, 3rd ed., Johns Hopkins University Press, Baltimore, MD, 1996. [14] T. Hastie, R. Tibshirani, and J. H. Friedman, The elements of statistical learning: Data mining, inference, and prediction, Springer-Verlag, New York, 2009. [15] E. Hazan, Sparse approximate solutions to semidefinite programs, in Proceedings of the 8th Latin American Conference on Theoretical Informatics, 2008. [16] Q. Huynh-Thu and M. Ghanbari, Scope of validity of psnr in image/video quality assessment, Electron. Lett., 44 (2008), pp. 800­801. ´ , A simple algorithm for nuclear norm regularized problems, in [17] M. Jaggi and M. Sulovsky Proceedings of the 27th International Conference on Machine Learning (ICML), 2010, pp. 471­478. [18] P. Jain, R. Meka, and I. S. Dhillon, Guaranteed rank minimization via singular value projection, Adv. Neural Inf. Process. Syste. 22 (2010), pp. 937­945. [19] P. Jain, P. Netrapalli, and S. Sanghavi, Low-rank matrix completion using alternating minimization, in Proceedings of the 45th Annual ACM Symposium on Symposium on Theory of Computing (STOC), 2013, pp. 665­674. [20] S. Ji and J. Ye, An accelerated gradient method for trace norm minimization, in Proceedings of the 26th International Conference on Machine Learning (ICML), 2009, pp. 457­464. [21] R. Keshavan and S. Oh, Optspace: A Gradient Descent Algorithm on the Grassmann Manifold for Matrix Completion, http://arxiv.org/abs/0910.5260 (2009). [22] Y. Koren, Factorization meets the neighborhood: A multifaceted collaborative filtering model, in Proceedings of the 14th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD), 2008.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+A514
+
+WANG, LAI, LU, FAN, DAVULCU, AND YE
+
+Downloaded 01/14/16 to 142.58.205.60. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+[23] Y. Koren, R. Bell, and C. Volinsky, Matrix factorization techniques for recommender systems, Computer, 42 (2009), pp. 30­37. [24] M.-J. Lai, Y. Xu, and W. Yin, Improved iteratively reweighted least squares for unconstrained smoothed q minimization, SIAM J. Numer. Anal., 51 (2013), pp. 927­957. [25] K. Lee and Y. Bresler, Admira: atomic decomposition for minimum rank approximation, IEEE Trans. Inform. Theory, 56 (2010), pp. 4402­4416. [26] E. Liu and T. N. Temlyakov, The orthogonal super greedy algorithm and applications in compressed sensing, IEEE Trans. Inform. Theory, 58 (2012), pp. 2040­2047. [27] Y.-J. Liu, D. Sun, and K.-C. Toh, An implementable proximal point algorithmic framework for nuclear norm minimization, Math. Program., 133 (2012), pp. 399­436. [28] Z. Lu and Y. Zhang, Penalty Decomposition Methods for Rank Minimization, http://arxiv.org/abs/1008.5373 (2010). [29] S. Ma, D. Goldfarb, and L. Chen, Fixed point and bregman iterative methods for matrix rank minimization, Math. Program., 128 (2011), pp. 321­353. [30] R. Mazumder, T. Hastie, and R. Tibshirani, Spectral regularization algorithms for learning large incomplete matrices, J. Mach. Learn. Res., 99 (2010), pp. 2287­2322. [31] B. N. Miller, I. Albert, S. K. Lam, J. A. Konstan, and J. Riedl, MovieLens unplugged: Experiences with an occasionally connected recommender system, in Proceedings of the 8th International Conference on Intelligent User Interfaces, 2003, pp. 263­266. [32] B. Mishra, G. Meyer, F. Bach, and R. Sepulchre, Low-rank optimization with trace norm penalty, SIAM J. Optim., 23 (2013), pp. 2124­2149. [33] D. Needell and J. A. Tropp, Cosamp: Iterative signal recovery from incomplete and inaccurate samples, Comm. ACM, 53 (2010), pp. 93­100. [34] S. Negahban and M. Wainwright, Estimation of (near) low-rank matrices with noise and high-dimensional scaling, in Proceedings of the 27th International Conference on Machine Learning (ICML), 2010. [35] Y. C. Pati, R. Rezaiifar, Y. C. P. R. Rezaiifar, and P. S. Krishnaprasad, Orthogonal matching pursuit: Recursive function approximation with applications to wavelet decomposition, in Proceedings of the 27th Annual Asilomar Conference on Signals, Systems, and Computers, 1993, pp. 40­44. [36] B. Recht, M. Fazel, and P. A. Parrilo, Guaranteed minimum-rank solutions of linear matrix equations via nuclear norm minimization, SIAM Rev., 52 (2010), pp. 471­501. [37] B. Recht and C. R´ e, Parallel stochastic gradient algorithms for large-scale matrix completion, Math. Program. Comput., 5 (2013), pp. 201­226. [38] S. Shalev-Shwartz, A. Gonen, and O. Shamir, Large-scale convex minimization with a lowrank constraint, in Proceedings of the 28th International Conference on Machine Learning (ICML), 2011, pp. 329­336. [39] S. Shalev-Shwartz and A. Tewari, Stochastic methods for l1 regularized loss minimization, in Proceedings of the 26th International Conference on Machine Learning (ICML), 2009, pp. 929­936. [40] N. Srebro, J. Rennie, and T. Jaakkola, Maximum-margin matrix factorizations, Adv. Neural Inf. Process. Syst., 17 (2004), pp. 1329­1336. [41] V. N. Temlyakov, Greedy approximation, Acta Numer., 17 (2008), pp. 235­409. [42] A. Tewari, P. Ravikumar, and I. S. Dhillon, Greedy algorithms for structurally constrained high dimensional problems, Adv. Neural Inf. Process. Syst., 24 (2011), pp. 882­890. [43] R. Tibshirani, Regression shrinkage and selection via the lasso, J. R. Stat. Soc. Ser. B, 58 (1994), pp. 267­288. [44] K.-C. Toh and S. Yun, An accelerated proximal gradient algorithm for nuclear norm regularized least squares problems, Pacific J. Optim., 6 (2010), pp. 615­640. [45] J. A. Tropp, Greed is good: Algorithmic results for sparse approximation, IEEE Trans. Inform. Theory, 50 (2004), pp. 2231­2242. [46] Z. Wen, W. Yin, and Y. Zhang, Solving a low-rank factorization model for matrix completion by a nonlinear successive over-relaxation algorithm, Math. Program. Comput., 4 (2012), pp. 333­361. [47] T. T. Wu and K. Lange, Coordinate descent algorithms for lasso penalized regression, Ann. Appl. Stat., 2 (2008), pp. 224­244. [48] S. Yun and K.-C. Toh, A coordinate gradient descent method for l1-regularized convex minimization, Comput. Optim. Appl., 48 (2011), pp. 273­307. [49] X. Zhang, Y. Yu, and D. Schuurmans, Accelerated training for matrix-norm regularization: A boosting approach, Adv. Neural Inf. Process. Syst., 25 (2012), pp. 2906­2914.
+
+Copyright © by SIAM. Unauthorized reproduction of this article is prohibited.
+
+

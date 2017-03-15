@@ -1,0 +1,468 @@
+Seediscussions,stats,andauthorprofilesforthispublicationat:https://www.researchgate.net/publication/263458522
+
+OnlineCameraRegistrationforRobot Manipulation
+ConferencePaper·June2014
+DOI:10.1007/978-3-319-23778-7_13
+
+CITATIONS
+
+READS
+
+2
+4authors,including: NeilDantam RiceUniversity
+23PUBLICATIONS101CITATIONS
+SEEPROFILE
+
+65
+
+HeniBenAmor ArizonaStateUniversity
+56PUBLICATIONS434CITATIONS
+SEEPROFILE
+
+HenrikIskovChristensen UniversityofCalifornia,SanDiego
+478PUBLICATIONS6,419CITATIONS
+SEEPROFILE
+
+AllcontentfollowingthispagewasuploadedbyHeniBenAmoron27June2014.
+Theuserhasrequestedenhancementofthedownloadedfile.Allin-textreferencesunderlinedinblueareaddedtotheoriginaldocument andarelinkedtopublicationsonResearchGate,lettingyouaccessandreadthemimmediately.
+
+Online Camera Registration for Robot Manipulation
+Neil Dantam, Heni Ben Amor, Henrik Christensen, and Mike Stilman
+Institute for Robotics and Intelligent Machines, Georgia Institute of Technology Atlanta, GA 30332, USA. ntd@gatech.edu, hbenamor@cc.gatech.edu, hic@cc.gatech.edu, mstilman@cc.gatech.edu
+
+Abstract. We demonstrate that millimeter-level manipulation accuracy can be achieved without the static camera registration typically required for visual servoing. We register the camera online, converging in seconds, by visually tracking features on the robot and filtering the result. This online registration handles cases such as perturbed camera positions, wear and tear on camera mounts, and even a camera held by a human. We implement the approach on a Schunk LWA4 manipulator and Logitech C920 camera, servoing to target and pre-grasp configurations. Our filtering software is available under a permissive license.1
+
+1
+
+Introduction
+
+Using visual feedback for robot manipulation requires registration between the camera and the manipulator. Typically, this is viewed as a static task: registration is computed offline and assumed to be constant. In reality, camera registration changes during operation due to external perturbations, wear and tear,
+
+kinematics
+
+kinematics
+
+B
+
+Sf
+
+registration vision registration vision
+C
+
+Sf
+
+B
+
+SC
+
+Camera Perturbation
+
+Controlled Motion
+
+Uncontrolled Motion
+
+Fig. 1. Use cases for online camera registration. We combine the visual and kinematic pose estimates of end effector and filter the result to estimate the camera pose in robot body frame.
+ 1
+
+This work supported by a grant from Peugeot S.A. software available at http://github.com/golems/reflex
+
+2
+
+Dantam, Ben Amor, Christensen, Stilman
+
+or even human repositioning. For example, during the recent DARPA Robotics Challenge trials, impacts from falls resulted in camera issues which significantly affected the robot behavior for some teams [10]. Fig. 1 shows additional use cases which may change the camera pose. The pose registration process should be treated as a dynamic task in which the involved parameters are continuously updated. Such an online approach to pose registration is challenging, since it requires the constant visibility of a calibration reference and sufficient accuracy to perform manipulation tasks. To address changes in camera pose during operation, we propose an online camera registration method that combines (1) visual tracking of features on the manipulator, (2) a novel expectation-maximization inspired algorithm for pose filtering and tracking, and (3) an special Euclidean group constrained extended Kalman filter. Our key insight is to use the robot body as a reference for the registration process. By tracking known patterns or objects on the robot, we can continuously collect evidence for the current camera pose. However, na¨ ive filtering of these pose estimates can lead to large variances in the calculated poses. The challenge is obtaining sufficient accuracy for manipulation through the online registration. To address this challenge, we combine pose filtering and manipulator control, incorporating camera registration into our manipulation feedback loop. This paper presents a method for online registration and manipulation that combines object tracking, pose filtering, and visual servoing. First, we use perceptual information to identify the pose of specific features on the end-effector of the controlled robot (see Sect. 3.1). Then, we perform an initial fit to find offsets of the features on the robot, (see Sect. 3.2). A special Kalman filter is, then, used in conjunction with median filtering in order to perform online registration of the camera (Sect. 3.3). In our evaluation (see Sect. 4), we investigate the accuracy of the proposed method by applying it to robot grasping and manipulation tasks.
+
+2
+
+Related Work
+
+Typical camera registration methods collect a set of calibration data using an external reference object, compute the calibration, then proceed assuming the calibration is static. OpenCV determines camera registration from point correspondes, typically using a chessboard [15]. Pradeep, et. al, develop a camera and arm calibration approach based on bundle adjustment and demonstrate it on the PR2 robot [16]. This approach requires approximately 20 minutes to collect data and another 20 minutes for computation, a challenge for handling changing pose online. Visual servo control incorporates camera feedback into robot motion control [2,3]. The two main types of visual servoing are image-based visual servo control (IBVS), which operates on features in the 2D image, and position-based visual servo control, which operates on 3D parameters. Both of these methods assume a given camera registration. While IBVS is locally stable with regard to pose
+
+Online Camera Registration for Robot Manipulation
+
+3
+
+errors, under PBVS, even small pose errors can result in large tracking error [2]. Our proposed method addresses these challenges by correcting the camera registration online. In our experiments we show the importance of treating the registration process as a dynamic task. Furthermore, we show that our online registration achieves millimeter positioning accuracy of the manipulator. This is particularly important for grasping tasks performed using multi-fingered robot hands [1]. During such grasping tasks, inaccuracies in perception and forward kinematics often lead to premature contact between one finger and the object. As a result of the ensuing object movement, the intended grasp might not be satisfactorily executed or may fail altogether. Other recent work has explored online visual parameter identification. [11] tracks a robot arm to identify encoder offsets. This method assumes a given camera registration, but is also tolerant of some registration error. In contrast, our work identifies the camera registration online, but does not explicitly consider encoder offsets. [19] uses maps generated from a Simultaneous Localization and Mapping (SLAM) algorithm to calibrate a depth sensor. In our approach, unlike typical environments for SLAM, the object to which we are trying to register our camera ­ the manipulator ­ will necessarily be in motion.
+
+3
+
+Technical Approach
+
+We determine the pose registration between the camera and the manipulator by visually tracking the 3D pose of the arm. We identify the pose of texture or shape features on the arm and fit a transformation based on the corresponding kinematic pose estimates of those features. To obtain sufficient accuracy for manipulation, we combine several methods to fit and filter the visual pose esti-
+
+Position Servo
+B
+
+Workspace Control
+-1
+
+e,r = ln
+
+B
+
+Se,a 
+
+B
+
+SC  CSo
+
+
+
+r = J+ 
+
+-kx
+
+x  
+
+- k (J + J - I )  (joint velocity) 
+
+B
+
+SC
+B
+
+C
+
+EKF
+
+So
+
+SC
+
+med
+B
+
+B
+
+SC
+
+-1 S0  CSf ...
+
+Registration Filter
+C
+
+ (angles) Median filter So
+C
+
+0
+
+ROBOT image
+
+EKF
+
+C
+
+So
+
+Sf0 . . . CSfn Feature Estimator
+
+(target pose)
+
+(feature poses)
+
+Object Filter
+
+Fig. 2. Block Diagram of Control System. 3D poses for features are estimated from visual data. The median camera transform is computed over all features and then Kalman filtered. With this registration, the robot servos in workspace to a target object location.
+
+4
+
+Dantam, Ben Amor, Christensen, Stilman
+
+Fig. 3. Marker-based tracking (left) and model-based tracking (right).
+
+mates before servoing to the target object. This estimation and control loop is summarized in Fig. 2. For computational reasons, we used the dual quaternion representation for the special Euclidean group SE (3). Compared to matrices, the dual quaternion has lower dimensionality and is more easily normalized, both advantages for our filtering implementation. The relevant dual quaternion equations are summarized in appendix A. We represent the dual quaternion S for a transformation implicitly as a tuple of a rotation quaternion q and translation vector v : S = (q , v ). This requires only seven elements. For Euclidean transformations, we use the typical coordinate notation where leading superscript denotes the parent frame and following subscript denotes the child frame, i.e., xSy gives the origin of y relative to x. The transformation aSb followed by bSc is given as the dual quaternion multiplication aSb  bSc = aSc .
+
+3.1
+
+Feature Estimation
+
+To use the robot body as a reference for camera registration, it is important to identify and track body parts, e.g., the end-effector, in 3D. These 3D poses can be estimated with marker-based [17] and model-based approaches [4], see Fig. 3. Marker-based approaches require binary fiducials to known locations on the robot, such as the fingers. Model-based tracking, on the other hand, requires accurate polygon meshes of the tracked object. In our implementation, we use the ALVAR library [17] for marker-based tracking. For model-based tracking, we use the approach from [4]. In each frame the 3D pose of the object is computed by projecting a 3D CAD model into the 2D image. After projection, we identify salient edges in the model and align them with edges in the 2D image. A particle filter is then used to filter the pose estimates over time. Both marker-based and model-based tracking provide 3D pose estimates of tracked features, but with frequent outliers and noise. Markers have the advantage of being easy to deploy, while model-based tracking can deal with partial occlusions of the scene.
+
+Online Camera Registration for Robot Manipulation
+
+5
+
+3.2
+
+Offset Identification
+
+To improve the accuracy of kinematic pose estimates for features, we initially perform a static expectation-maximization-like [6] procedure, based on the following model: B Sk  kSf = BSC  CSf (1) where BSk is the measured nominal feature pose in the body frame determined from encoder positions and forward kinematics, kSf is the unknown static pose offset of the feature due to inaccuracy of manual placement, BSC is the unknown camera registration in the body frame, and CSf is the visually measured feature pose in the camera frame. These transforms are summarized in Fig. 1, with B Sk  kSf combined as BSf . As an initialization step, we iteratively fix either kSf or BSC in (2) and solve for the other using Umeyama's algorithm [20]. This gives us the relative transforms for the features kSf which we assume are static. 3.3 Filtering
+
+To compute the online registration, where BSC is changing, we combine median and Kalman filtering. The median filter is applied independently at each time step to reject major outliers in the estimated feature poses. Compared to weighted least squares methods, the median requires no parameter tuning and is especially resistant, tolerating outliers in up to 50% of the data [8]. Given the median at each step, the Kalman filter is applied over time to generate an optimal registration estimate under a Gaussian noise assumption. Based on (2), each observed feature on the robot gives on estimate for the camera registration BSC :
+B
+
+Sk  kSf  (CSf )-1 = BSC
+
+(2)
+
+Median Filtering At each time step, we find the median registration over all observed features. Each observed feature gives a candiate registration BSC . First, we collect a set Q of the orientation candidates:
+1 Q = (BqC )i | (BSk )i  kSf  (CSf )- i
+
+(3)
+
+Then, we compute the median of the candidate orientation registrations Q. To find this median, the structure of rotations in SO(3)offers a convenient distance metric between two orientations: the angle between them. Using this geometric interpretation, the median orientation q ^ is the orientation with minimum angular distance to all other orientations.
+n Bq C
+
+= arg min
+qi Q j =0
+
+ | ln(qi  qj )|
+
+(4)
+
+The median translation x ^ is the conventional geometric median, the translation with minimum Euclidean distance to all other translations. First, we find
+
+6
+
+Dantam, Ben Amor, Christensen, Stilman
+
+the set of candidate translations Z by rotating the feature translation in camera frame Cvf and subtracting from the body frame translation Bvf : Z = zi | zi = Bvf,i - BqC  Cvf,i  BqC
+
+
+(5)
+
+Then, we compute the geometric median of the candidate translations by finding the element with minimum distance to all other elements:
+n Bv C
+
+= arg min
+zi Z j =0
+
+|zi - zj |
+
+(6)
+
+Then, the median transform is the combination of the orientation and translation parts:
+BS C
+
+=
+
+Bq , Bv C C
+
+(7)
+
+Kalman Filtering Next, we use an Extended Kalman filter (EKF) to attenuate noise over time, taking care to remain in the SE (3) manifold. Similar Kalman filters are discussed in [13,5]. The quasi-linearity of quaternions means the EKF is suitable for orientation estimation in this application [12]. To filter SE (3) poses, we consider state x composed of a quaternion q , a translation vector v , and the translational and rotational velocities, v  and  : x = (q , v ) = [qx , qy , qz , qw , vx , vy , vz , v x, v y , v  z , x , y , z ] The measurement z is the pose: z = (q , v ) = [qx , qy , qz , qw , vx , vy , vz ] The general EKF prediction step for time k is: x ^k|k-1 = f (xk ^ -1 ) Fk - 1 = f x
+x ^k-1|k-1
+
+(8) (9) (10)
+
+T Pk|k-1 = Fk-1 Pk-1|k-1 Fk -1 + Qk-1
+
+where x ^ is the estimated state, f (x) is the process model, F is the Jacobian of f , P is the state covariance matrix, and Q is the process noise model. The process model then integrates the translational and rotational velocity, staying in the SE (3) manifold using the exponential of the twist  :  (, v,  v ) = (, v ×  + v ) f (x) = exp t  2  (q, v ) (11)
+
+Online Camera Registration for Robot Manipulation
+
+7
+
+Now, we find the process Jacobian F . The translation portion is a diagonal matrix of the translational velocity. For the orientation portion, we find the quaternion derivative q  from the rotational velocity: = q 1 q 2 (12)
+
+This quaternion multiplication can be converted into the following matrix multiplication: 1 1   q = Mr (q )  2 2  qw qz -qz qw Mr (q ) =   qy -qx -qx -qy
+
+ -qy qx   qw  -qz
+
+(13)
+
+Note that we omit the w column of the typical quaternion multiplication matrix because the w element of rotational velocity  is zero. This gives the following process 13 × 13 Jacobian F :   1 I4×4 0 2 tMr q 0  0 I3×3 0 tI3×3   F = (14)  0 0 I3×3 0  0 0 0 I3×3 Now we consider the EKF correction step. The general form is: z ^k = h(^ xk|k-1 ) h Hk = x
+x ^ k |k - 1
+
+(15) (16) (17) + Rk (18) (19) (20) (21)
+
+yk = v (zk , z ^) Sk = Hk Pk|k-1 =
+T Hk Pk|k-1 Hk T Sk Kk
+
+x ^k|k = p(^ xk|k-1 , Kk yk ) Pk|k = (I - Kk Hk )Pk|k-1
+
+where z is the measurement, h is the measurement model, H is the Jacobian of h, z ^ is the estimated measurement, R is the measurement noise model, and K is the Kalman gain, v is a function to compute measurement residual, and p is a function to compute the state update. We compute the EKF residuals and state updates using relative quaternions to remain in SE (3) without needing additional normalization. The observation h(x) is a pose estimate: h(x) = (q, v ) H = I7×7 (22)
+
+8
+
+Dantam, Ben Amor, Christensen, Stilman
+
+We compute the measurement residual based on the relative rotation between the measured and estimated pose: v (z, z ^) = (yq , yv )
+ yq = ln zq  z ^q q
+
+yv = zv - z ^v
+
+(23)
+
+where yq is the orientation part of the residual and yv the translation part. Note  corresponds to a velocity in the direction of the relative that that ln zq  z ^q transform between the actual and expected pose measurement and that we can consider yq as a quaternion derivative. Then, the update function will integrate the pose portion of y , again using the exponential of the twist. First, we find the twist corresponding to the product of the Kalman gain K and the measurement residual y : (Ky ) = (Ky )q  q   (Ky, v ) = ((Ky ) , v × (Ky ) + (Ky )v ) (24) Then, we integrate estimated pose using the exponential of this twist: (x(q,v) )k|k = exp t  2  (q, v ) (25)
+
+Finally, the velocity component of innovation y is scaled and added: (x,v  )k|k = x,v  + (Ky ),v  3.4 Registered Visual Servoing (26)
+
+We use the computed camera registration BSC to servo to a target object according to the control loop in Fig. 2. This is position-based visual servoing, incorporating the dynamically updated registration. First, we compute a reference twist Be,ref from the position error using camera pose BSC and object pose CSo :
+B B
+
+Se,ref = BSC  CSobj
+B -1 Se,act  BSe,ref
+
+(27) (28)
+
+e,ref = ln
+
+Then, we find the reference velocity for twist Be,ref : x  D(Be,ref ) - (2D(BSe )  R(BSe )-1 ) × R(Be,ref ) =  R(Be,ref ) where R(X ) is the real part of X and D(X ) is the dual part of X . (29)
+
+Online Camera Registration for Robot Manipulation
+
+9
+
+Finally, we compute joint velocities using the Jacobian damped least squares, also using a nullspace projection to keep joints near the zero position:   r = J + -kx x   - k (J + J - I ) (30)
+
+where J is the manipulator Jacobian matrix, J + is its damped pseudoinverse, kx is a gain for the position error, and k is a gain for the joint error.
+
+4
+
+Experiments
+
+We implement this approach on a Schunk LWA4 manipulator with SDH endeffector, see Fig. 1, and use a Logitech C920 webcam to track the robot and objects. The Schunk LWA4 has seven degrees of freedom and uses harmonic drives, which enable repeatable positioning precision of ±0.15mm [7]. However, absolute positioning accuracy is subject to encoder offset calibration and link rigidity. In practice, we achieve ±1cm accuracy when using only the joint encoders for feedback. The Logitech C920 provides a resolution of 1920x1080 at 15 frames per second. To measure ground-truth distances, we used a Bosch DLR165 laser rangefinder and a Craftsman 40181 vernier caliper. We initially test the convergence and resistance of our approach while moving the camera. With the camera mounted on a tripod, we compute the filtered registration while the camera is perturbed, rotated, and translated. The resulting registrations under moving camera are plotted in Fig. 4. The visual pose estimates contain frequent outliers in addition to a small amount of noise. The filtered registration removes the outliers and converges within 5s. To demonstrate the suitability of this approach for manipulation tasks, we test the positioning accuracy attainable with this online registration. As shown in Fig. 5, we place a marker on a table, measure linear distance to the marker with a laser ranger, servo the end-effector to the visually estimated marker position using the control loop in Fig. 2, and measure the distance to the end-effector which should be directly over the marker. The resulting position accuracy achievable with online registration is summarized in Table 1. For an ideal camera placement with close, direct view of the end-effector (i.e. the angle  between the camera and the markers is 45 or less), positioning accuracy is in the submillimiter range. Larger camera distances and angles, resulted in positioning error of 1 - 2 millimeters. Finally, we test the pre-grasp positioning accuracy of this method as shown in Fig. 6. We place an object, in particular, a cup, at a variety of locations on the table, servo the end-effector to the visually detected object position using the control loop in Fig. 2, and then measure the distance of each finger to the object using a vernier caliper. The results of the pre-grasp positioning are summarized in Table 2. A small number of trials resulted in centimeter-level error for objects placed near the edge of the image frame. Ommitting these outliers, the average positioning error of the pre-grasp configuration was 3.3mm.
+
+10
+
+Dantam, Ben Amor, Christensen, Stilman
+
+0.5 quaternion 0 -0.5 -1 0 10
+
+translation (m)
+
+x y z w
+
+1.5 1 0.5 0 -0.5 0 10
+
+x y z
+
+20 30 time (s) (a) x y z w
+
+40
+
+20 30 time (s) (b) x y z
+
+40
+
+0.5 quaternion 0 -0.5 -1 0 10
+
+1.5 translation (m) 40 1 0.5 0 -0.5 0 10
+
+20 30 time (s) (c)
+
+20 30 time (s) (d)
+
+40
+
+Fig. 4. Registration while camera is bumped (8s), rotates (15s) and translated (24s). camera is bumped. (a)-(b) registration from raw visual pose estimates of one feature. Contains many outliers. (c)-(d) filtered registration. Outliers and noise eliminated.
+
+5
+
+Experimental Insights
+
+There are a number of error sources we must handle in this system. For the kinematics, error from encoder offsets in the arm, imprecise link lengths, and flexing of links all contribute inaccurate kinematic pose estimates. For perception, error from inaccurate camera intrinsics, imprecise fiducial sizes, offsets in object models, and noise in the image all contribute to error in visual pose estimates. To achieve accurate manipulation, we must account for these potential sources of error. The key point of the servo loop in Fig. 2 is that we depend not on minimizing absolute error, but on minimizing relative error. We are minimizing error between end-effector pose Se and target pose So . Because we continually update the camera registration, we effectively minimize this error in the image. As long as there is distance between camera frame poses CSe and CSo , we will move the end-effector towards the target, and as long as the visual distance estimate is zero when we reach the target, the arm will stop at the target. Thus, even if there is absolute registration error due to, e.g., unmodeled lens distortion, it is only necessary that relative error between visual estimates of the end-effector and target be small and converge to zero. The relative error between end-effector and
+
+Online Camera Registration for Robot Manipulation
+
+11
+
+Laser
+
+Fig. 5. Experimental setup for evaluating the positioning accuracy during camera registration. A cube was placed on a marker and the distance to a laser ranger was captured. Subsequently, the cube was placed in the hand of the robot, which, then, servoed to the position of the marker. Again, the distance was measured using the laser ranger.
+
+target is crucial in manipulation, and our technique is well suited to minimizing this error. The position of the tracked features on the robot has an important effect on error correction. Kinematic errors between the robot body origin and the tracked features, e.g., due to flex or encoder offsets, are incorporated into the camera registration and handled through the servo loop. Error between the observed features and the end-effector cannot be corrected. Thus, it is better to track features as close to the end-effector as possible. Consequently, we placed the fiducual markers on the fingers of the SDH end-effector. The principal challenge in the implementation stems from observing the robot pose using small,  3cm, markers. While marker translation is reliably detected, outliers in orientation are frequent. Ample lighting improves detection but does not eliminate outliers. The median pose, (4)-(6), was effective at eliminating outliers from visual estimates. Alternative methods for combining orientations estimates include Davenport's q-method [14] and the Huber loss function [9]. In contract to these other methods, the median has no parameters such as thresholds which require adjustment. Thus, it is especially suited to this online registration application where outlier frequency may vary depending on camera placement, lighting, etc. A potential challenge is that the direct computation of
+Setup Average Stdev   45 0.5mm 0.52mm  > 45 1.5mm 1.26mm Table 1. Positioning experiment results. Average and standard deviation [mm] of measured difference between commanded position and object location. Data Average Stdev All 5.8mm 8.5mm Inliers 3.3mm 2.3mm Table 2. Pre-grasp experiment results. Average and standard deviation [mm] of measured difference between object and end-effector position
+
+560.10mm
+
+12
+
+Dantam, Ben Amor, Christensen, Stilman
+
+Fig. 6. Pre-grasp experiment: using the introduced camera registration, the open robot hand is servoed to the position of a glass. The distances between the fingers and the glass are then measured. Since the glass is rotationally symmetric, the distances of both used robot fingers should be identical in the ideal case.
+
+(4) leads to an O(n2 ) algorithm in the number of orientations. However, for the small number of poses we consider at each step here, the computation time is negligable. On a Xeon E5-1620 CPU, computing the median of 32 orientations requires 30µs.
+
+6
+
+Conclusion
+
+We have presented an online method to identify the camera poses for robot manipulation tasks. This is useful for the typical case where camera registration is not static but changes due to model error, disturbances, or wear and tear. The key point is to track both the object and the robot in the image, and servo based on the visually estimated relative pose between the object and robot. By combining median and Kalman filtering of the registration pose, we are able to achieve millimeter-level manipulation accuracy. We have shown in our experiments that online registration can be used to improve positioning accuracy during grasping and manipulation tasks, thereby avoiding typical challenges such as premature contact between fingers and objects. A useful extension to this work would be to handle online registration with multiple cameras. This could provide additional data to improve accuracy or permit greater field of view, e.g., observing both hands in bimanual tasks. We anticipate that considering median deviation and applying a similar extended Kalman filter to multiple simultaneous poses will extend this online approach to multi-camera setups.
+
+Online Camera Registration for Robot Manipulation
+
+13
+
+Acknowledgements
+This work would not have been possible without Mike Stilman's tireless guidance and support.
+
+A
+
+Dual Quaternion Computation
+
+Dual quaternions are a numerically convenient representation for Euclidean transformations, SE (3). Compared to ordinary quaternions which can represent rotation, dual quaternions can represent both rotation and translation. Mathematically, they are the extension of quaternions to the dual numbers [18]. Dual numbers are of the form r + d, where r is real part, d is the dual part, and  is the dual element such that  = 0 and 2 = 0. A dual quaternion S can be represented as  a pair of quaternions, S = sr + sd , which we represent with the  tuple sr , sd . We represent the vector and scalar components of the ordinary quaternion parts of a dual quaternion as:   S = r , d  =    rx i + ry j + rz k , rw , dx i + dy j + dz k , dw  =   (rv , rw ) , (dv , dw ) (31) where rv and dv are the vector parts and rw and dw are the scalar parts. The dual quaternion representing orientation q and translation v is:     1  q , v  q  S = sr , sd  =  2 (32)
+
+Dual quaternion Euclidean transforms are normalized by dividing by the real magnitude:   sr sd     S = , (33)  |sr | |sr | Operations on the dual quaternions can be derived from those of ordinary quaternions and the properties of dual numbers. However, this requires care to handle singularities. Generally, the values at these singularities can be computed by identifying singular factors with convergent Taylor series. Given suitable singular factors, a computer algebra system, e.g., Maxima, Mathematica, can be used to compute the Taylor series. We summarize the relevant functions and suitable Taylor series below. Dual quaternion multiplication is:   A  B = ar  br , ar  bd + ad  br  (34)
+
+14
+
+Dantam, Ben Amor, Christensen, Stilman
+
+The dual quaternion exponential is:  = |rv | k = rv · dv  s S w ~ e =e  rv , c ,   c- s dv +  2
+s 
+
+(35) (36)  s  krv , - k    (37)
+
+where s = sin , c = cos , w ~ = rw + dw , and rv · dv is the dot product of rv and dv . Then, to handle the singularity at  = 0, we use the following Taylor expansions: 2 4 6 sin  =1- + - + ... (38)  6 120 5040 cos  - 2
+sin  
+
+1 2 4 6 =- + - + + ... 3 30 840 45360
+
+(39)
+
+The dual quaternion logarithm is:  = atan2 (|rv | , rw ) k = rv · dv = (ln S )r = (ln S )d =
+ rw - |r v| 2 |rv |
+
+(40) (41)
+
+|r|
+
+2
+
+= ln |r| rv +
+
+1 |r|
+
+cos   - 2 3 sin () sin ()
+
+(42) (43)
+
+ rv , |rv | k - dw |r|
+2
+
+ dv , |rv |
+
+k+
+
+rw dw |r|
+2
+
+(44)
+
+where (ln S )r is the real part of the logarithm and (ln S )d is the dual part of the logarithm. Note that  represents the angle between the real and imaginary parts of unit quaternion r. To handle the singularity at |rv | = 0 and knowing |r| = 1:    = |r | = v |rv | sin 
+|r |
+
+(45) (46)
+
+ 2 74 316 =1+ + + + ... sin  6 360 15120 Then, for  in (42): c  2 1 17 4 29 6 - 3 = - - 2 -  -  + ... s2 s 3 5 420 4200
+
+(47)
+
+Online Camera Registration for Robot Manipulation
+
+15
+
+References
+1. H. Ben Amor, O. Kroemer, U. Hillenbrand, G. Neumann, and J. Peters. Generalization of human grasping for multi-fingered robot hands. In Proceedings of the International Conference on Robot Systems (IROS), 2012. 2. Fran¸ cois Chaumette and Seth Hutchinson. Visual servo control, part I: Basic approaches. Robotics and Automation Magazine, 13(4):82­90, 2006. 3. Fran¸ cois Chaumette and Seth Hutchinson. Visual servo control, part II: Advanced approaches. Robotics and Automation Magazine, 14(1):109­118, 2007. 4. Changhyun Choi and Henrik I Christensen. Robust 3d visual tracking using particle filtering on the special euclidean group: A combined approach of keypoint and edge features. The International Journal of Robotics Research, 31(4):498­519, 2012. 5. Daniel Choukroun, Itzhack Y. Bar-Itzhack, and Yaakov Oshman. Novel quaternion Kalman filter. Trans. on Aerospace and Electronic Systems, 42(1):174­190, 2006. 6. A. P. Dempster, N. M. Laird, and D. B. Rubin. Maximum likelihood from incomplete data via the em algorithm. Journal of the Royal Statistical Society, Series B, 39(1):1­38, 1977. 7. Schunk GmbH. Dextrous lightweight arm LWA 4D, technical data. http://mobile.schunk-microsite.com/en/produkte/produkte/ dextrous-lightweight-arm-lwa-4d.html. 8. Frank R Hampel, Elvezio M Ronchetti, Peter J Rousseeuw, and Werner A Stahel. Robust statistics: the approach based on influence functions, volume 114. John Wiley & Sons, 2011. 9. Peter J Huber et al. Robust estimation of a location parameter. The Annals of Mathematical Statistics, 35(1):73­101, 1964. 10. Sungmoon Joo and Michael Grey. DRC-Hubo retrospective, January 2014. Personal Communication. 11. Matthew Klingensmith, Thomas Galluzzo, Christopher Dellin, Moslem Kazemi, J. Andrew (Drew) Bagnell, and Nancy Pollard. Closed-loop servoing using realtime markerless arm tracking. In International Conference on Robotics And Automation (Humanoids Workshop), May 2013. 12. Joseph J. Laviola. A comparison of unscented and extended Kalman filtering for estimating quaternion motion. In American Control Conference, volume 3, pages 2435­2440. IEEE, 2003. 13. Ern J. Lefferts, F. Landis Markley, and Malcolm D. Shuster. Kalman filtering for spacecraft attitude estimation. Journal of Guidance, Control, and Dynamics, 5(5):417­429, 1982. 14. F Landis Markley, Yang Cheng, John Lucas Crassidis, and Yaakov Oshman. Averaging quaternions. Journal of Guidance, Control, and Dynamics, 30(4):1193­1197, 2007. 15. OpenCV API Reference. http://docs.opencv.org/master/modules/refman. html. 16. Vijay Pradeep, Kurt Konolige, and Eric Berger. Calibrating a multi-arm multisensor robot: A bundle adjustment approach. In Experimental Robotics, pages 211­225. Springer, 2014. 17. Kari Rainio and Alain Boyer. ALVAR ­ A Library for Virtual and Augmented Reality User's Manual. VTT Augmented Reality Team, December 2013. 18. Eduard Study. Geometrie der dynamen, 1903. 19. A. Teichman, S. Miller, and S. Thrun. Unsupervised intrinsic calibration of depth sensors via slam. In Robotics: Science and Systems (RSS), 2013.
+
+16
+
+Dantam, Ben Amor, Christensen, Stilman
+
+20. Shinji Umeyama. Least-squares estimation of transformation parameters between two point patterns. Pattern Analysis and Machine Intelligence, 13(4):376­380, 1991.
+
+View publication stats
+
+

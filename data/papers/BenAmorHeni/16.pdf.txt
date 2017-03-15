@@ -1,0 +1,327 @@
+International Conference on Humanoid Robots (HUMANOIDS), 2014
+
+Online Multi-Camera Registration for Bimanual Workspace Trajectories
+Neil T. Dantam Heni Ben Amor Henrik I. Christensen Mike Stilman
+
+Abstract-- We demonstrate that millimeter-level bimanual manipulation accuracy can be achieved without the static camera registration typically required for visual servoing. We register multiple cameras online, converging in seconds, by visually tracking features on the robot hands and filtering the result. Then, we compute and track continuous-velocity relative workspace trajectories for the end-effector. We demonstrate the approach using Schunk LWA4 and SDH manipulators and Logitech C920 cameras, showing accurate relative positioning for pen-capping and object hand-off tasks. Our filtering software is available under a permissive license.1
+
+I. I NTRODUCTION Visual feedback of hand movements provides rich information that can be used to correct for errors and improve manipulation accuracy. Recent evidence suggests that humans use visual feedback of the hand to guide reach and grasp tasks [15]. Continuously tracking and monitoring the state of the hand allows us to dynamically accommodate to internal and external perturbations, e.g., muscle impairments, thereby achieving a high degree of robustness during manipulation tasks. In robotics, using visual feedback depends on a kinematic registration between the camera and the manipulators. Typically, this is viewed as a static task: registration is computed offline and assumed to be constant. In reality, camera registration changes during operation due to external perturbations, wear and tear, or even human repositioning. For example, during the recent DARPA Robotics Challenge trials, impacts from falls resulted in camera issues which significantly affected the robot behavior [10]. The pose registration process should be treated as a dynamic task in which the involved parameters are continuously updated. Such an online approach to pose registration is challenging, since it requires the constant visibility of a calibration reference and sufficient accuracy to perform manipulation tasks. Bimanual manipulation requires accurate coordination of both end-effectors. To perform smooth and accurate bimanual manipulation, we propose an online estimation and control approach that combines (1) visual tracking of the manipulators, (2) co-estimation of poses for cameras and end-effectors using a special Euclidean group median and extended Kalman filter, and (3) continuous geometric interpolation on the special Euclidean group. Our key insight is to combine perception and control online, using the robot
+
+Fig. 1. Bimanual Schunk LWA4/SDH capping a pen using visual feedback from online camera registration and end-effector tracking.
+
+body frame as a reference. This work extends the singlecamera and manipulator registration presented in [5] to multicamera and multi-manipulator estimation, and it integrates the spherical blending approach of [6] to enable continuous motion of the manipulator in the workspace. II. R ELATED W ORK Typical camera registration methods collect a set of calibration data using an external reference object, compute the calibration, then proceed assuming the calibration is static. OpenCV determines camera registration from point correspondences, typically using a chessboard [12]. Pradeep, et. al, develop a camera and arm calibration approach based on bundle adjustment and demonstrate it on the PR2 robot [13]. This approach requires approximately 20 minutes to collect data and another 20 minutes for computation, a challenge for handling changing pose online. Visual servo control incorporates camera feedback into robot motion control [1], [2]. The two main types of visual servoing are image-based visual servo control (IBVS), which operates on features in the 2D image, and position-based visual servo control, which operates on 3D parameters. Both of these methods assume a given camera registration. While IBVS is locally stable with regard to pose errors, under PBVS, even small pose errors can result in large tracking error [1]. Compared to both IBVS and PVBS, our method requires no initial camera registration, instead estimating the registration online. Additionally, compared to IBVS, we estimate the full kinematics of the camera and robot,
+
+The authors are with the Institute for Robotics and Intelligent Machines, Georgia Institute of Technology, Atlanta, GA 30332, USA. ntd@gatech.edu, hbenamor@cc.gatech.edu,
+
+hic@cc.gatech.edu
+1 software
+
+available at http://github.com/golems/reflex
+
+and thus can directly follow workspace reference poses and trajectories, such as [6], rather than being limited to imagespace reference points and trajectories. Other recent work has explored online visual parameter identification. A single-camera and single-arm version of the approach in this paper was presented in [5]. [11] tracks a robot arm to identify encoder offsets. This method assumes a given camera registration, but is also tolerant to some registration error. In contrast, our work identifies the camera registration online. Though we do not explicitly consider encoder offsets, our method is empirically robust to offsets  of even 30 (see Sect. V). [9] considers bimanual arm and object tracking with vision and tactile feedback. Though the hardware and implementation differ from work presented in this paper, we obtain similar accuracy using inexpensive webcams and without tactile sensing. [16] uses maps generated from a Simultaneous Localization and Mapping (SLAM) algorithm to calibrate a depth sensor. In our approach, unlike typical environments for SLAM, the object to which we are trying to register our camera ญ the manipulator ญ will necessarily be in motion. III. E STIMATION : P OSES OF C AMERAS AND H ANDS We estimate poses of multiple cameras and manipulators by visually detecting the 3D pose of each manipulator. First, we detect texture features on the end-effector and fit a transform, providing an instantaneous estimate of camera and hand pose. To obtain sufficient accuracy for manipulation we then combine median and extended Kalman filtering of these poses. To use the robot body as a reference for camera registration, we track the 3D pose of features on the end-effector. These 3D poses can be estimated with marker-based [14] and model-based approaches [3]. Marker-based approaches require attaching fiducials to known locations on the robot, such as the fingers. Model-based tracking, on the other hand, requires accurate polygon meshes of the tracked object. In our implementation, we use the ALVAR library [14] for marker-based tracking. For computational reasons, we used the dual quaternion representation for the special Euclidean group SE (3). Compared to matrices, the dual quaternion has lower dimensionality and is more easily normalized, both advantages for our filtering implementation. Compared to the unit quaternion plus translation vector representation, dual quaternions are more convenient for algebraic manipulation because they are chained through multiplication. For Euclidean transformations, we use the conventional coordinate notation where the leading superscript denotes the parent frame and the following subscript denotes the child frame, i.e., aSb gives the origin of b relative to a. The transformation aSb followed by bSc is given as the dual quaternion multiplication aSb  b Sc = aSc . We represent an orientation quaternion as aqb , a translation vector as axb , a rotational velocity as ab , and the  b. combined translational and rotational velocity as a
+
+A. Asynchronous Pose Co-Estimation Each camera image provides pose measurements for visible end-effector features. To reduce estimation latency, we process and filter the measurements from each camera asynchronously as they arrive rather than collecting images from all cameras at a fixed timestep. The kinematic chain through the manipulator, feature, and camera is defined as:
+b
+
+Swi  wiSwi  wiSfp = bScj  cjSfp
+
+(1)
+
+where bSwi is the encoder-measured pose of wrist i in body frame, wiSwi is the estimated offset pose of wrist i, wiSfp is the encoder-measured transform from wrist i to feature p on the hand, bScj is the estimated pose registration of camera j , and cjSfp is the visually-measured pose feature p in camera j . For a depiction of the setup see Fig. 3. Based on (1), we produce measurements for wrist offset wi Swi and camera registration bScj :
+wiS wi cj
+
+= (bSwi )-1  bScj  cjSfp  (wiSfp )-1 = Swi 
+b wiS wi
+
+(2) (3)
+
+bS
+
+
+
+wi
+
+Sfp  ( Sfp )
+
+cj
+
+-1
+
+where wiSwi is the wrist offset measurement from this image and feature, bScj is the camera registration measurement, b wiS wi is the currently estimated wrist offset, and Scj is the currently estimated camera pose. B. SE (3) Median and Extended Kalman Filter We apply median and extended Kalman filtering in the special Euclidean group SE (3) to the measurements for wrist offset wiSwi and camera registration bScj , similar to the approach in [5]. First, to reject outliers, we compute the median measurement over a sliding time window. Then, we use an extended Kalman Filter over time to compute optimal pose estimates under a Gaussian noise assumption. To compute the median of orientation q over the sliding window, the structure of rotations in SO(3) offers a convenient distance metric between two orientations: the angle between them. Using this geometric interpretation, the median orientation q is the orientation with minimum angular distance to all other orientations.
+n
+
+q = arg min
+qi Q j =0
+
+ | ln(qi  qj )|
+
+(4)
+
+The median translation v is the conventional geometric median, the translation with minimum Euclidean distance to all other translations:
+n
+
+v = arg min
+vi  V j =0
+
+| vi - vj |
+
+(5)
+
+In the extended Kalman filter, we consider state x composed of a quaternion q , a translation vector v , and the translational and rotational velocities, v  and  : x = (q , v ) = [qx , qy , qz , qw , vx , vy , vz , x , y , z , v x, v y , v z ]
+
+er
+
+er S
+
+e
+
+,
+
+erS e
+
+Workspace Control
+e b
+
+Se (t1 )
+
+Relative Trajectory
+
+Sw
+
+= = =
+wiS b b
+
+e
+
+Sw  w Sw
+
+Sw bS  w
+
+Ser  erSe  e Sw  e  e Sw Ser  erS
+
+r Sr , S
+
+J+
+
+x r x - xr - kx  r ln (q  qr )
+
+- k (J + J - I )
+
+wiS
+
+w , i
+
+bS
+
+cj wiS w i w i
+
+ r (joint velocity) 
+wiS w i bS cj
+
+EKF
+
+median
+
+wiS
+
+w i
+
+...
+0 bS
+
+(bSwi )-1  bScj  cjSf  (wiSf )-1
+b
+
+ROBOT image Feature Detector
+
+EKF
+
+bS
+
+cj
+
+median
+
+bS
+
+cj
+
+cj
+
+...
+0
+
+Swi  wiSw  wiSf  (cjSf )-1
+i cj
+
+Sf0 . . . cjSfn
+
+Fig. 2.
+
+Block diagram of the control system. 3D feature poses
+
+cj
+
+Sfp are detected from visual data. Instantaneous wrist offsets
+
+wiS wi
+
+and camera
+
+registrations bScj are computed. Then the median of these poses is taken over a sliding window and subsequently Kalman-filtered. The filtered poses are r. used to track a relative left-right workspace trajectory, and the Jacobian damped-least squares gives the reference joint velocities 
+
+b b
+
+Swr
+
+Sc 0
+
+wr S
+
+wr
+
+wr Ser
+
+c0
+
+Sf3
+
+wr Sf
+
+3
+
+Frame Source: Encoders Visions Filter
+
+Fig. 3.
+
+Setup for a dual-arm and dual-camera system. The kinematic frames are shown for one of the arms and cameras.
+
+The measurement z is the median pose from the sliding window: z = (q , v ) = [qx , qy , qz , qw , vx , vy , vz ] The general EKF prediction step for time k is: x ^k|k-1 = f (^ xk-1 ) f Fk - 1 = x x ^k-1|k-1
+T Pk|k-1 = Fk-1 Pk-1|k-1 Fk -1 + Qk-1
+
+Now, we find the process Jacobian F . The translation portion is a diagonal matrix of the translational velocity. For the orientation portion, we find the quaternion derivative q  from the rotational velocity: = q 1 q 2 (10)
+
+(6) (7) (8)
+
+This quaternion multiplication can be converted into the following matrix multiplication: 1 1   q = Mr (q )  2 2  qw qz -qz qw Mr (q ) =   qy -qx -qx -qy
+
+where x ^ is the estimated state, f (x) is the process model, F is the Jacobian of f , P is the state covariance matrix, and Q is the process noise model. The process model integrates the translational and rotational velocity, staying in the SE (3) manifold using the dual quaternion exponential of the twist :   (, v,  v ) = , v ื  + v  f (x) = exp t   (q, v ) 2 (9)
+
+ -qy qx   qw  -qz
+
+(11)
+
+Note that we omit the w column of the typical quaternion multiplication matrix because the w element of rotational velocity  is zero.
+
+This gives the following process 13 ื 13 Jacobian F :   1 I4ื4 0 0 2 tMr q  0 I3ื3 0 tI3ื3   F = (12)  0 0 I3ื3 0  0 0 0 I3ื3 Now we consider the EKF correction step. The general form is: z ^k = h(^ xk|k-1 ) h Hk = x x ^ k |k - 1 yk = v (zk , z ^) Sk = Hk Pk|k-1 =
+T Hk Pk|k-1 Hk T Sk Kk
+
+IV. C ONTROL : C ONTINUOUS W ORKSPACE T RAJECTORIES To perform smooth, bimanual motion, we compute a relative workspace trajectory between the two manipulators, transform the relative pose and velocity of the trajectory to the body frame, then compute joint velocities using the Jacobian damped least squares pseudoinverse. We compute a relative trajectory for the two endeffectors using the spherical parabolic blends described in [6]. This provides a straight-line, constant-axis, and continuous-velocity workspace path for the end-effector by blending subsequent spherical linear interpolation segments. Given a list of relative left-right waypoint poses and times, er Se (t0 ), . . . , erSe (tn ), we compute the reference left-right  e (t). pose and velocity as a function of time: erSe (t), er er  el From the relative reference pose Se and velocity er between the left and right end-effectors, we control the left arm in workspace, by first converting the relative pose and velocity to the body frame, then computing the Jacobian damped-least-squares inverse kinematics solution. The left-arm wrist pose bSw follows directly from the kinematic chain through the right arm:
+b e
+
+(13) (14) (15) + Rk (16) (17) (18) (19)
+
+x ^k|k = p(^ xk|k-1 , Kk yk ) Pk|k = (I - Kk Hk )Pk|k-1
+
+where z is the measurement, h is the measurement model, H is the Jacobian of h, z ^ is the estimated measurement, R is the measurement noise model, and K is the Kalman gain, v is a function to compute measurement residual, and p is a function to compute the state update. We compute the EKF residuals and state updates using relative quaternions to remain in SE (3) without needing additional normalization. The observation h(x) is a pose estimate: h(x) = (q, v ) H = I7ื7 (20) We compute the measurement residual based on the relative rotation between the measured and estimated pose: v (z, z ^) = (yq , yv )
+ yq = ln zq  z ^q q
+
+Sw = bSer  erSe  e Sw (25)
+
+Sw = e Sw  w Sw
+
+Next, we compute the body-frame feedforward reference  b . Since there is only one changing frame, erSe , velocity, a we could find the corresponding body frame motion by rotating the velocity. However, the typical computation is notationally cumbersome [4, p140].2 Instead, we find an elegant and more general solution by merely taking the derivative of the pose: Sw = bSer  erSe  e Sw 0 d er      b b ( Se  e Sw )  Sw =   Ser  (erSe  e Sw ) + bSer  dt B0 e  จ e  = bSe  erSe  e S  bSw w + rS e  Sw r จจ  = bSe  erS  e  e Sw  bSw r
+0 b
+
+yv = zv - z ^v
+
+(21)
+
+where yq is the orientation part of the residual and yv the  translation part. Note that ln zq  z ^q corresponds to a velocity in the direction of the relative transform between the actual and expected pose measurement and that we can consider yq as a quaternion derivative. Then, the update function will integrate the pose portion of y , again using the exponential of the twist. First, we find the twist corresponding to the product of the Kalman gain K and the measurement residual y : (Ky ) = (Ky )q  q  (Ky, v ) = ((Ky ) , v ื (Ky ) + (Ky )v ) (22) Then, we integrate estimated pose using the exponential of this twist: t   (q, v ) (23) (x(q,v) )k|k = exp 2 Finally, the velocity component of innovation y is scaled and added: (x,v  )k|k = x,v  + (Ky ),v  (24)
+
+(26)
+
+U indicates that S cancels to zero, and we assume the  where  S e  ). right arm and left fingers are stationary (0 = bS er = S w Relative motion with both arms moving could be computed by including the nonzero derivative bS er in the computation. We can use the product rule for this derivation because dual quaternion poses are chained through multiplication. Using the quaternion plus translation vector representation,
+2 The complexity of the velocity transformation notation in [4, p140] stems from its representation using Gibbs's vector calculus which decouples the quaternion multiplication into separate dot and cross products. Hamilton's and Study's classical quaternion and dual quaternion notation is simpler and more elegant for this kinematic computation. A similar computation is also possible using transformation matrices and their derivatives, but these matrices are more difficult to normalize than quaternions, increasing numerical error.
+
+Fig. 4. Manipulation error using only encoders for position feedback. Without using visual feedback, there is a 15mm relative positioning error between the two end-effectors.
+
+chaining is not a multiplication, so an equivalent derivation would be more complex. Velocity and the dual quaternion derivative are related as follows: dR(S ) 1 =   R( S ) dt 2 1 dR(S ) dD(S ) = x   R(S ) + x  dt 2 dt
+
+Fig. 5. Testing relative positioning accuracy by aligning the end-effectors. Incorporating visual feedback and online registration reduces manipulation error from 15mm to  2mm. 1
+
+(27)
+quaternion, q
+
+where R(S ) is the real part of S , D(S ) is the dual part of S ,  is rotational velocity, and x is translation. Finally, we compute reference joint velocities using the Jacobian damped least squares with a nullspace projection to keep joints near the zero position: r = J+  x r x - xr - kx  r ) ln (q  qr -k (J + J -I ) (28)
+
+x y z w
+
+0.5
+
+0
+
+-0.5
+
+0
+
+1
+
+2
+
+3
+
+4 5 6 time (s)
+
+7
+
+8
+
+9 10
+
+where x is the actual translation, q is the actual orientation quaternion, xr is the reference translation, qr is the reference orientation quaternion,  is the actual rotational velocity, r is the reference rotational velocity, kx is the workspace position error gain, k is the null-space projection gain, and  is the configuration. We then use joint-level velocity control  r . A block diagram to track the reference joint velocities  depicting the components of the control system and their interplay can be found in Fig. 2. V. E XPERIMENTS We implement this approach on a pair of Schunk LWA4 manipulators with SDH end-effectors, and use a pair of Logitech C920 webcams to track the robot and objects. Our estimation and control software is implemented as a distributed system using the Ach real-time communication library [7]. The Schunk LWA4 has seven degrees of freedom and uses harmonic drives, which enable repeatable positioning precision of ฑ0.15mm [8]. However, absolute positioning accuracy is subject to encoder offset calibration and link rigidity. In practice, we achieve ฑ15mm accuracy when using only the joint encoders for feedback, as can be seen in Fig. 4. The Logitech C920 provides a resolution of 1920x1080 at 15 frames per second. To measure ground-truth distances, we use a ruler and meter-stick. To test the relative positioning accuracy of our implementation, we servo the end-effectors to a reference zero relative alignment, Fig. 5, and then measure the actual relative error between the two end-effectors. We conduct this test using
+
+0.5
+
+x y z
+
+translation, x
+
+0
+
+-0.5
+
+0
+
+1
+
+2
+
+3
+
+4 5 6 time (s)
+
+7
+
+8
+
+9 10
+
+Fig. 6. Relative trajectory of erSe between left and right end-effectors for pen-capping. The trajectory has constant acceleration, constant velocity, and constant deceleration segments.
+
+only encoder feedback, then with visual feedback. We also  repeat the test injecting encoder error of 15 at the initial   shoulder joint, 30 at the shoulder, and 15 at both the shoulder and elbow. The results of this test are summarized in Table I. In addition, we use this method to perform the pen-capping task shown in Fig. 3 and the object hand off task shown in Fig. 7. The relative trajectory of erSe for the pen-capping task is plotted in Fig. 6 VI. D ISCUSSION The results of Sect. V show that this method achieves bimanual positioning accuracy of a few millimeters without  static camera registration and even with significant (30 ) error in the joint encoders.
+
+TABLE I P OSITIONING T EST R ESULTS (mm) Mean encoder visual 16.5 2.2 155 2.8 280 1.3 240 0.95 Std. Dev. encoder visual 0.5 0.94 0.6 0.78 0 0.95 0 1.1
+
+VII. C ONCLUSION We have presented an online method to identify multiple camera and manipulator poses and track continuous relative trajectories for bimanual manipulation tasks. This is useful for the typical case where camera registration is not static but changes due to model error, disturbances, or wear and tear. The key point is to track both manipulators, and follow a trajectory based on the visually estimated relative 3D pose between the end-effectors. By combining median and Kalman filtering, we are able to achieve millimeter-level manipulation accuracy. We have shown in our experiments that online registration can be used to improve positioning accuracy during bimanual manipulation tasks where successful operation depends on relative end-effector pose. This method uses feedback only from joint encoders and visual tracking of the robot hand. Further improvements could be made by including force and tactile sensing and by visually tracking in-hand objects. R EFERENCES
+[1] Franc ธ ois Chaumette and Seth Hutchinson. Visual servo control, part I: Basic approaches. Robotics and Automation Magazine, 13(4):82ญ90, 2006. [2] Franc ธ ois Chaumette and Seth Hutchinson. Visual servo control, part II: Advanced approaches. Robotics and Automation Magazine, 14(1):109ญ118, 2007. [3] Changhyun Choi and Henrik I Christensen. Robust 3d visual tracking using particle filtering on the special euclidean group: A combined approach of keypoint and edge features. The International Journal of Robotics Research, 31(4):498ญ519, 2012. [4] J. Craig. Introduction to Robotics: Mechanics and Control. Pearson, 3rd edition, 2005. [5] N. Dantam, H. Ben Amor, H. Christensen, and M. Stilman. Online camera registration for robot manipulation (presented). In International Symposium on Experimental Robotics, 2014. [6] N. Dantam and M. Stilman. Spherical parabolic blends for robot workspace trajectories (accepted). In International Conference on Intelligent Robots and Systems, 2014. [7] Neil Dantam, Daniel Lofaro, Ayonga Hereid, Paul Oh, Aaron Ames, and Mike Stilman. Multiprocess communication and control software for humanoid robots (accepted). Robotics and Automation Magazine, 2014. [8] Schunk GmbH. Dextrous lightweight arm LWA 4D, technical data. http://mobile.schunk-microsite.com/en/produkte/ produkte/dextrous-lightweight-arm-lwa-4d.html. [9] Paul Hebert, Nicolas Hudson, Jeremy Ma, and Joel W Burdick. Dual arm estimation for coordinated bimanual manipulation. In Intl. Conf. on Robotics and Automation, pages 120ญ125. IEEE, 2013. [10] Sungmoon Joo and Michael Grey. DRC-Hubo retrospective, January 2014. Personal Communication. [11] Matthew Klingensmith, Thomas Galluzzo, Christopher Dellin, Moslem Kazemi, J. Andrew (Drew) Bagnell, and Nancy Pollard. Closed-loop servoing using real-time markerless arm tracking. In Intl. Conf. on Robotics and Automation (Humanoids Workshop), May 2013. [12] OpenCV API Reference. http://docs.opencv.org/master/ modules/refman.html. [13] Vijay Pradeep, Kurt Konolige, and Eric Berger. Calibrating a multiarm multi-sensor robot: A bundle adjustment approach. In Experimental Robotics, pages 211ญ225. Springer, 2014. [14] Kari Rainio and Alain Boyer. ALVAR ญ A Library for Virtual and Augmented Reality User's Manual. VTT Augmented Reality Team, December 2013. [15] Jeffrey A. Saunders and David C. Knill. Humans use continuous visual feedback from the hand to control both the direction and distance of pointing movements. Experimental Brain Research, 162(4):458ญ473, 2005. [16] A. Teichman, S. Miller, and S. Thrun. Unsupervised intrinsic calibration of depth sensors via slam. In Robotics: Science and Systems (RSS), 2013.
+
+No Offset  shoulder: 15  shoulder: 30  shoulder & elbow: 15
+
+Fig. 7.
+
+An object hand-off task.
+
+There are a variety of error sources that we address in this system. For the kinematics, error from encoder offsets in the arm, imprecise link lengths, and flexing of links all contribute inaccurate kinematic pose estimates. For perception, error from inaccurate camera intrinsics, imprecise fiducial sizes, offsets in object models, and noise in the image all contribute to error in visual pose estimates. To achieve accurate manipulation, we must account for these potential sources of error. The position of the tracked features on the robot has an important effect on error correction. Kinematic errors between the robot body origin and the tracked features, e.g., due to flex or encoder offsets, are incorporated into the camera registration and handled through the servo loop. Error between the observed features and the end-effector cannot be corrected. Thus, it is better to track features as close to the end-effector as possible. Consequently, we placed the fiducial markers on the fingers of the SDH end-effector. One source of error for manipulation that we do not address is error in grasping. Because we track only the robot hand, any error in the relative pose between the hand and grasped object is not corrected. In reality, when grasping an object, the object itself becomes the robot's end-effector. Thus, to accurately manipulate in-hand objects, it would be better to track the objects themselves. Since a grasped object is likely to be partially occluded, model-based tracking such as [3], which is robust to occlusions, is a potential approach. A crucial additional consideration in manipulation is force and tactile sensing. Using visual feedback without force and tactile sensing already reduces the error to a few millimeters and allows the robot to perform tasks such as pen capping and object hand-off. However, considering the generated contact forces during the manipulation would further improve performance and allow even more accurate operation, in particular during the post-contact phase. This is a key area for improvement in this approach.
+
+

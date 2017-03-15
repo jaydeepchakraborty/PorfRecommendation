@@ -1,0 +1,696 @@
+2026
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+Resource Allocation in City-wide Real-Time Wireless Mesh Networks
+Jun Xu 1, 2, Yann-Hang Lee 2, Chengcheng Guo 1, and Jianfeng Yang 1*
+1. WuHan University, WuHan, HuBei, 430072, China 2. Arizona State University, Tempe, AZ 85287, USA *Corresponding author, Email: xujunlinda@gmail.com, yhlee@asu.edu, netccg@whu.edu.cn, yjf.whu@gmail.com
+
+Abstract--To support real-time communication, multi-radio multi-channel city-wide WMNs (Wireless Mesh Networks) are studied in this paper. In the studied WMNs, a WMN router is equipped with two communication interfaces/radios, one is working on 2.4GHz for the client accessing, and the other is working on 5GHz for the backhaul communication. First, a greedy static channel assignment algorithm for access interfaces is proposed to minimize the maximum interference among all the access interfaces. The proposed greedy algorithm has an approximation factor of 2-1/m, where m is the number of available orthogonal channels of access interfaces. To guarantee interference-free communications for all links, a slot allocation algorithm, combining with the channel assignment for backhaul interfaces, is suggested. The slot allocation algorithm is based on the fixed priorities assigned to real-time flows. After that, the worst-case end-to-end delay analysis of each flow under the slot and channel allocation algorithms is given. Finally, simulation results demonstrate the effectiveness of the delay analysis and the channel assignment and slot allocation algorithms. Index Terms--Channel Assignment; Slot Allocation; RealTime, Delay Analysis, Multi-Radio Multi-Channel
+
+I.
+
+INTRODUCTION
+
+Many cities have tried to deploy city-wide WIFI networks [1]. Most of them are one-hop wireless networks which have limited access areas. Multi-hop wireless network can be an attractive approach in citywide networks to extend the coverage areas to some rural or harsh environment where the deployment of cables is difficult and non-economic. A city-wide wireless network can provide services to both non-real-time and real-time traffic. Unlike the nonreal-time traffic, the real-time traffic needs to be transmitted to the destination within the specific deadline. Thus, the resource allocation of the real-time traffic is much more critical, which is the study point of this paper. The real-time traffic finds lots of applications in the daily life. For example, transmitting the environmental surveillance message on time can avoid toxic gas leaking, or house fire accident. Also, in the transportation applications, the on time transmission of the car accident or road condition messages can avoid congestion. Considering that the periodic real-time traffic is a general traffic pattern in surveillance, control applications, in this paper, we focus on the resource allocation for the
+© 2014 ACADEMY PUBLISHER doi:10.4304/jnw.9.8.2026-2036
+
+periodic real-time traffic in the city-wide wireless network. Also, the MRMC (Multi-radio Multi-channel) technology [2] is adopted to compensate the throughput degradation caused by the multi-hop wireless transmissions. The resource allocation includes the channel and slot assignments. Although this topic is widely studied, seldom of them consider city-wide networks. Another factor making our work different from others is that each wireless mesh router is equipped with two independent wireless interfaces working on different standards. One (access interface), with IEEE 802.11g protocol on 2.4GHz, is used for client access, and the other (backhaul interface) is used for the communications with other wireless mesh routers with IEEE 802.11a protocol on 5GHz. Also, each mesh router is equipped with at least one wired interface to support the connection to gateways. The gateways are connected to some mesh routers. The communications between gateways are through the Internet. Thus, the resource allocation algorithms should consider two different standards. For the network deployment, we suggest the grid topology city-wide networks. It has been shown in [3] that grid networks are much more suitable for large scale mesh deployment compared to random topology networks. And the grid topology is also suggested by Cisco [4].
+L1 r ...... wireless router
+
+......
+
+......
+
+L2
+
+gateway
+
+city-wide area
+
+...... client client 802.11g wireless link client 802.11a wireless link
+
+wired link
+
+Figure 1. Network deployment
+
+In Fig. 1, we illustrate the deployed network. The area of a city can be viewed as a rectangle with the length L1
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+2027
+
+and the width L2. And r is the maximum distance between two mesh routers. Cisco has recommended some reasonable distances of r in [4], one can also adjust the distance basing on the routers one chooses. A thin dotted line represents a wireless communication link between two 802.11g interfaces, and a thick dotted line denotes a wireless communication link between two 802.11a interfaces. And a solid line represents a wired link. The fundamental problem needed to solve when designing a channel and slot assignment algorithm for wireless networks is the interferences. In order to avoid the frequency channel switching of clients, the fixed channels are assigned to the access interfaces in the wireless mesh routers. However, the channels for the backhaul interfaces are assigned dynamically. To provide real-time communications for traffic, a deterministic end-to-end delay is important [5]. It's widely recognized that CSMA/CA scheme is not suitable for the real-time applications due to the poor throughout in multi-hop network [6] which will result in high delay and jitter [7]. Hence, TDMA is considered in real-time applications. It is adopted in WirelessHart [8], ISA100.11a [9], and WIA-PA [10] standards to provide real-time services for the applications in industry control scenarios. Thus, in this study, TDMA scheme is adopted, and we assume that an active link can accomplish the transmission of a packet in a single time slot. Now, the following two questions come naturally:  How to assign fixed channels to the access interfaces and how to dynamically assign channels to the backhaul interfaces?  How to assign time slots to wireless links to achieve real-time communications for flows? Another problem we need to deal with is the schedulability test of the channel and slot assignment algorithms. Thus, an end-to-end delay analysis is needed. Corresponding to the above questions and requirement, our contributions include:  An approximation greedy algorithm to assign static channels to the access interfaces of mesh routers. The aim is to minimize the maximum interference among all the channels. We prove that greedy algorithm is a factor (2-1/m) approximation algorithm, where m is the number of available orthogonal channels for the access interfaces.  A joint slot allocation and channel assignment algorithm. The algorithm determines channel assignment for backhaul links and slot allocation for flows. The bandwidth (slots) requirements of real-time flows are considered and the algorithm achieves the interference-free communications.  The worst-case end-to-end delay analysis of each real-time flow. Using this delay analysis, we can determine whether real-time flows can meet the deadline requirements. The remainder of the paper is organized as follows. In Section II, we introduce some related works on channel assignment and slot allocation, and in Section III, we
+
+present the network and interference models, and also the problems description. The channel assignment and slot allocation algorithms are described in Section IV. We analyze the worst-case end-to-end delays in detail in Section V. Numerical results from simulations are given in Section VI to demonstrate the effectiveness of the algorithms and the delay analysis. At last, in Section VII, we conclude this paper. II. RELATED WORK
+
+The channel assignment and scheduling algorithms in multi-radio multi-channel wireless networks are studied widely. Most of them focus on improving the throughput of networks [11, 12, 13]. The fixed channel assignment algorithms are studied in [14], with objectives of maximizing the number of possible simultaneous transmissions, minimizing the average size of the co-channel interference set and minimizing the maximum size of the co-channel interference set, are not applicable to our scenario since for the backhaul interfaces, the channel and slot assignments should be considered jointly. The algorithm in [15] considers the channel assignment and slot assignment jointly. The wireless link interferences are concerned in the paper [15], and the Latin squares are adopted to avoid the interferences. The M4 algorithm doesn't aim to improve the throughput or reduce the communication delay directly. However, as shown in the paper, the M4 algorithm adopting TDMA strategy achieves higher throughput and lower average end-to-end delay compared to CSMA/CA mechanism. As surveyed in [16], most of the scheduling algorithms in wireless mesh networks are short of the consideration of the real-time flows, seldom of them look into the MRMC technology. We ignore the detailed discussion of those works and refer the readers to [16]. Some researches [17-19] consider flow deadlines. However, the study in [17] is only for sink-tree topology networks and leaky-bucket-shaped flows, which are different from the city-wide network topology suggested in section 1, and the periodic traffic model we study. The CEDF (Coordinated Earliest Deadline First) scheduling algorithm is studied in [18], the focus of the paper is the delay bound analysis, not the scheduling algorithm itself. In [19], the objective is to minimize the TDMA delay, which can be viewed as the frame length in TDMA protocol. Thus this objective is different from designing a scheduling algorithm to provide the delay guarantee for each flow. As for the works related to multi-channel and real-time flows, some works have been done, such as [20-22] which study the WirelessHart [8] standard. The branch and bound scheduling algorithm proposed in [20] is an optimal scheduling algorithm for periodic flows. However, in the worst-case situation, the timecomplexity can be very high. Thus, the authors propose a heuristic scheduling algorithm, the C-LLF (Conflict Aware Least Laxity First) algorithm. Channel spatial reuse is not allowed in C-LLF algorithm, the transmissions with the smaller conflict-aware laxities are
+
+© 2014 ACADEMY PUBLISHER
+
+2028
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+assigned the higher priorities. And the non-interference transmissions with higher priorities are scheduled in each time slots. In [21], the authors focus on the analysis of the end-toend delay of each flow when fixed priority scheduling algorithms are adopted. The multi-channel transmission scheduling is modeled as the multi-processor scheduling problem. However, this mapping works only when channel spatial reuse is disabled, thus it's not applicable for the city-wide scenario where channel spatial reuse is allowed. In the subsequent work, the worst-case end-toend delay of flows accounting for failures is analyzed [22]. Considering that we study the periodic traffic model and the interference is related to the flow periods. Thus the channel and scheduling algorithms mentioned above are not applicable. III. NETWORK AND INTERFERENCE MODELS
+
+q access interfaces on these routers is c ( c  Ct ). Let xk be 1 if flow fq comes from or goes to client k, otherwise it is 0. Let Vr j represent all the clients access to the mesh
+
+router j ( j  Nic ), and  j represent its traffic density on the access interface, that is,
+
+j 
+
+f q F kVr
+
+ x
+j
+
+q k
+
+1 Perq
+
+(1)
+
+We define the interference on the access interface of node vi with the channel c the summation of the traffic density of all the access interfaces on the interference routers. It's expressed as follows,
+I ci 
+jNic
+
+
+
+j
+
+(2)
+
+Assume that the network is represented by an undirected graph G=(V, E), where V is the node set, and E is the edge set. Let Vt be the mesh client set, Vr be the mesh router set, and then we have V  Vt  Vr . Also, the link set can be expressed as E  Et  Er , where Et is the set of all the access links between clients and mesh routers, and Er includes all the links between mesh routers. For the access interfaces of the mesh routers, the available orthogonal channel set is Ct  {ct1 , ct2 , ctm } , where m is the maximum number of orthogonal channels for the access interfaces. For the backhaul interfaces, the 2 available orthogonal channel set is Cr  {c1 , crn } , r , cr , and n is the maximum available number of orthogonal channels for the backhaul network. Let F={f1, f2, ..., fN} represent N periodic real-time flows. The periodic realtime flow fi (i =1, 2,..., N) can be characterized as < Peri, Pr i, D i, i , Pi>, where Peri is the period, Pr i is the priority, Di is the deadline, i is the starting slot of the first packet, and Pi is the path traversed by the flow f i. Let si be the source node and di be the destination node of flow f i. Both the source and destination nodes are mesh clients. Each mesh router is equipped with one access interface and one backhaul interface. Each wireless interface works on the half-duplex mode. For each node, we assume the communication range is Rc and the interference range is RI. As in [15], the interference range is two times the communication range, that is RI =2Rc . In the following, we introduce the interference on the two kinds of interfaces in detail. A. Interferences on Access Interfaces If the access interface of node vi is assigned channel c( c  Ct ), we say lc,i =1, otherwise it equals to 0. And let
+
+For an access link e  Et , let ge represent the mesh router whose access interface enables the link e. The channel used by this link is the channel assigned to ge. Then the interference links of link e on channel c ( c  Ct ) can be expressed as follows.
+c I e  {e | e  Et , ge  N g } e
+
+(3)
+
+c We set ye ( s) to be 1 if link e works on channel c in slot s, otherwise the value is 0. The slots assigned to link e should satisfy the following constraint.
+c c ye ( s)   ye  ( s)  1 eI e
+
+(4)
+
+The constraint (4) should be satisfied in an interference-free network. When the number of available orthogonal channels is not enough, interference-free communications may not be achieved by just the channel assignment. So the constraints should be satisfied in the slot allocation algorithm proposed in section 4. B. Interferences on Backhaul Interfaces If link e=(u, v) is the current transmitting backhaul link between the two end interfaces of nodes u and v. Its interference links can be classified into two categories. Let I 1(e) represent the first category links which share at least one common interface with link e. All these links can't transmit in the same slots as link e no matter how many free channels can be obtained. Link e itself belongs to this category. In addition, let I 2(e) represent the second category links which are connected with interfaces in the interference range of the backhaul interface of u or v, but don't connect directly with node u or v. Links in this category need to adopt different orthogonal channels if they want to transmit in the same slots with link e. In any slot s, the total number of orthogonal channels used by link e and its category 2 links shouldn't exceed the total orthogonal channel number n. The other condition is that link e and the links in I 1(e) shouldn't share the same channel in any time slot. The two conditions are described as follows for all c and c', where c and c ' are two channels belonging to Cr and c  c ' .
+
+I ci represent the interference on that interface. Define N ic as the set of the routers within the interference range of node vi (including node vi) and the channel adopted by the
+
+© 2014 ACADEMY PUBLISHER
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+2029
+
+c ye ( s) 
+
+eI 2 ( e )
+
+
+
+c ye  ( s)  n
+
+(5) (6)
+
+c ye (s) 
+
+eI1 ( e )
+
+
+
+c ye  ( s)  1
+
+If and only if inequality (4), (5) and inequality (6) are met simultaneously, the interference-free communications can be achieved. Hence, the slot allocation algorithm combining the channel assignment we will describe in section 4 should meet the above three constraints. C. Problem Description The problems studied are divided into two subproblems since the access interfaces and backhaul interfaces working on two different protocols. Subproblem 1: Static channel assignment for the access interfaces Let Ct represent the collection of the channels assigned to all the access interfaces, that is, Ct  {c | lc ,v  1, v Vr } Given a set of available channels Ct  {ct1 , ct2 , , ctm } , try to find a channel assignment algorithm to minimize the maximum value of I ci ( vi Vr , c  Ct ). The mathematical formulation is: min. max. I ci s.t. | Ct | m
+cCt
+
+channel c with the smallest interference on the current visited interface is selected and assigned to the interface. The pseudocode of the greedy channel assignment algorithm is described in TABLE I. Now, we prove that the greedy algorithm is a factor (21/m) approximation algorithm, and the time complexity is O(|Vr|). Theorem 1. The greedy algorithm in TABLE I is a factor (2-1/m ) approximation algorithm. Proof. Assume there's an optimal algorithm  , the maximum interference generated by the algorithm  is I *. Then I * should be greater than the density of any single node, that is,
+
+I *  max iVr {i }
+
+(7)
+
+Let dv denote the number of mesh routers connected to the node v. As I * is the maximum interference of the whole network, it should be greater than the average interference of all the nodes which locate in the interference range of any node v including node v itself. Thus, we have,
+
+I* 
+
+1 dv ( i  v ); v  Vr m i 1
+
+(8)
+
+l
+
+c , vi
+
+ 1 , vi  Vr
+
+Let assume that the maximum interference I g generated by the greedy algorithm happens on the node v with channel c*. The interference on node v should be no smaller than I g if we assign channel c  ( c  c * ) rather than channel c* to node v. We have,
+
+Subproblem 2: slot allocation combing the channel assignment for the backhaul interfaces The interference-free communications can't be achieved by just considering the static channel assignment for the access interfaces. In this problem, the joint channel assignment for the backhaul interfaces and slot allocation for all links are considered. Note that, the interference model we consider for the backhaul interfaces is protocol interference model. However, the joint scheduling algorithm proposed in the next section for solving subproblem 2 can be extended to other interference models.
+TABLE I. CHANNEL ASSIGNMENT OF THE ACCESS INTERFACES
+
+I g  I vc  v ; c  Ct
+
+(9)
+
+Add both sides of the expression in (9) over all the channels, we get,
+
+m  Ig 
+Such that,
+
+cCt
+
+I
+
+c v
+
+ m   v   i  m   v
+i 1
+
+dv
+
+(10)
+
+Ig 
+
+1 dv (m-1) (  i   v )  v m i 1 m
+m 1 I* m
+
+(11)
+
+Substitute expression (7) and (8) into (11), we have,
+
+Algorithm AccessChannel( ) 1 for node v Vr 2 for c  Ct 4 calculate I cv according to the expression (2);
+
+Ig  I * 
+Therefore, we get,
+
+(12)
+
+5 assign the channel with the smallest I cv to the access interface on node v
+
+Ig 1  (2  ) I* m
+
+(13)
+
+IV.
+
+CHANNEL ASSIGNMENT AND S LOT A LLOCATION ALGORITHMS
+
+A. Channel Assignment on Access Interfaces Given that the above problem is NP-hard [23], we propose a greedy channel assignment algorithm to solve it. The greedy algorithm behaves very simply. It visits all the access interfaces one by one. And each time the
+© 2014 ACADEMY PUBLISHER
+
+Hence, the greedy algorithm in TABLE I is a factor (21/m) approximation algorithm. In the specific situation, the access interfaces work on the IEEE 802.11g protocol which supports 3 orthogonal channels. The approximation factor of the greedy algorithm is then 5/3.
+
+2030
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+Theorem 2. The time complexity of the greedy algorithm in TABLE I is O (|Vr|). Proof. The first iteration of the greedy algorithm in TABLE I runs for |Vr| steps, and the second iteration runs for |Ct| steps. The time complexity of the algorithm is O(|Vr||Ct|), where |Ct| is a constant value whenever the physical layer protocol is set. Thus, the time complexity of the greedy algorithm is O(|Vr|). B. Joint Channel and Slot Allocation In this section, we consider the channel assignment on the backhaul network, and the slot allocation involves all the links used by flows. Although the channels and slots are assigned to links, it can be viewed that the channels and slots assigned to a certain interface are the collection of the channels and slots assigned to the links connected to it. The slots demanded by link e during a TDMA frame  , where F is of length T is no less than Se    T e  Peri   iFe  the set of flow traversing through link e. It is assumed that we have already known the parameters of the realtime flows. TABLE II shows the pseudocode of the joint channel and slot allocation algorithm under which the number of the assigned slots for each link e is no less than Se.
+TABLE II. JOINT CHANNEL AND SLOT ALLOCATION ALGORITHM
+
+from [24]. We say the real-time periodic flow set is simply periodic if for every two flows fi and fk in the network with Peri< Perk , Perk is an integer multiple of Per i. The time complexity of the algorithm in TABLE II is O(NL) when the periodic flows are simply periodic, and is O(NLT2) with arbitrary flow periods, where N is the total number of flows, L is the total number of links in the network, and T is the TDMA frame length. C. An Example As an example shown in Fig. 2, v1, v2, v3 and v4 are mesh routers and s1, s2, d1 and d2 are terminals. There are two flows f1 and f2. The source node of flow f1 is s1 and the destination node is d1, the path is P1={(s1, v1 ), (v1, v 2), (v2, d1)}, the period is 6, the start time of the first packet is 0. For flow f2, the source node is s2, and the destination node is d2, the path is P2={(s2, v1), (v1, v2), (v2 , v4 ), (v4, d2)}, the period is 12, the start time of the first packet is 5. First, we assign channels to the access interfaces of the mesh routers. Assume for the access interfaces, we have three orthogonal channels, channel 1, channel 2 and channel 3. We start with node v1, assign channel 1 to it, and then for node v2, the interference on channel 1 is 1 1 1 , the interference on channel 2 is I1v2    6 12 4 v2 v2 I2  0 , and on channel 3, the interference is I 3 0 . We assign the smallest channel from the least interference channels to node v2, that is, channel 2. Then we come to node v3, then interferences of the three 1 1 1 v3 channels on this node are I1v3    , I 2 0 , 6 12 4 v3 I3  0 , hence we assign channel 2 to node v3. Then for node v4, the interferences on the three channels are 1 v3 v3  0 , so we assign channel 1 to I1v4  0 , I 2  , I3 6 node v4. For the channel and slot assignment on the interfaces for the communication between mesh routers, let (slot, channel) represent the slot-channel pair assigned to an interface. The TDMA frame length is T=LCM(6,12)=12. During any interval of length T , s1 generates two packets and s2 generates one packet. It also implies that flow f1 requires at least two slots on all the links in path P1 and flow f2 requires at least one slot on all the links in path P.
+f1 v1 f2 e2 v3 e4 e1 v2 e3 v4 d2
+
+Algorithm SlotChAssign ( ) 1 for flow fi  F 2 for b from 1 to ceiling(T/Peri) 3 for e  Pi 4 if e is the first link of path Pi 5 the start slot s equals to (b-1)Peri+ i ; 6 else 7 the start slot s equals to the slot assigned most recently to the links before e plus 1; 8 if e is an access link 9 while expression (4) is not true 10 ss+1; 11 assign slot s to the link e; 12 else 13 if expression (5) is TRUE 14 select the smallest channel ch which satisfies expression (6); 15 while ch is greater than n 16 ss+1; 17 if expression (5) is TRUE 18 select the smallest channel ch which satisfies expression (6); 19 assign (s,ch) to link e;
+
+The joint channel and slot allocation algorithm is based on the priorities of flows. The flows in F are sorted with the descending order of the priorities. It means that the lower the flow label is, the higher the priority is, i.e., if fi<fk , then Pri> Prk . Each link has been assigned some (slot, channel) pairs after the algorithm " SlotChAssign" described in TABLE II, and the interference-free communications have been guaranteed since constraints (4), (5) and (6) are all satisfied for each (slot, channel) pair. Before saying something about the time complexity of the algorithm, we introduce the term "simply periodic"
+
+s1 s2
+
+d1
+
+Figure 2. Example of channel and slot assignment
+
+The slots and channels assigned to link according to the algorithm in Table 2 are as follows.
+
+© 2014 ACADEMY PUBLISHER
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+2031
+
+For the links on f1's path, for link (s1, v1), assign (0, 0) and (6, 0) to it, for (v1 , v2 ), assign (1, 0), (7, 0) to it, for (v2, d1), assign (2, 1), (8,1) to it. For the links on f2's path, for link (s2 , v1 ), assign (5,0) to it, for (v1, v2), because the slot 6 has been assigned to this link for the transmission of flow 1, so we assign (7, 0) to it, for (v 2, v4 ), assign (8, 0) to it, for (v4 , d4), assign (9, 0) to it. The slots which are free can be used by the non-real-time flows. V. WORST-CASE END-TO-END DELAY A NALYSIS
+
+In order to avoid overestimate, if a link on Pk belongs
+hi 1
+
+to
+a2
+
+Eia, k , we won't include it in Eia , k considering the
+
+fact that the contributions of a link will always be greater when it acts as a 1-hop interference link than as a 2-hop interference link. Hence, during time duration  ia , the worst-case channel contention delay  ia, cont on link eia is as follows.
+
+In this section, we focus on the analysis of the worstcase end-to-end delay of each flow under the proposed channel assignment and slot allocation algorithms in section IV. Generally speaking, there are three kinds of delays: conflict delay, channel contention delay, and transmission delay. The transmission delay is equal to the path length. We introduce the conflict delay and channel contention delay as follows. A. Conflict Delay Let H i represent all flows with priorities higher than that of flow fi, and Eia, k denote the links on the path of flow fk which conflict with the a-th link eia of flow fi. All the links belong to I 1( e ) . Let hi represent the length of Pi. We need to emphasize on the following two points.  The links in set Ei1, k and Eih,ik are access links since the first and last links are access links, and only access links can interfere access links.  In the backhaul network, a link on a higher priority flow path can be 1-hop neighbor link of two links in the same path, but a transmission on a link can only be conflict by a packet once on the same link. Hence, we won't include a link
+hi 1
+
+ ia,cont   
+
+
+
+ kHi 
+
+1   ia  a   | Ei , k n  Perk 
+
+ |  
+
+(15)
+
+Hence, the total delay  ia on link eia can be expressed as,
+
+ ia   ia,conf   ia,cont
+
+(16)
+
+We can calculate the value of  ia by using the fixedpoint iteration algorithm. After obtaining all the worstcase delays of links on path Pi, we can get the worst-case end-to-end delay of flow f i, that is,
+
+a i
+
+ i   ia
+a 1
+
+hi
+
+(17)
+
+We can simplify the calculation when max{Di}<min{Peri} (i =1, 2, ..., N). Under this situation, at most one packet from a single higher priority flow contributes to the delay of the lower priority flow. Hence, the end-to-end channel contention delay can be expressed as,
+
+ i ,cont   
+
+hi
+
+a 1 k H i
+
+1 a | Ei , k | n
+
+(18)
+
+more than once in the set
+a2
+
+Eia, k for a specific k.
+
+Let  denote the worst-case delay on the a-th (a=1,2, ... , hi) link on path Pi. The worst-case conflict delay  ia,conf for flow fi on link eia then can be described as,
+a i
+
+For the conflict delay in the backhaul network, the result derived in paper [21] can be used. The conflict delay (k , i) caused by a single flow f k ( f k  Hi ) to the flow f i is described as follows.
+
+(k , i)  Q(k , i )   (  j (k , i )  3)
+j 1
+
+
+
+(19)
+
+ ia,conf 
+
+ a  |Eia, k |  i   f k H i  Perk 
+
+(14)
+
+B. Channel Contention Delay The channel contention happens only in the backhaul network. It depends on a link's 2-hop interference range links. For a link e in the path of flow f i, let Eia , k represent the 2-hop interference links of link e which follows by flow fk ( f k  H i ). Then a packet pk from flow fk can contribute at most | Eia , k | transmissions to the channel contention on link e .
+a i
+
+We refer the readers to the paper [21] for a more detail explanation of the equation (19) including the meaning of the symbols. The expression (19) can be only used in the backhaul network. The conflict delays on the first link and last link should still be obtained by expression (14). And the expression can be reduced to,
+
+ ia,conf 
+
+ Eia, k     ; a  1or hi f k H i  Perk 
+
+(20)
+
+Hence, the worst-case end-to-end delay of flow fi is,
+
+ i   i ,cont 
+
+kHi
+
+ ( k , i )  
+
+1 i , conf
+
+  ih,iconf  hi
+
+(21)
+
+© 2014 ACADEMY PUBLISHER
+
+2032
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+VI.
+
+NUMERICAL RESULTS
+
+In this section, we study a simulated multi-hop MRMC WMN for the Tempe city in Arizona, USA. The total area of "Tempe City" is 40.2 square miles (104 km2) [25]. We view "Tempe City" as a square with edge length L=6.34miles (10.2km). The radius of the local access cell size r is 600 feet (180m) recommended by Cisco [4]. We specify that the distance between two mesh routers is at most 2r , which is 848.4 feet (254.52m). Hence the minimum number of mesh routers needed is 1600. The topology of the city and the placement of routers are shown in Fig. 3. Fig. 3(a) shows the boundary of the Tempe City, Fig. 3(b) shows the wireless mesh network deployment of the Tempe City. In Fig. 3(b), we just show the users and mesh routers in four local areas. The smallest circles (red ones) represent users in each local area, and the mid-size circles (blue ones) represent the mesh routers and the large-size circles (purple ones) represent the gateways, and the largest size circles represent the coverage areas of local areas. The Tempe city can be fully covered by 1600 largest circles which implies that the minimum number of wireless mesh routers needed is 1600, and the minimum number of gateways needed is 100. In the sparse areas, such as area A and area B in Fig. 3(b), we just need to deploy one mesh router. However, in some crowded areas, we need to deploy more than one mesh router, such as area C and area D in Fig. 3(b). In order to avoid congestion, the general rule we obey is that the bandwidth required by the users in a mesh router is no greater than the bandwidth the mesh router can provide.
+
+RM (Rate Monotonic). The flow rate is the inversion of the flow period, so by RM, it implies that the smaller the period is, the higher the priority is. We run each simulation 1000 times and show the link and node utilizations, channel switch ratios, and the PMD (Percentage of flows Meeting Deadlines) values obtained by the analysis and simulation in the subsequent content. A. Link and Node Utilizations The link and node utilizations here are to show the congestion situations of the backhaul network under the two different period ranges 25~10 and 27~11. The utilization on link e can be represented by 1 e Ue   xi eEr , fi F Per i and the utilization on node v can be represented by 1 v Uv   xi . Per vVr , fi F i The utilizations are only related to the flow paths and periods. The routing protocol (such as the shortest path routing protocol) will generate the same path for a flow no matter what the priority of the flow is when the source node, destination node and the network topology are given. In Fig. 4, we give the maximum (Max), minimum (Min) and average (Avg) link and node utilizations by varying the flow number from 50 to 500 with an increment value of 50. The Max, Min and Avg values of the link (node) utilizations are the maximum, minimum and average values of the 1000 runs among all the links (nodes). Fig. 4(a) and 4(b) show that the link and node utilizations with period range 25~10 are obviously greater than the values with period range 27~11, which implies that the network is much more congestion with the period rang 25~10 than the range 27~11.
+0.5
+
+
+
+......
+
+......
+
+......
+
+......
+
+......
+
+......
+
+0.5
+Max,25~10 Max,27~11 Min,2
+7~11
+
+......
+
+......
+
+......
+
+Max,25~10 0.4 Min,25~10 Avg,25~10 0.3 0.2 0.1 0
+
+Max,27~11 Min,27~11 Avg,27~11
+
+0.4
+
+Min,2
+
+5~10
+
+......
+
+0.3 0.2 0.1 0
+
+......
+
+Gateway
+
+Router
+
+Client
+
+(a) Tempe map[26]
+
+(b) WMN
+100 200 300 number of flows 400 500
+
+node utilization
+
+link utilization
+
+Avg,25~10
+
+Avg,27~11
+
+Figure 3. Coverage of tempe city
+
+100
+
+200 300 number of flows
+
+400
+
+500
+
+(a) Link utilization
+
+(b) node utilization
+
+It's known that the distribution of traffic in a city is not uniform. Some places may gather more traffic than others. Hence, in the simulation, we randomly assign some mesh routers more traffic than others. The period of each flow is set to 2x where x is a random integer number in the range [a, b], we also use 2a~b to represent this. And for any flow fi  F , its period Peri should be greater than its path length hi. Three priority strategies are considered in the simulations.  SPF (Shortest Path First). The shorter the path length is, the higher the priority is.  LPF (Longest Path First). The longer the path length is, the higher the priority is.
+
+Figure 4. Link and node utilizations
+
+B. Channel Switch Ratio First, we define the average channel switch ratio " swratio" as below. sw(e) swratio  avg ( ), eE & S ( e )  0 | S (e) | where sw(e) represents the channel switch time on link e. For example, for link e, if it is assigned 5 slots {0,3,7,9,12}, and the channels assigned to these slots are {0,0,1,2,0}. Then the link changes channel form 0 to 1from slot 3 to slot 7, and from slot 7 to 9, it changes channel from 1 to 2. Also from slot 9 to slot 12, it
+
+© 2014 ACADEMY PUBLISHER
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+2033
+
+changes channel from 2 to 0. Hence, the channel switch time for link e is 3. We vary the flow number from 50 to 500 with an increment of 50, and we set the phases of all the flows to be 0. Fig. 5(a) and 5(b) show the average channel switch ratios over the 1000 runs and over all the links of the whole networks. The figures show that the average switch ratios increase with flow numbers and the values with priority strategies SPF and LPF are much bigger than RM. When the flow number is 500, the average channel switch ratios with priorities SPF and LPF are about 30% under period range 25~10 and about 23% under period range 27~11. For RM, the values are no greater than 6% under both period ranges. Recall the results of the maximum link and node utilization with 500 flows in Fig. 5, the values under period range 25~10 are about 15% and 27%, respectively. If more flows are added into the network, the network manager can adjust the flow periods or flow paths to relief the link/node burden. So, we believe that the average channel switch ratios shown in Fig. 5 are acceptable and the channel assignment strategy on the backhaul network won't lead to unstable channel switch in a network with reasonable congestion situation.
+1
+
+(which means all the packets in the flows can arrive at the destination nodes before deadlines), then the acceptance ratio of the algorithm is SI / NI. In the simulation, we construct a 40*40 grid topology network, and vary the number of flows from 10 to 50 with an increment of 10 flows. The flow periods are at the range of 25~10. The number of available orthogonal channels is set to be 2. Each time with specified number of flows, we run 10 instances and obtain the acceptance ratios of the two algorithms. The results are shown in Fig.6. It shows that the CLLF scheduling algorithm is not suitable for the city-wide MRMC wireless networks since the acceptance ratio is much lower than the " SlotChAssign " algorithms. And when the number of flows increases to 30, none of the instances are schedulable by CLLF algorithm, while by the " SlotChAssign " algorithm, all of the instances are schedulable. Hence, in the city-wide wireless network, " SlotChAssign " algorithm is much better than CLLF algorithm. D. The Percentage of Flows Meeting Deadlines The Percentage of flows Meeting Deadlines (PMD) is the number of real-time flows meeting the deadlines divides the number of all the real-time flows in the network. In the experiments, we first vary the real-time flow number Nf from 50 to 500 with the increment of 50 and set the starting slots of all the flows to be 0 and the deadline of each flow is equal to its period. The results in Fig. 7 demonstrate that, with SPF and LPF priority assignments, there are noticeable gaps of PMD values between the simulation and the analysis results as the network gets congested (with period range 25~10). But with RM priority scheduling, the differences are very small. The gaps of PMD values exist because of the difficulty to capture the worst-case situation in the simulation. By just observing the PMD values under SPF, LPF and RM priority scheduling and with flow periods range in 25~10 and 27~11 , we can conclude that the channel and slot allocation algorithm can achieve high PMDs even when the flow number is 500. Then, we set the deadline of each flow to be  times its period, and vary  from 0.1 to 1 with an increment of 0.1. From the results in Fig. 8 and 9, we know that the PMD values increase with the increasing of  under both period ranges. With period range 25~10, the gaps of the PMD values between the analysis and the simulation hardly change with the increasing of  values. With period range 27~11, both the simulation and analysis PMD values increase with the increasing of  values. It suggests that it's easier to provide the real-time guarantee for flows with larger deadlines in a network without much congestion. The simulations also show that the slot and channel assignments are very effective. Although our aim is not to discuss which priority strategy is optimal, all the results show that the RM priority strategy achieves higher PMD than SPF and LPF. In fact, RM scheduling is an optimal static scheduling for
+
+1
+SPF LPF RM
+
+average channel switch ratio
+
+average channel switch ratio
+
+0.8 0.6 0.4 0.2 0
+
+0.8 0.6 0.4 0.2 0
+
+SPF LPF RM
+
+100
+
+200 300 400 number of flows
+
+500
+
+100
+
+200 300 400 number of flows
+
+500
+
+(a) Period (5-10)
+
+(b) Period (7~11)
+
+Figure 5. Channel switch situation
+1 0.8 SlotChAssign CLLF
+
+acceptance ratio
+
+0.6 0.4 0.2 0 10
+
+20
+
+30 40 number of flows
+
+50
+
+Figure 6. Compare our algorithm with CLLF
+
+C. The Efficiency of the Joint Scheduling Algorithm In order to compare our scheduling algorithm with the state-of-the-art algorithm, we currently ignore the access clients and compare the joint channel and slot assignment algorithm for the backhaul network. We compare our algorithm with the C-LLF algorithm proposed in [20]. The algorithm proposed by us is named with " SlotChAssign", the fixed priorities of flows are assigned by RM strategy. We compare the acceptance ratios of the two algorithms. If we run the algorithm for NI instances (in each instance, we assign different source, destination nodes, periods, deadlines to flows), and by a specific scheduling algorithm, only SI instances can be schedules
+© 2014 ACADEMY PUBLISHER
+
+2034
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+1 0.8 0.6
+
+1 0.8 0.6 0.4 0.2 0 LPF simulation,25~10 LPF analysis,2
+5~10 7~11
+
+1 0.8 0.6 RM simulation,25~10 0.4 0.2 0 RM analysis,25~10 RM simulation,27~11 RM analysis,27~11 100 200 300 flow number, =1 400 500
+
+PMD
+
+0.4 0.2 0
+
+SPF simulation,25~10 SPF analysis,25~10 SPF simulation,27~11 SPF analysis,2 100
+7~11
+
+LPF simulation,2 LPF analysis,2
+
+7~11
+
+200 300 400 flow number, =1
+
+500
+
+100
+
+200 300 flow number, =1
+
+400
+
+500
+
+(a) SPF
+
+(b) LPF Figure 7. Varying flow numbers
+1
+
+(c) RM
+
+PMD
+PMD
+
+PMD
+
+1
+
+1
+
+0.8
+
+0.8
+
+0.8
+
+PMD
+
+PMD
+
+0.6 SPF SPF SPF SPF SPF SPF 0.2 0.4 0.6 simulation,Nf=50 analysis,Nf=50 simulation,Nf=100 analysis,Nf=100 simulation,Nf=150 analysis,Nf=150 0.8 1
+
+0.6 LPF LPF LPF LPF LPF LPF 0.2 0.4 0.6 simulation,Nf=50 analysis,Nf=50 simulation,Nf=100 analysis,Nf=100 simulation,Nf=150 analysis,Nf=150 0.8 1
+
+0.6 RM RM RM RM RM RM 0.2 0.4 0.6 simulation,Nf=50 analysis,Nf=50 simulation,Nf=100 analysis,Nf=100 simulation,Nf=150 analysis,Nf=150 0.8 1
+
+0.4
+
+0.4
+
+0.4
+
+0.2
+
+0.2
+
+0.2
+
+0
+
+0
+
+0
+
+,period range:25~10
+
+,period range:25~10
+
+,period range:25~10
+
+(a) SPF
+
+(b) LPF
+
+(c) RM
+
+Figure 8. Varying flow deadlines (Period: 25~10)
+1
+1 1
+
+0.8
+
+0.8
+
+0.8
+
+0.6
+PMD
+
+0.6
+
+0.4
+
+0.2
+
+SPF SPF SPF SPF SPF SPF 0.2 0.4
+
+simulation,Nf=50 analysis,Nf=50 simulation,Nf=100 analysis,Nf=100 simulation,Nf=150 analysis,Nf=150 0.8 1
+
+0.4
+
+0.2
+
+LPF LPF LPF LPF LPF LPF
+
+simulation,Nf=50 analysis,Nf=50 simulation,Nf=100 analysis,Nf=100 simulation,Nf=150 analysis,Nf=150
+
+0.6
+
+PMD
+
+PMD
+
+0.4
+
+0.2
+
+RM RM RM RM RM RM 0.2 0.4
+
+simulation,Nf=50 analysis,Nf=50 simulation,Nf=100 analysis,Nf=100 simulation,Nf=150 analysis,Nf=150 0.8 1
+
+0
+
+0.6
+
+0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+1
+
+0
+
+0.6
+
+,period range:27~11
+
+,period range:27~11
+
+,period range:27~11
+
+(a) SPF
+
+(b) LPF
+
+(c) RM
+
+Figure 9. Varying flow deadlines (Period: 27~11)
+
+the single processor preemptive systems, but not for the multi-processor scheduling. We can conclude that RM priority strategy outperforms SPF and LPF priority strategies in the channel and slot allocation algorithms in this study. VII. CONCLUSIONS In the paper, we have focused on the channel assignment and slot allocation of city-wide multi-hop MRMC WMN. A greedy algorithm has been proposed to assign fixed channels to the access interfaces aiming to minimize the maximum interference. The algorithm has an approximation factor of (2-1/m) and a time complexity of O(|Vr|). The joint channel and slot allocation algorithm, to assign channels to the backhaul links and slots to all the links, has a complexity of polynomial time and can guarantee interference-free communications. We have also analyzed the worst-case end-to-end delay of each flow under the slot and channel assignment algorithms. Simulation Results show that the slot and channel assignment algorithms won't cause unstable channel switch in networks with reasonable congestion condition. And the algorithms can achieve high PMD values. Given
+© 2014 ACADEMY PUBLISHER
+
+a set of flows, we can use the worst-case end-to-end delay analysis to test the schedulability of flows. ACKNOWLEDGMENT This work was supported by the National High-tech R&D Program of China (863 Program) (Grant No. 2012AA010904), and the Science and Technology Plan Program in Sichuan province, China (Grant No. 2013GZ0016). And our thanks to the China Scholarship Council (CSC) for the support for the "Joint Phd Program". REFERENCES
+[1] http://www.muniwireless.com/2009/03/28/muniwirelesslist-of-cities-with-wifi/. Accessed by 22 July, 2013. [2] Ashish Raniwala, Kartik Gopalan, Tzi-cker Chiueh. Centralized Channel Assignment and Routing Algorithms for Multi-Channel Wireless Mesh Networks. Mobile Computing and Communications Review. 2004, 8(2) pp. 50-55. [3] Joshua Robinson and Edward W. Knightly. A Performance Study of Deployment Factors in Wireless Mesh Networks. IEEE INFOCOM 2007. 2007 pp. 2054-2062.
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+2035
+
+[4] Cisco Wireless Mesh Access Points, Design and Deployment Guide, Release 7.0(Last revised: January 10, 2013), http://www.cisco.com/en/US/docs/wireless/technology/me sh/7.0/design/guide/MeshAP_70.html. Accessed by 22 July, 2013. [5] Li Y, Chen C S, Song Y Q, et al. Real-time QoS support in wireless sensor networks: a survey//7th IFAC International Conference on Fieldbuses & Networks in Industrial & Embedded Systems-FeT'2007. 2007. [6] B. Raman and K. Chebrolu, "Design and Evaluation of a new MAC Protocol for Long-Distance 802.11 Mesh Networks," in 11th Annual International Conference on Mobile Computing and Networking paper(MOBICOM), Aug/Sep 2005. [7] Gabale V, Chiplunkar A, Raman B, et al. Delay-Check: Scheduling Voice Over Multi-hop Multi-channel Wireless Mesh Network//3rd International Conference on Communication Systems and Networks (COMSNETS), Bangalore, India. 2011. [8] Jianping Song, Song Han, Aloysius K Mok, Deji Chen, Mike Lucas, and Mark Nixon. Wirelesshart: Applying wireless technology in real-time in-dustrial process control. In Real-Time and Embedded Technology and Applications Symposium, 2008. RTAS'08. IEEE, pages 377386. IEEE, 2008. [9] Mark Nixon and TX Round Rock. A comparison of wirelesshart and isa100. 11a. white paper, July, 2012. [10] Tang Zhong; Cheng Mengjin; Zeng Peng ; Wang Hong. Real-time communication in WIA-PA industrial wireless networks. ICCSIT 2010. pp. 600 ­ 605. [11] Murali Kodialam, Thyaga Nandagopal. Characterizing the Capacity Region in Multi-Radio Multi-Channel Wireless Mesh Networks. MobiCom'05. 2005 pp. 73-87. [12] Mansoor Alicherry, Randeep Bhatia, Li (Erran) Li. Joint Channel Assignment and Routing for Throughput Optimization in Multi-radio Wireless Mesh Networks. MobiCom'05. 2005 pp. 58-62. [13] Joint Optimal Scheduling and Routing for Maximum Network Throughput. [14] Hamed M. K. Alazemi1, A. Das, R. Vijaykumar, S. Roy. Fixed channel assignment algorithm for multi-radio multichannel MESH networks. Wireless Communications And Mobile Computing. 2008, 8 pp. 811-828. [15] Di Wu,Shih-Hsien Yang, Lichun Bao, Chi Harold Liu. Joint multi-radio multi-channel assignment, scheduling, and routing in wireless mesh networks. Wireless Networks. 2014, 20(1) pp. 11-24. [16] Vijay Gabale, Bhaskaran Raman, Partha Dutta, and Shivkumar Kalyanraman. A Classification Framework for Scheduling Algorithms in Wireless Mesh Networks. IEEE Communications Surveys & Tutorials. 2013, 15(1) pp. 199-222. [17] Link Scheduling with End-to-end Delay Constraints in Wireless Mesh Networks [18] Praveen Jayachandran, Matthew Andrews. Minimizing End-to-End Delay in Wireless Networks Using a Coordinated EDF Schedule. IEEE INFOCOM 2010. 2010 pp. 1-9. [19] Petar Djukic and Shahrokh Valaee. Link Scheduling for Minimum Delay in Spatial Re-use TDMA. IEEE INFOCOM 2007. 2007 pp. 28-36. [20] Abusayeed Saifullah, You Xu, Chenyang Lu, and Yixin Chen. Real-Time Scheduling for WirelessHART Networks. In RTSS 2010. 2010 pp. 150-159. [21] Abusayeed Saifullah, You Xu, Chenyang Lu, and Yixin Chen. End-to-End Delay Analysis for Fixed Priority
+
+[22] [23]
+
+[24] [25] [26]
+
+Scheduling in WirelessHART Networks. In RTAS 2011. 2011 pp. 13-22. A. Saifullah, P. Tiwari, B. Li, C. Lu, and Y. Chen. Accounting for failures in delay analysis for wirelesshart networks. In Tech. Rep., WUCSE-2012-16. 2012. Subramanian, A. P., Gupta, H., Das, S. R., and Cao, J.. Minimum interference channel assignment in multiradio wireless mesh networks. Mobile Computing, IEEE Transactions on, 2008, 7(12) pp. 1459-1473. Jane W.S. Liu. Real-time Systems. Prentice Hall PTR Upper Saddle River, NJ, USA. 2000, pp.115-189. http://quickfacts.census.gov/qfd/states/04000.html. Accessed by 22 July, 2013. http://www.maptechnica.com/us-city-boundarymap/city/Tempe/state/AZ/cityid/473000. Accessed by 22 July, 2013.
+
+Jun Xu received her Bachelor's degree in the School of Electronic Information, WuHan University, China, in 2009. She is currently a Ph.D. candidate in the School of Electronic Information, WuHan University, China. And she is also a visiting scholar in the School of Computing, Informatics, and Decision Systems Engineering, Arizona State University, USA, from Sep. 2012 to Mar. 2014. Her research interests are in the area of wireless mesh networks, industry control networks, and real-time and reliability communications. Yann-Hang Lee received his Ph.D. degree in Computer, Information, and Control Engineering from the University of Michigan, Ann Arbor, MI, in 1984. He is currently a professor in the School of Computing, Informatics, and Decision Systems Engineering, Arizona State University, USA. Since 2008, he has served as the Program Chair of the Computer Science and Engineering Program in the School. Dr. Lee's research interests are in the areas of real-time computing, embedded systems, software engineering, distributed systems, and performance evaluation. Chengcheng Guo received his Ph.D. degree in the School of Electronic and Information, WuHan University, China. He received his Bachelor and Master degree in the Computer School of WuHan University, China. He is currently a professor and a Ph.D. supervisor in the School of Electronic and Information, WuHan University, China. His research interests are Internet and Communication technology, wireless mesh networks, industry control networks, and real-time and reliability communications. Jianfeng Yang received his Bachelor's degree in Electronic Information in 1998, Master's degree in Signal and Information System in 2003 and Ph.D. degree in Communication and Information System in 2009, all from the school of Electronic Information, WuHan University, China. He is
+
+© 2014 ACADEMY PUBLISHER
+
+2036
+
+JOURNAL OF NETWORKS, VOL. 9, NO. 8, AUGUST 2014
+
+Currently an Associate Professor of Wuhan University, his research interests are in the areas of Embedded System, Wireless Mesh Networks, Parallel Computing and Real-time
+
+and Reliability Communications. Also, he severed as the committee member of China Computer Federation Technical Committee of Embedded System from 2010.
+
+© 2014 ACADEMY PUBLISHER
+
+

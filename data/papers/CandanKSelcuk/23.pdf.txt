@@ -1,0 +1,631 @@
+LWI-SVD: Low-rank, Windowed, Incremental Singular Value Decompositions on Time-Evolving Data Sets
+
+
+Xilun Chen, K. Selçuk Candan
+Computer Science and Engineering School of Computing-IDSE (CIDSE), Arizona State University Tempe, AZ, USA xilun.chen@asu.edu, candan@asu.edu
+
+ABSTRACT
+Singular Value Decomposition (SVD) is computationally costly and therefore a naive implementation does not scale to the needs of scenarios where data evolves continuously. While there are various on-line analysis and incremental decomposition techniques, these may not accurately represent the data or may be slow for the needs of many applications. To address these challenges, in this paper, we propose a Low-rank, Windowed, Incremental SVD (LWI-SVD) algorithm, which (a) leverages efficient and accurate low-rank approximations to speed up incremental SVD updates and (b) uses a window-based approach to aggregate multiple incoming updates (insertions or deletions of rows and columns) and, thus, reduces online processing costs. We also present an LWI-SVD with restarts (LWI2-SVD) algorithm which leverages a novel highly efficient partial reconstruction based change detection scheme to support timely refreshing of the decomposition with significant changes in the data and prevent accumulation of errors over time. Experiment results, including comparisons to other state of the art techniques on different data sets and under different parameter settings, confirm that LWI-SVD and LWI2-SVD are both efficient and accurate in maintaining decompositions.
+
+of the database [7]: Intuitively, the columns of U can be thought of as the eigen-objects of the data, each corresponding to one independent concept/cluster, and the columns of V can be thought of as the eigen-features of the collection, each, once again, corresponding to a concept/cluster in the database. In other words, SVD can be used for co-clustering both data-objects and features simultaneously. The r × r diagonal matrix S , can be considered to represent the strength of the corresponding latent concepts in the database: the amount of error caused by the removal of a concept from the database is proportional to the corresponding singular value.
+
+1.1 Incremental SVD and Related Works
+SVD is computationally costly and therefore a naive implementation does not match the real-time needs of scenarios where data evolve continuously: decomposition of an n × m matrix requires O(n × m × min(n, m)) time. While there are various on-line techniques, these are often slow or inaccurate. For example, one of the fastest techniques, SPIRIT [13] focuses on row insertions and cannot directly handle row deletions or column insertions/deletions. While a forgetting factor can be introduced to discount old objects, it cannot immediately reflect the properties of the removed entries on the decomposition. Moreover, since SPIRIT primarily considers data insertions and deletions, it is not applicable in situations where features of interest themselves evolve with the data (examples include weights of tags extracted from data and proximity to the hubs within an evolving network). As we see in Section 5, it has a higher inaccuracy compared to other incremental techniques, such as [5]. Other incremental SVD algorithms, such as [5, 6, 8, 9, 11, 12, 14, 15, 17], operate on an existing SV decomposition by folding-in new data and features into an existing (often low-rank) SVD; algebraic matrix manipulation techniques are used to rewrite the new SV decomposition matrices in terms of the old SV decomposition and update (including downdating) matrices. [5] showed that a number of database updates (including removal of columns) can all be cast as additive modifications to the original n × m database matrix, A. These updates then can be reflected on the SVD in O(nmr ) time as long as the rank, r , of the matrix A is such that r  min(p, q ), where p is the number of new rows and q is the number of new columns. In other words, as long as the latent dimensionality of the database is low, the singular value decomposition can be updated in linear time. [5] further showed that the update to SVD can be computed in a single pass over the data matrix making the process highly efficient for large data. This and other existing algorithms can nevertheless be slow for many real-time applications.
+
+1.
+
+INTRODUCTION
+
+Feature selection and dimensionality reduction techniques [20] usually involve some (often linear) transformation of the vector space containing the data to help focus on a few features (or combinations of features) that best discriminate the data in a given corpus. For example, the singular value decomposition (SVD [7]) of a data feature matrix A is of the form A = U SV T , where the r orthogonal column vectors of U form an r dimensional basis in which the n data objects can be described. Also, the r orthogonal column vectors of V (or the rows vector of V T ) form an r dimensional basis in which the m features can be placed. These r dimensions are referred to as the latent variables [16] or the latent semantics
+ This work is partially funded by NSF grants #1339835 and #1318788. This work is also supported in part by the NSF I/UCRC Center for Embedded Systems established through the NSF grant #0856090.
+
+Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than ACM must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. KDD'14, August 24­27, 2014, New York, NY, USA. Copyright 2014 ACM 978-1-4503-2956-9/14/08 ...$15.00. http://dx.doi.org/10.1145/2623330.2623671.
+
+1.2 Contributions of this Paper
+In Section 2 we formalize these challenges and in Section 3, we propose a Low-rank, Windowed, Incremental SVD (LWI-SVD) algorithm, which leverages efficient and accurate low-rank approxi-
+
+987
+
+mations to speed up incremental SVD updates and uses a windowbased approach to aggregate multiple incoming updates (insertion or deletions) and, thus reduces on-line costs. We also present, in Section 4, an LWI2-SVD algorithm which leverages a novel partial reconstruction based change detection technique to support timely refreshing of the decompositions to prevent accumulation of errors. Experiment results reported in Section 5 confirm that LWI-SVD and LWI2-SVD are both efficient and accurate in maintaining decompositions. We conclude the paper in Section 6.
+
+where K is equal to
+K = = I 0 Sx 0
+TA Ux RA
+
+Sx 0 +
+TA Ux RA
+
+0 I
+
+I 0
+
+TB Vx RB T
+
+T
+
+(6) (7)
+
+0 0
+
+TB Vx RB
+
+2.2.2 Matrix K
+Let us remember that X is an n × m matrix and X  is an n × m matrix. Given this · if n  n and m  m , K is a matrix of size (n + 1) × (m + 1). This is because, if n  n , then Ux is an orthogonal T matrix and Ux Ux is equal to I . Consequently, QA RA = T (I - Ux Ux )A = 0 and this implies that RA is simply 0. The same is true for RB . · if n < n and m < m , K is a matrix of size n × m . In Section 3.2.1, we discuss the shape K takes in this case and the resulting properties in detail. · if n  n and m < m , K is a matrix of size (n + 1) × m . · if n < n and m  m , K is a matrix of size n × (m + 1).
+
+2.
+
+BACKGROUND
+
+2.1 Problem Definition
+At time stamp i, we are given a set of n data tuples Di = {ti,1 , ti,2 , ..., ti,n }, each with a set, Fi , of m features. We are also given the set, Li , containing the r latent semantics of Di (and their weights). As time moves, new tuples arrive and some of the existing tuples expire: at the next time stamp, ti+1 , the tuple set is - + - Di+1 = (Di \Di +1 )  Di+1 , where Di+1 are the tuples + that expired and Di+1 are the new tuples that arrived. Moreover, at time (i + 1), we have a new set, Fi+1 , of features, where + - Fi+1 = (Fi \Fi- +1 )  Fi+1 , where Fi+1 are features that are + not of interest anymore and Fi+1 are the new features of interest. Our goal is to quickly obtain Li+1 containing the r latent semantics corresponding to time instance, i + 1, and efficiently maintain these r latent semantics as time further moves.
+
+2.2.3 Using the Decomposition of K to Obtain the Decomposition of X 
+T . Let us consider the SV decomposition of K ; i.e., K = UK SK VK Equation 1 can be rewritten [5] as
+
+X  = X + AB T = [ Ux
+
+QA
+
+UK )SK [ Vx
+
+QB
+
+VK )T (8)
+
+2.2 Basic Incremental SVD [5]
+Let us be given an n × m data matrix X = and an n × m updated data matrix X  = X + , where  is a max(n, n ) × max(m, m ) change matrix. Note that if X  has larger dimension than X , X is padded with n - n rows of zero and m - m columns of zero to match the dimension of , the removal of rows and columns are modeled by additions that result in zeroing of the corresponding rows and columns (which are then dropped from the matrix). Let us further assume that the change matrix  can be decomposed into  = AB T . Note that we can rewrite the matrix X  as
+X  = X + AB T = Ux A Sx 0 0 I Vx B
+T T Ux Sx Vx
+
+giving us the SVD of the new tuple matrix, X  . The challenge, of course, is to obtain the matrices, QA and QB , and the SV decomposition of K efficiently. In order to keep the complexity down, [5] suggests that A and B should be taken as combination of simple column vectors so that AB T can be the sum of multiple rank-1 matrices. This, however, may be a significant constraint in real-applications where the change matrix  itself can have a large size, indicating great amount of rank-1 matrices it produces and updating a sequence of rank-1 matrix is not effective as treating them as a whole. In the next section, we discuss how to relax this assumption of [5] without impacting efficiency and accuracy.
+
+.
+
+(1)
+
+3. LWI-SVD
+We now present our key ideas for efficient incremental SVD operations. As described above, this involves efficiently searching for matrices, QA and QB , and the SVD of K .
+
+Given these, [5] incrementally maintains SVD as follows:
+
+2.2.1 QR Decompositions
+T Let us also define QA as the orthogonal basis of (I - Ux Ux )A T and QB as the orthogonal basis of (I - Vx Vx )B . Both QA and QB T can be obtained through QR decomposition [4] of (I - Ux Ux )A T and (I - Vx Vx )B : T QA RA = (I - Ux Ux )A; T QB RB = (I - Vx Vx )B
+
+3.1 Efficiently Obtaining QA and QB
+T As described above, QA is the orthogonal basis of (I - Ux Ux )A T and QB is the orthogonal basis of (I - Vx Vx )B . These can be obtained using two expensive QR decomposition operations for both QA and QB . One way to reduce the number of QR decomposition operations would be to seek a decomposition of  where X  = X +  = AAT ; i.e., A = B . However, not all  will have such a convenient decomposition. When  is negative definite, it cannot be written as the format of A × B where A = B . Instead, in this paper, we propose to reduce the cost of the overall QR decomposition step by setting A to the identity matrix I and setting B T to . This does not lose any generality on the algorithn since  (B T ) can be any matrix. When we do this, since A = I , 0 it would also be the case that QA = . Therefore, we need only I one QR decomposition. What is more, if the  only reflect a small amount of data insertions and deletions, then it will be a sparse matrix with last few rows and columns of nonzero values. This
+
+(2)
+
+Here QA and QB are orthogonal matrices and RA and RB are upper-triangular. It is easy to see, through basic matrix algebra, that the following holds:
+Ux Vx A B = = Ux Vx QA QB I 0 I 0
+TA Ux RA TB Vx RB
+
+(3) (4)
+
+Moreover, by substituting Equations 3 and 4 into Equation 1, we can get  T T
+X = X + AB = Ux QA K Vx QB (5)
+
+988
+
+T T lead to efficient computation of (I - Vx Vx )B and Vx B by block matrix multiplication. Let's first find the zero block of B when it is data insertion. Then  (B ) is a n × m matrix with a block of zero values on the first n × m position. We can rewrite B as
+
+Secondly, using a similar zero-padding, we can get the following equalities:
+(In - U  U T )A = (Im - V  V T )B = 0 0 0 In -n 0 Bm -m
+
+
+(9) (10)
+
+B=
+
+0 B2
+
+B1 B3
+
+T T Then, we can divide (I - Vx Vx ) and Vx into the same block T size as B . For example, we can rewrite Vx as T Vx =
+
+The right hand side of Equation 9 has n - n independent columns and, thus, it has a simple QR decomposition:
+QA = 0 In -n and RA = 0 In -n
+
+Vx T 0 Vx T 2
+
+Vx T 1 Vx T 3
+
+T Then, the multiplication of Vx B becomes
+
+T Vx ×B =
+
+Vx T 1 × B2 Vx T 3 × B2
+
+T Vx T 0 × B1 + Vx 1 × B3 T Vx 2 × B1 + Vx T 3 × B3
+
+Since the right hand side of the Equation 10 consists of 0s except for the last m - m rows, the QR decomposition of the left hand    side will be such that QB  R(m -m)×m and RB  R(m -m)×n . Let us further partition RB into two,
+RB = where RB1 
+ R(m -m)×n
+
+RB1
+
+RB2
+
+,
+
+Note that, the multiplication of Vx T 0 and the corresponding block of B is avoided since the corresponding block of B is all zeros. T Also, the other part of Vx and B are small size thin matrices. Thus, T the multiplication of Vx ×B can be done very efficiently. The same T applies to (I - Vx Vx ) × B and when the data are deleted. As we experimentally show in Section 5.4.1, this optimization provides significant gains in time, without any noticeable loss in the final accuracy.
+
+and RB2 
+
+  R(m -m)×(n -n) .
+
+Given the above, we can rewrite the matrix, K , as
+K= S 0 0 0 + U T A RA V T B RB
+T
+
+where
+U T A RA V T B RB
+T
+
+= =
+
+UT 0 0 RB1
+
+0 In -n Y RB2
+T
+
+3.2 Efficiently Decomposing K
+The next challenge is to obtain the singular value decomposition of the matrix, K . Performing SVD on K directly would be costly as the SVD operation is expensive. However, as we prove next, in Section 3.2.1, in the presence of row and column insertions, K takes a special structure:
+K = Sx 0 0 0 +
+TA Ux RA TB Vx RB T
+
+.
+
+Here Y is a m × (n - n) matrix. Note that we can further rewrite
+U T A RA V T B RB
+T
+
+=
+
+U T A RA
+
+(V T B ) RB1 RB2
+
+T
+
+=
+
+Sx 
+
+ . 
+
+as
+UT 0 0 In -n 0 RB1 Y RB2
+T
+
+More specifically, in the presence of insertions, (a) since Sx is diagonal, K is mostly sparse, and (b) it is shaped like an arrow: (aside from the diagonal) there are non-zeros only on its last rows and columns. We verify these next.
+
+=
+
+0 YT
+
+U T RT B1 RT B2
+
+.
+
+Thus, K simplifies to
+K= S YT U T RT B1 RT B2 = S   . 
+
+3.2.1 Shape of K
+Let X be an n × m matrix and X  be an n × m matrix. In Section 2.2.2, we have seen that K is either of size n × m , (n + 1) × (m + 1), (n + 1) × m, or n × (m + 1), depending on whether the numbers of rows and columns increase or decrease when the data matrix transforms from X to X  . Let us further assume that n  m and m > m and n > n, which is rows and columns insertion. As we already discussed before, let us set A = In and       B T = , where A  Rn ×n , B  Rm ×n and   Rn ×m so that AB T is equal to the update matrix . Finally, let SVD of X T be X = Ux Sx Vx , or simply X = U SV T . Given the fact that X  = X + , we can also deduce that X  = U  SV T + , where
+U = U 0  Rn
+
+
+This confirms that when m < m and n < n , K is shaped like an arrow: it is diagonal, except for the last n - n rows and last m - m columns. This, however, is not true when m  m or n  n ; in this case K can be a dense matrix, with its last row and columns equal to 0. In the rest of this section, we argue that, especially when m < m and n < n , we can leverage K 's specific structure (sparse, arrow-like) to quickly obtain a highly-accurate ^S ^V ^ T and use it instead of the approximate decomposition, K  U exact decomposition K = U  S  V T . In particular we propose to build on the SVD through QR decomposition with column pivoting technique proposed in [4]. Experiment results reported in Section 5 show that this leads to efficient and accurate decompositions even in cases where m  m or n  n .
+
+×n
+
+and V  =
+
+V 0
+
+ Rm
+
+
+
+
+×m
+
+.
+
+Intuitively, U and V are augmented by padding n - n rows of zeros to U and m - m rows of zeros to V to make it compatible with . This padding gives us
+X = X 0 0 0 +  = U  SV T + .
+
+3.2.2 Decomposition of K through Pivoted QR Pivoted QR Factorization. Let E be a matrix. A pivoted QR factorization of E has the form EP = Qe Re where P is a permutation matrix, Qe is orthonormal and Re is upper triangular. [4] has shown that a rank-k approximation can be obtained efficiently through a pivoting process where columns of E are considered one at a time and used to compute an additional column of Qe and
+
+989
+
+row of Re . The kth round of the process leads to a rank-k approximation of the pivoted QR factorization of E . In particular, let us assume that we are given a QR decomposition of the form F = Qf Rf and need to compute QR decomposition of [F a] for some column vector a: [F a] = [Qf q ] Rf 0  
+
+The rank-k approximation can be obtained efficiently by the quasiGram-Schmidt method, which further eliminates the need to store dense Qf matrices [4]: the quasi-Gram-Schmidt process can be applied successively to columns of a given input matrix E to produce a pivoted QR factorization for E . Low-Rank Decomposition of K . Let us assume that we are targeting a rank-k decomposition of K . We first sample k columns to obtain column-sample matrix C ; we then sample k columns from K T to obtain a row-sample matrix RT . We then apply the QR decomposition with column pivoting to C and RT to obtain upper triangular matrices, Rc and Rr . The sampling is done by selecting the longest row and column vectors. We note that when m < m and n < n , K is not only sparse, but also has an arrow-like shape: K= Sx   , 
+
+Algorithm 1 LWI-SVD. Input: T The Base Matrix, X , and its SV decomposition Ux Sx Vx ; T The update matrix,  = AB , corresponding to a window of updates; Target rank, r ; Output:    The new SVD results, Ux , Sx , and Vx ; 1: Calculate factors RA and RB in Equation 2 which, as discussed in Section 3.1, involves a QR Decomposition and several matrix multiplications; 2: Calculate the matrix K in Equation 7; 3: Obtain the low-rank (rank-r ) decomposition of K into K = T UK SK VK ; 4: Combine the factors as shown in Equation 8 to obtain rank-r    decomposition Ux , Sx , and Vx ;    5: return Ux , Sx , and Vx ;
+
+the previous step as its input, there is a likelihood that errors will accumulate over time and the reconstruction error relative to the actual matrix will reach an unacceptable rate. To prevent errors to accumulate, in the next section we propose a novel LWI-SVD with Restart (LWI2-SVD) algorithm which restarts the SVD by performing a fresh SVD on the current data matrix.
+
+where the n × m matrix Sx is diagonal, whereas n × (m - m) matrix , (n - n) × m matrix , and (n - n) × (m - m) matrix  are potentially dense as we discussed in Section 3.2.1. As a result, the sampling is arrow-sensitive in the sense that it focuses on the last few rows and columns: The sampled columns usually come from the first few columns (which contain the largest singular values at the top-left corner of the matrix) and the last few columns,  which contain entries from the dense, . Similarly, the sampled  rows come from the first few rows (which contain large singular values in Sx ) and the last few rows from   . Given these, to obtain a decomposition of K , we need to find a matrix H such that K -C H RT is minimized. According to [15], the value of H which minimizes this can be computed as
+-1 -T -1 -T (Rc Rc )(C T K R)(Rr Rr ).
+
+4. LWI2-SVD: LWI-SVD WITH RESTART
+In this section, we build on LWI-SVD and propose a novel LWISVD with Restart (LWI2-SVD) algorithm which punctuates the incremental SVD sequence by occasionally performing a full SVD on the current data matrix. Obviously, there is a direct, positive correlation between the frequency of restarts and the overall accuracy of the LWI2-SVD algorithm. Unfortunately, however, there is also a strong positive correlation between the cost of LWI2-SVD and the frequency of restarts. Therefore, restart rate should be such that the process is restarted only when the costly SVD is in fact needed to help reduce the overall error.
+
+4.1 Types of Errors
+We see that there are two distinct types of errors: · Accumulated approximation errors (and periodic restarts): The first type of error that accumulates over time is due to the various approximation terms, including the low-rank approximation of K as discussed in Section 3.2. While the absolute value of this error will be different from one iteration of the algorithm to the next, its long term behavior will be roughly constant. Therefore, this type of accumulated approximation errors are best dealt with periodic restarts. · Error bursts due to structural changes in the input data (and on-demand restarts): The second type of error in the incremental SVD occurs when there is a significant structural (or spectral) change in the data, necessitating large changes in the SVD. Since the incremental process described in Section 3 assumes that the changes are relatively small, a significant structural change in the factor matrices, Ux and Vx , or the core matrix Sx may not be correctly captured, resulting in a large burst of reconstruction error. These bursts are best dealt with on-demand restarts that are triggered through a change detection process that tracks the updates to identify when major structural changes in the data occur. Figure 1 shows an example run with and without restarts. Note that without the restarts errors continuously accumulate due to structural changes in the data. Restarts (both periodic and on-demand)
+
+Thus, we can rewrite C H RT as
+-1 -T T -1 -T (C Rc )(Rc C K RRr )(Rr RT ). -T T -1 If we further set W = Rc C K RRr and decompose W into T , then we can obtain the SV decomposition of K W = Uw Sw Vw T as K = UK SK , VK , where -1 T T -1 -T UK = C Rc Uw , VK = Vw Rr Rr , and SK = Sw ,
+
+where UK and VK are orthonormal and SK is diagonal. While this process also involves an SV decomposition step involving W , since W is a much smaller, k × k, matrix, its decomposition is much faster than the direct decomposition of K .
+
+3.3 Pseudocode of LWI-SVD
+Algorithm 1 provides the pseudo-code of the proposed Lowrank, Windowed, Incremental Singular Value Decomposition (LWISVD) algorithm for incrementally maintaining the SVD of an evolving matrix X . As we later see in Section 5, the LWI-SVD algorithm has a smaller approximation error than other algorithms, such as SPIRIT [13], yet is also much faster than optimal as well as the basic incremental SVD [5] algorithms. Yet, as in any incremental approximate algorithm, in which each step takes the output of
+
+990
+
+!"#$%&'()'*+,%"$-'./0-$#"$,1,$2$"$,'3$22-4'"('"5$',%"%'&%"#/6
+
+! ! ! " ! ! ! ! ! ! "
+
+"
+
+"
+
+"
+
+"
+
+" ! ! ! !
+
+.%4'7$0$#%"$'#%0,(&'0*&8$#9':9 8$";$$0'<'%0,'3*##$0"'/0,$6 .84'/)':'?';9' #$+2%3$';/"5'%'#%0,(&2@'-$2$3"$,' 3$22'/0'"5$'#$-$#A(/#
+
+!"#"$
+
+.84'/)':'=>';9' /70(#$'*+,%"$
+
+#$-$#A(/#'.-/:$'>';4
+
+(a) reservoir maintenance for si = + rowi , coli Figure 1: Example runs with and without restarts
+!"!#!$%&'$#(!) /.*$#+&0 /.*$#+&1
+
+! ! ! " !
+
+! ! ! ! "
+
+"
+
+"
+
+"
+
+"
+
+" ! ! " !
+
+!
+!"!#!$%&*+,-'. *+,-'.&0 *+,-'.&1
+
+!"#$%&'$%($)(*"%+$%,+ &+-(.+/$*+))$01$ %,+$&+2+&.(0& !6#$07$7(81/9$&+:)"*+$%,+$ +)+-+1%$50%,$%,+$1+;% <=<$01$%,+$2%&+"-
+
+!"!#!$%& (+2+(3-!(
+
+.$(#!$% (+,-"2#/,#!-" (+2+(3-!(&0 (+2+(3-!(&1
+
+.$(#!$% (+,-"2#/,#!-"
+
+&+2+&.(0&$!203+$4$5#
+
+(b) reservoir maintenance for si = - rowi , coli Figure 3: Overview of the reservoir based matrix sampling
+,4$"5+&6789:; ,4$"5+&6789:;
+
+Figure 2: Overview of the change detection process can limit the accumulation of errors. Error accumulations due to approximations generally show a regular behavior and the frequency with which periodic restarts are scheduled can be set empirically. The structural changes in the data, however, do not necessarily have a regular behavior; therefore, the challenge is to quickly and efficiently detect the structural changes in the data. We will discuss this next.
+
+4.2 Change Detection through Partial Reconstruction
+In order to detect major structural changes in the data we need to measure or estimate the reconstruction errors. The naive way to achieve this would be to reconstruct the entire matrix from the incrementally maintained decomposition and compare the reconstructed matrix to the ground truth (which is the actual, revised data matrix). If the difference is high, it means that due to some structural changes, the incrementally maintained decomposition deviated from the true decomposition of the matrix. Obviously, performing a full reconstruction of the matrix at each time step would be extremely costly. Instead, in this section, we propose a change detection scheme which relies on a partial reconstruction as depicted in Figure 2: (a) a fair data matrix sampler, which identifies a small subset of the matrix cells as ground truth and (b) a partial reconstructor, which reconstructs a given subset of matrix cells, without reconstructing the full data matrix.
+
+4.2.1 Fair Sampling of an Evolving Matrix
+We propose a fair sampler, where all matrix cells have a uniform probability of being selected independently of when they are updated. Basic Reservoir Sampling. Reservoir sampling [18] is a random sampling method that works well in characterizing data streams. It is especially efficient because (a) it needs to see the data only once
+
+and (b) it uses a fixed (and small) buffer, referred to as the "reservoir". Furthermore, while (c) it does not require a priori knowledge of the data size, it (d) ensures that each data element has an equal chance of being represented in the sample. Let S be a data stream consisting of a sequence of elements si . The reservoir sample keeps a fixed reservoir of, say w elements. Once the reservoir is full, each new element, si , replaces a (randomly) selected element in the reservoir with a decreasing probability, inversely proportional to the index, i, of the new element si . More specifically, a random element in the reservoir is replaced by si with probability w . Intui itively, in a fair sampling, each element up to i should have a w/i chance of being in the random sample of size w. Therefore, si is selected to be included in the reservoir with probability w . The i sample it replaces, on the other hand, is chosen randomly among the existing w samples in the reservoir to ensure that the reservoir forms a random sample of the first i elements in the stream. Matrix-Reservoir Model. As we described earlier, we consider the general case where the data matrix can grow or shrink with insertions or deletions of rows and columns. More specifically, we model the evolving data matrix as a stream, S , of si = ± rowi , coli , where rowi and coli are the row and columns affected in the update with index i: + rowi , coli indicates that the update inserts a new cell in the matrix at location rowi , coli , whereas - rowi , coli indicates that the cell at location rowi , coli is being removed. The reservoir, Ri = {ri,1 , . . . , ri,w }, at time i consists of w matrix cell positions, which serve as the representatives for the current matrix. In other words, each ri,j  Ri is a triple of the form ri,j = indexi,j , rowi,j , coli,j , where indexi,j is the index of the update that deposited the cell, located at rowi,j and coli,j , into the reservoir. Matrix-Reservoir Maintenance for si = + rowi , coli . As discussed earlier, reservoir sampling randomly selects some of the incoming stream elements for the updating the contents of the reservoir When the (probabilistically) selected incoming stream entry si is of the form + rowi , coli , the basic reservoir sampling process is applied: a random element, ri-1,j from the current reservoir
+
+991
+
+Ri-1 is selected and this is replaced with i, rowi , coli . This process is visualized in Figure 3(a). Matrix-Reservoir Maintenance for si = - rowi , coli . When the (probabilistically) selected incoming entry si is of the form - rowi , coli , on the other hand, the basic reservoir sampling process cannot be applied as this denotes removal of a cell, not insertion. We handle deletions as follows: · if there exists no ri-1,j = indexi-1,j , rowi-1,j , coli-1,j  Ri-1 , such that rowi-1,j = rowi and coli-1,j = coli , then si is simply ignored; · if, on the other hand, there exists a ri-1,j = indexi-1,j , rowi-1,j , coli-1,j  Ri-1 , such that rowi-1,j = rowi and coli-1,j = coli , then ­ we drop ri-1,j from the reservoir and ­ we keep the j th position reserved for a future update of the form sh = + rowh , colh . Intuitively, the matrix reservoir (and its history) is revised as if the future insertion sh had in fact arrived in the past, instead of sindexi-1,j , which had originally deposited the cell, rowi-1,j , coli-1,j (which is being deleted) into the reservoir. This process is visualized in Figure 3(b).
+
+Algorithm 2 LWI2-SVD Input: T The Base Matrix, X , and its SV decomposition Ux Sx Vx ; T The update matrix,  = AB , corresponding to a window of updates; Target rank, r ; Reservoir, R; Restart Threshold, ; Periodic Restart Flag, f ; Output:    The new SVD results, Ux , Sx , and Vx ;  The new Reservoir, R ; 1: X  = X +  2: if f = true then    3: Ux , Sx , Vx = topK_SVD(X  , r );  4: R = updateReservoir(R, ); 5: else    6: Ux , Sx , Vx = LWI-SVD(X, Ux , Sx , Vx , , r );  7: R = updateReservoir(R, );    ^ = partialReconstruct(R , Ux 8: V , Sx Vx );   ^ 9: E = measurePartialError(V, R , X ); 10: if E >  then    11: Ux , Sx , Vx = topK_SVD(X  , r ); 12: end if 13: end if    14: return Ux , Sx , Vx , R ;
+
+4.2.2 Partial Matrix Reconstruction
+At time t = i, let us have the reservoir Ri = {ri,1 , . . . , ri,w }, where for all 1  h  w, ri,h = indexi,h , rowi,h , coli,h . Intuitively, the reservoir consists of a set of matrix cell positions (that were fairly sampled from the overall matrix). During the partial reconstruction step, we use the (incrementally maintained) SV decomposition, Ui , Si , and Vi , of the data matrix Xi to reconstruct only the row and column positions that appear in the reservoir, ri,h . ^i = More formally, the partially reconstructed matrix value set V ^ ^ {vi,1 , . . . , vi,w }, is such that for all 1  h  w, ^ i [rowi,h , coli,h ], where ^ vi,h = X ^ i [rowi,h , coli,h ] = (Ui [rowi,h , ]) Si ViT [, coli,h ] . X Note that the cost of the partial reconstruction of the matrix depends on the size of the reservoir and when |Ri |  |Xi |, partial reconstruction is much faster than full reconstruction. Symbol dim(n × n) Table 1: Parameters Desc. Default Initial(for inser- 100 × 100 tions)/Final(for deletions) dimensions of X Target rank 5 Length of the data 50 stream Numbers of 2:2 columns:rows updated at a given iteration Strength of the updates 5 (for synth. data) Reservoir size 50 On-demand restart 20% threshold Restart period 15 Alternative 300 × 300
+
+r len numupd upd w  per
+
+10 50 6:6 10 150 10% 5
+
+4.2.3 Change Detector
+At time t = i, given the reservoir Ri = {ri,1 , . . . , ri,w }, we construct a ground truth value set Vi = {vi,1 , . . . , vi,w }, where for all 1  h  w, vi,h = Xi [rowi,h , coli,h ]. Similarly, we also ^ i = {^ have the partially reconstructed value set V vi,1 , . . . , ^ vi,w }, ^ i [rowi,h , coli,h ], where where for all 1  h  w, ^ vi,h = X ^ i [rowi,h , coli,h ] is the partially reconstructed value for the cell X location rowi,h , coli,h . Given these, we detect a major structural change in the data matrix if
+w
+
+5. EXPERIMENTS
+In this section, we evaluate the efficiency and effectiveness of LWI-SVD and LWI2-SVD on both synthetic and real datasets and for different scenarios and parameter settings. Each experiment, consisting of len consecutive update iterations, was run 10 times and averages are reported. Note that to simplify the interpretation of the results we have considered insertion sequences and deletion sequences; but not hybrid insertion/deletion sequences. Also, to make sure that the results for experiments involving sequences of insertions and deletions are comparable, we have set the initial dimensions for an insertion sequence and the final dimensions of a deletion sequence to the same value, dim. The various parameters varied in the experiments, default values, and value ranges are presented in Table 1. Below we describe the experimental setting, including the data sets, in greater detail.
+
+(vi,h - ^ vi,h )2  ,
+h=1
+
+where  is the inaccuracy threshold.
+
+4.3 Pseudocode of the LWI2-SVD Algorithm
+We provide the pseudocode of the LWI-SVD with Restart (LWI2SVD), which was detailed in this section, in Algorithm 2. In the next section, we evaluate the efficiency and effectiveness gains of LWI2-SVD algorithm on top of the gains provided by LWI-SVD.
+
+5.1 Real Data: Digg.com Traces
+We use Digg.com data set [2] from Infochimps to evaluate the effectiveness and efficiency for real data. The complete data set
+
+992
+
+was recorded from August to November 2008 and has 3 main components: stories, comments and replies. "Stories" contain 1490 articles that users have posted within the time period. For our experiments, we created data streams by considering the first n + len × numupd articles in the data set(the first n articles make up the initial data matrix; for each of the len iterations in the update stream, we considered numupd new articles). Given this data set, we removed the stop words and applied stemming. We then selected the first n stories and identified the most frequent n keywords 1 . Xij denotes occurrence of keyword j in story i. Intuitively, the low-rank decomposition of the data matrix X simultaneously cluster stories and keywords, resulting a coclustering of the data matrix X . We moved the window at each iteration by inserting or deleting numupd records of the story trace and recomputing the n most frequent keywords (meaning that numupd many rows and columns are inserted and deleted). These correspond to row and column insertions/deletions on X .
+
+deletions and column insertions and deletions (for our experiments, we used the implementation obtained from [3]). LWI-SVD family of the algorithms extend our implementation of the Brand's algorithm described in [5] along with the Algorithm 844 [4] obtained from [1]. As evaluation criteria, we use three metrics: reconstruction error overhead, execution time, and execution time gain: · average relative reconstruction error (errrel ) ­ this accuracy measure is defined as 1 len
+len
+
+i=1
+
+^ i, , Xi ) - rec_error (X ^ i,SV D , Xi ) rec_error (X , ^ rec_error (Xi,SV D , Xi )
+
+5.2 Synthetic Data: Random Traces
+We have also experimented with synthetic data sets where we could freely vary the characteristics of the data and updates to observe the accuracy and efficiency of our algorithms under different scenarios. For these experiments, we have created synthetic activity traces which we then converted into data matrices as before. Since the matrices for real data is sparse, we focus on dense matrices. In particular, we have generated an initial n-length random sequence of 5 dimensional data, where each dimension has a value from 0 to 10. Given these n consecutive records in the trace, we have created a n × n initial matrix measuring pairwise Euclidean distances of the records in the sequence. Insertions in the random trace were generated by randomly picking numbers with exponential distribution, with the rate parameter, upd (i.e., prob(x) = exp_dist(x, upd ) = upd e-upd x ). Intuitively, if the rate parameter upd is large, there is a higher likelihood of having more large amplitude changes. If the rate parameter upd is low, there is a lower frequency of large amplitude changes in the trace. As before, we enlarged or shrank X at each iteration by adding or deleting numupd units of the random activity trace (meaning that numupd many rows and columns are inserted to or deleted from into the matrix, X ).
+
+where ­ len is the number of iterations (length of the stream), ^ i, denotes the decomposition of the data matrix at ­ X time i obtained using the algorithm "", and ­ rec_error (Y, X ) denotes the reconstruction error of the decomposition Y against the data matrix X , measured in terms of F robenius norm. Note that a low-rank decomposition of Xi would lead to a reconstruction error, even if it is obtained using full SVD followed by selection of the top r components. Therefore, the denominator of the above term is not equal to 0. · absolute execution time (texec ) ­ this is the time, in seconds, that is required to complete len consecutive decompositions using the algorithm under consideration. · time gain (gaintime ) ­ the gain in time is the execution time measured against the execution time of the full SVD; i.e., texec,svd -texec, . texec,svd All experiments were conducted using a 4-core Intel Core i5-2400, 3.10GHz, machine with 8GB memory, running 64-bit Windows 7 Enterprise. The codes were executed using Matlab 7.11.0(2010b).
+
+5.4 Evaluation with the Default Settings
+5.4.1 Real Trace Data Set
+Figure 4 presents the accuracy and efficiency results for the real trace data for the default parameters reported in Table 1. Accuracy. The first thing to note in Figure 4(a), which reports average relative reconstruction errors for the various versions of the LWI-SVD algorithm proposed in this paper, is that restarts discussed in Section 4 are highly effective in reducing the overall error. While both partial reconstruction-based and periodic restarts used in LWI2-SVD are effective in improving accuracy over the LWISVD (which does not use restarts), the best results are obtained when these are used together, bringing down the average relative reconstruction error to 0.3-0.7% of the low-rank decomposition obtained through full SVD. The second thing to note in Figure 4(a) is that row/column insertions, which bring in new data into the matrix, results in larger relative reconstruction errors than row/column deletions. Note that, when both reservoir-based and periodic restarts are employed, the accuracy penalty relative to the low-rank decomposition of full SVD is negligibly low for both insertions and deletions. Efficiency. Figure 4(b) shows the efficiency results for this data set under the default parameter configuration. The first thing to note is that there is minimal time difference between the LWI-SVD and LWI2-SVD algorithm. This indicates
+
+5.3 Evaluation Criteria and Competitors
+We evaluate the LWI-SVD and LWI-SVD with Restart (LWI2SVD) algorithms by comparing them to alternative approaches: · Full SVD and SVDS ­ SVD is the full SV decomposition of the matrix, we used Matlab's [U, S, V] = svd(X) command for this. We also considered with Matlab's [U, S, V] = svds(X,r) command which returns the composition results for the top-r components, where r is the desired rank (SVDS tends to perform more efficiently than SVD when r is small and X is large and sparse); · Naive Incremental SVD ­ this is our implementation of the Brand's algorithm described in [5], it involves a full SVD and pivoted QR based approximation is not leveraged (to implement LWI-SVD and LWI2-SVD, we use this implementation as the basis); and · SPIRIT ­ this is the algorithm described in [13] which provides fast decompositions, but does not have various desirable properties of incremental SVD; including explicit data
+1 In these experiments, without loss of generality, we kept the matrix in square shape, i.e., n = m
+
+993
+
++&,-$.'/)0&'$.'1#234"-$!""#"$
+$#%&
+
+728#&93:5;23&93<0=>?/#&.//0/&
+&!"#
+
+5"'/)0&'$4#$#607)/$4#68"9$
+
+!"#$"%&
+
+@/3:5;23&?0&0A;B5:&?0AC/D&
+
+!""#"$%&'"(')*$
+
+.//0/&123/4356&
+
+C@@>D=E7& 16F6D=E7&
+
+%!"#
+
+@<<:A9B3# -2C2A9B3#
+
+!"#$%& $"')%& '"#(%& #")*%& '"'$%& #"(!%& #"()%& #")$%&
+
+$!"#
+
+#%& +,-./01&&&&&&&&&&&&&&&&&&&&&&&& +,-$./01&&&&&&&&&&&&&&&& +,-$./01&&&&&&&&&&&&&&&& +,-$./01&&&&&&&&&&&&&&&& 2,34&56789:8;& 25676:<=>:&56789:8;& 2?6:>=@>A&56789:8;& 2567"&B&?6:>=@>A&& 56789:8;&
+!"#
+
+"#")%&
+
+!#$'%& ,#(-%&
+
+!#()%& *#,*%& *#)+%& ,#+'%&
+
+'()*+,-#################### '()$*+,-############# '()$*+,-############## '()$*+,-################## .(/0#12345647# .1232689:6#12345647# .;26:9<:=#12345647# .123>?;26>##12345647#
+
+(a) average relative reconstruction error
++,-./012%345-%
+!"$%
+
+(a) average relative reconstruction error
+-./01234%567/%
+!"$%
+
+9::40127%
+
+!"''%
+
+!"'(%
+
+;<<62349%
+
++,-./012%345-%67-.8%
+
+-./01234%567/%89/0:%
+
+;-<-0127%
+!"*%
+!"()% !"(#% !"('% !"($%
+
+=/>/2349%
+!"(%
+!"(!% !")+% !")+% !")'%
+
+!"(&%
+
+!"('%
+
+!")%
+
+!"#$% !"#$% !"#$% !"#$% !"#*% !"#*%
+
+!"#&%
+
+!"#$%
+
+!",%
+
+!"#'% !"#&% !"#$% !"#&% !"#$% !"#&% !"#*% !"#(%
+
+!%
+!"#$%&'()"* +(,-./01/2( !"#3$%&'( ),-.-14561( ,-./01/2( !"#3$%&'( )7-165869( ,-./01/2( !"#3$%&'( ),-.:;7-1:(( ,-./01/2( %&'%( <=>>(%&'( ?064-#@A$ %&'(
+
+!%
+!"#$%&'()"* +(,-./01/2( !"#3$%&'( ),-.-14561( ,-./01/2( !"#3$%&'( )7-165869( ,-./01/2( !"#3$%&'( ),-.:;7-1:(( ,-./01/2( %&'%( <=>>(%&'( ?064-#@A$ %&'(
+
+(b) execution time Figure 4: Accuracy and efficiency for the real trace data set default settings
+
+(b) execution time Figure 6: Accuracy and efficiency for synthetic trace data set default settings Impact of the QR-Elimination Optimization. In Section 3.1, we had discussed an optimization strategy whereby we eliminate one of the two expensive QR operations by forcing A to be equal to the identity matrix, I . As shown in Table 2, setting A = I causes less than half percentage point impact on the accuracy; on the other hand, this optimization helps save close to 12% in execution time.
+
+<=>7>!&51/&?@>A;<BC&51/&D:'($%&#":;+&<BC&&
+678)
+
+!"#$%&'()&*"+&,-&.#)+/&01)23&
+
+*+,-./)01+%2)&'()
+
+67$) !"#$%&'()
+
+&3#4#5) 6) 69) $69) 869) :69) ;69) <669) <$69) 456/&7)%$'5)&7)2"81#+/&9++"+& 0+)%$'5)&#"&":'($%&#":;+3&
+
+5.4.2 Synthetic Trace Data Set
+Figure 6 presents results for the synthetic trace data set under the default parameter settings. The key observation from this figure is that the accuracy and efficiency results for the synthetic trace data set are very similar to the results for real trace data set, reported in Figure 4. The similarity is especially pronounced in the execution time results in Figure 6(b). This indicates that the execution time gains of the LWI-SVD family of algorithms (and to a certain degree, the accuracies they provide ­ especially with the help of periodic and reservoir-based restarts) are inherent properties of these algorithms rather than being highly data specific. SPIRIT. Since the SPIRIT [13] algorithm approaches the problem differently (e.g. cannot directly handle deletions, cannot handle deletions/insertion of columns), we present it separately from the rest in Figure 5. For these experiments, we use a synthetic data trace that does not include any column insertions or deletions on the data matrix X . As the figure shows, SPIRIT algorithm works much faster than SVD or LWI2-SVD for the default configuration. However, this speed comes with a significant increase in the reconstruction error, relative to the optimal low-rank decomposition using SVD. In contrast, LWI2-SVD achieves an accuracy almost identical to the optimal, yet costs only half as much.
+
+Figure 5: Accuracy and efficiency results for the synthetic trace data set for SVD, Spirit, and LWI2-SVD with periodic and ondemand refreshes Table 2: Impact of setting A = I in Section 3.1 A=I A is free Impact Rec. error 5.786 5.765 +0.36% Exec time 0.174 sec 0.197 sec -11.71% that the time overhead of reservoir maintenance and occasional ondemand full decompositions are negligible in the long run. Secondly, performing full SVD takes  75-100% more than the proposed LWI-SVD family of algorithms. Under this configuration, the naive incremental SVD takes a little more time than full SVD, as the basic algorithm reported in [5] involves a full SVD with same dimension as the original matrix and several matrix multiplications. Further-more, under this configuration, SVDS takes even longer than the full SVD. Finally, a close look at the LWI-SVD family of algorithms indicates that insertions require slightly longer time to maintain than deletions. This is expected because, as discussed in Section 2.2.1, there is no need for computing RA and RB since they are all zero.
+
+5.5 Impacts of Data and System Parameters
+In this subsection, we evaluate the impacts of the various data and systems parameters on the efficiency and effectiveness of the LWI-SVD family of algorithms. As representative, we select the
+
+994
+
+:9/;+,<%69/<.=%49,>-% ?4.93%6/9@.%A9=9B%
+/9,>%/CD% /9,>%/C*!%
+&&$% '($% '#$% &#$%
+
+98.:*+;%<=18>-%38>-,%% ?3-82%5.8@-%A8>8B%
++C6C=1DE% +C6C=1D(%
+'($% ''$% '#$% ')$%
+
+!"#$% )$% +,-./01,-%
+
+!"&$% *$% 2.3.01,-% +,-./01,-% 2.3.01,-%
+
+!"#$%!"#$% *+,-./0+,%
+
+!"&$%!"&$% 1-2-/0+,% *+,-./0+,% 1-2-/0+,%
+
+4.3"%5//1/%
+
+6+7.%89+,%
+
+3-2"%4..0.%
+
+5*6-%78*+%
+
+Figure 7: Accuracy and efficiency for real trace data set for different rank, r
+:9/;+,<%=,+093%>9?/+@%A+B.% C4.93%6/9D.%E9?9F%
+2+7GH!!@H!!% 2+7G&!!@&!!%
+'($% ''$% '#$% '*$%
+
+Figure 9: Accuracy and efficiency results for the real trace data set varying the amount updates per iteration, numupd
+98.:*+;%3-,-.<0*.%=*>-,%% ?3-82%5.8@-%A8B8C%
+DEF!% DEGF!%
+'($% '($% '#$% ')$%
+
+!"#$% !"!)$% +,-./01,-%
+
+!"&$% !"!'$% 2.3.01,-% +,-./01,-% 2.3.01,-%
+
+!"#$%!"#$% *+,-./0+,%
+
+!"&$%!"&$% 1-2-/0+,% *+,-./0+,% 1-2-/0+,%
+
+4.3"%5//1/%
+
+6+7.%89+,%
+
+3-2"%4..0.%
+
+5*6-%78*+%
+
+Figure 8: Accuracy and efficiency results for the real trace data set varying the size, dim, of the initial (for insertions) / final (for deletions) matrix LWI2-SVD with the default parameters. We then vary, one-by-one, the various data and system parameters, and compare the results against the optimal SVD based rank-r decomposition. Since, as we have seen, the results are similar for real and synthetic data, for the most part we report the results with the real trace data. We use the synthetic trace only for experiments where we vary the strengths of the updates.
+
+Figure 10: Accuracy and efficiency for real trace data varying reservoir size, w
+98.:*+;%5<.-,<021,% =3-82%5.8>-%?8@8A%
+@<-@8B!"C% @<-@8B!"D%
+'($% ''$% '#$%
+')$%
+
+!"#$%!")$% *+,-./0+,%
+
+!"&$%!"&$% 1-2-/0+,% *+,-./0+,% 1-2-/0+,%
+
+5.5.1 Varying the Target Rank, r
+Figure 7 presents efficiency and accuracy results for the real trace data set where the target rank, r is varied. The results show that, as expected (due to the low-rank nature of the LWI-SVD family of algorithms), as the target rank increases, the time gain drops and the relative error rate slightly increases. The drop in time gains is because the incremental process involves a lot of matrix multiplications where the sizes of matrices are directly related to the target rank. This confirms the observation that LWI-SVD and LWI2-SVD are most effective when the target rank is low.
+
+3-2"%4..0.%
+
+5*6-%78*+%
+
+Figure 11: Accuracy and efficiency results for the real trace data set varying the change threshold, , for on-demand restarts the approximation nature of the algorithm. The impact on the time gain is due to more on-demand restarts. 5.5.4 Varying the Reservoir Size, w Figure 10 presents efficiency and accuracy results for the real trace data set where the reservoir size, w, is varied. The results confirm that a larger reservoir (even only  1.5% of the matrix) can help to trigger on-demand restarts more fairly, since larger reservoir has more accurate amortized error measuring. 5.5.5 Varying the Change Threshold,  Figure 11 confirms that a slightly tighter threshold,  = 0.1 instead of the default  = 0.2 will trigger more on-demand restarts and thus can further reduce the error rates (which are already very low), with little impact on execution time gains.
+
+5.5.2 Varying the Dimensions, dim, of the Matrix
+Figure 8 presents accuracy and efficiency results when we change the dimensions, dim, of the initial data matrix (for insertions) and the final data matrix (for deletions). Here, we see that increasing the size of matrix does not have a big impact on accuracy and efficiency.
+
+5.5.3 Varying the Rate of Updates, numupd
+Figure 9 presents efficiency and accuracy results for the real trace data set where the number, numupd , of row and column updates per each iteration is varied. The results indicate that, as expected, an increase in the number of updates per iteration impacts accuracy as well as efficiency. The slight impact on the accuracy is due to
+
+5.5.6 Varying the Restart Period, per
+Figure 12 confirms that increasing the number of restarts by reducing the restart period, per , may improve the final accuracy. However, unlike the on-demand restarts based on change detec-
+
+995
+
+98.:*+;%3-,<8.<%=-.*01% >3-82%5.8?-%@8<8A%
+B-.CDE% B-.CE%
+'($% '#$% '&$% ''$%
+
+!"#$% !")$% *+,-./0+,%
+
+!"&$% !")$% 1-2-/0+,% *+,-./0+,% 1-2-/0+,%
+
+Table 3: Results for Large Dim LWI2 LWI2 SVDS Exec. Rel. Exec. Time(s) Error Time(s) 1000  100 8.2604 0.143% 15.91 1000  1000 6.8087 0.06% 10.839 1500  1500 17.483 0.03% 23.469 2000  2000 34.35 0.002% 41.491 3000  3000 96.577 0.00097% 93.622 dim
+
+3-2"%4..0.%
+
+5*6-%78*+%
+
+6. CONCLUSIONS
+Figure 12: Accuracy and efficiency results for the real trace data set varying the restart period, per , for periodic restarts
+76,8()9#:;<6=+#>=,+)9?=*# @>8)=?1#3,6A+#B6=6C#
+064D<6E$# 064D<6EFG#
+$!"# &'"#
+
+In this paper, we presented a Low-rank, Windowed, Incremental SVD (LWI-SVD) algorithm, which relies on low-rank approximations to speed up incremental SVD updates. LWI-SVD algorithm also aggregates multiple row/column insertions and deletions to further reduce on-line processing cost. We also presented a LWISVD with restarts (LWI2-SVD) algorithm which performs periodic and change detection based on-demand refreshing of the decomposition to prevent accumulation of errors. Experiment results on real and synthetic data sets have shown that the LWI-SVD family of incremental SVD algorithms are highly efficient and accurate compared to alternative schemes under different settings.
+
+!"#
+
+%"# ()*+,-.)*#
+
+()*+,-.)*#
+
+7. REFERENCES
+[1] Algorithm 844. Sparse Reduced-Rank Approximations to Sparse Matrices. http://dl.acm.org/citation.cfm?id=1067972. Downloaded 2012. [2] Digg.com Data Set. http://www.infochimps.com/datasets/diggcom-data-set. Downloaded 2013. [3] SPIRIT http://www.cs.cmu.edu/afs/cs/project/spirit-1/www/. Downloaded in 2012. [4] M.W. Berry, S.A. Pulatova, and G.W. Stewart. Algorithm 844. Computing Sparse Reduced-Rank Approximations to Sparse Matrices. ACM Trans. Math. Softw. 31, 2, pp. 252-269, June 2005. [5] M. Brand. Fast low-rank modifications of the thin singular value decomposition. Linear Algebra and its Appl., 415(1):20-30, 2006. [6] S. Chandrasekaran, B.S. Manjunath, Y.F. Wang, J. Winkeler, and H. Zhang. An Eigenspace Update Algorithm for Image Analysis. Graphical Models and Image processing: GMIP, 59(5), 1997. [7] S. Deerwester, S. Dumais, G.W. Furnas, T.K. Landauer, and R. Harshman. Indexing by Latent Semantic Analysis. Journal of the American Society for Information Science, 41(6):391-407, 1990. [8] M. Gu and S. Eisenstat. Downdating the Singular Value Decomposition. SIAM J. Matrix Analysis and Applications, 1995. [9] M. Gu and S.C. Eisenstat. A Stable and Fast Algorithm for Updating the Singular Value Decomposition. Tech. Report YALEU/DCS/RR-966, Department of Computer Science, Yale University, 1993. [10] T. Kolda and B. Bader. Tensor Decompositions and Applications. SIAM Rev. 51, 3, 455-500. 2009. [11] A. Levy and M. Lindenbaum. Sequential Karhunen-Loeve Basis Extraction and its Application to Images. IEEE Transactions on Image Processing, 9:1371-1374, 2000. [12] G. O'Brien. Information Management Tools for Updating an SVD-Encoded Indexing Scheme, MS Thesis. 1994. [13] S. Papadimitriou, J. Sun, and C. Faloutsos. Streaming Pattern Discovery in Multiple Time-Series. VLDB, pp. 697-708, 2005. [14] B. Sarwar, G. Karypis, J. Konstan, and J. Riedl. Incremental Singular Value Decomposition Algorithms for Highly Scalable Recommender Systems. ICIS, pp. 27­28, 2002. [15] G.W. Steward. Four Algorithms for the Efficient Computation of Truncated Pivoted QR Approximations to a Sparse Matrix. Numerische Mathematik 83, 313-323, 1999. [16] J. Sun, S. Papadimitriou, and C. Faloutsos. Online Latent Variable Detection in Sensor Networks, ICDE, 2005. [17] D.I. Witter and M.W. Berry. Downdating the Latent Semantic Indexing Model for Conceptual Information Retrieval. The Computer Journal, 1998. [18] J.S. Vitter. Random Sampling with a Reservoir. ACM Trans. Math. Softw. 11, 1, pp. 37-57, March 1985. [19] H. Zha and H.D. Simon. On Updating Problems in Latent Semantic Indexing. SIAM J. Sci. Comput., 21(2):782-791, 1999. [20] Z.A. Zhao and H. Liu. Spectral Feature Selection for Data Mining, Chapman and Hall/CRC Press, 2012.
+
+/+01#2,,.,#
+
+3(4+#56()#
+
+Figure 13: Accuracy and efficiency results for the synthetic trace data set varying the update strength, upd tion (shown in Figure 11), blindly increasing the frequency of the periodic restarts may negatively impact the time gain.
+
+5.5.7 Varying the Update Strength, upd
+Finally, in Figure 13, we see the impact of the strength (in amplitude) of the incoming insertions. The figure shows that, when upd increases, the LWI2-SVD algorithm adjusts its operation by scheduling more on-demand restarts at a cost of decreasing the time gain.
+
+5.6 Scalability of LWI Algorithms
+The results shown above are conducted with small window size, however, in some cases, we need large windows to monitor and analyze a large portion of the data. In this subsection, we analyze the scalability of LWI Algorithm by choosing large base number. Since we have shown that under the small base number condition, SVD out performs SVDS in execution time, however, when the base number is large, seeking a low rank deposition using SVDS is more efficient. Also, as we know that SVDS is very efficient when the data is sparse, but performs less efficient on dense data. We showed that LWI algorithm can concur this short coming when the data is dense. Recall in section 3.2.1, we showed that K is an arrow-like matrix which is very sparse, this leads to the efficiency by using pivoted QR compared to a direct SVDS on the dense data. Therefore, in the incremental maintenance of SVD on a dense matrix, we are actually seeking a second layer reduced rank approximation of a sparse matrix K . It is the main advantage of LWI algorithm compared to SVDS when the data is dense and the base dimension is large. Table 3 shows the execution time and error overhead results under a synthetic dense data, the results confirm that with big base number especially when the base is a thin and tall matrix, LWI algorithm can have advantages in execution time with negligible error overhead .
+
+996
+
+

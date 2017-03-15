@@ -1,0 +1,321 @@
+Influence Propagation in Adversarial Setting: How to Defeat Competition with Least Amount of Investment
+Shahrzad Shirazipourazad, Brian Bogard, Harsh Vachhani, Arunabha Sen
+School of Computing, Informatics and Decision Systems Engineering Arizona State University Tempe, AZ 85287
+
+{sshiraz1, bbogard, hvachhan, asen}@asu.edu Paul Horn
+Department of Mathematics Harvard University Cambridge, MA 09322
+
+phorn@math.harvard.edu ABSTRACT
+It has been observed that individuals' decisions to adopt a product or innovation are often influenced by the recommendations of their friends and acquaintances. Motivated by this observation, the last few years have seen a number of studies on influence maximization in social networks. The primary goal of these studies is identification of k most influential nodes in a network. A major limitation of these studies is that they focus on a non-adversarial environment, where only one player is engaged in influencing the nodes. However, in a realistic scenario multiple players attempt to influence the nodes in a competitive fashion. The proposed model considers a competitive environment where a node that has not yet adopted an innovation, can adopt only one of the several competing innovations and once it adopts an innovation, it does not switch. The paper studies the scenario where the first player has already chosen a set of k nodes and the second player, with the knowledge of the choice of the first, attempts to identify a smallest set of nodes (excluding the ones already chosen by the first) so that when the influence propagation process ends, the number of nodes influenced by the second player is larger than the number of nodes influenced by the first. The paper studies two propagation models and shows that in both the models, the identification of the smallest set of nodes to defeat the adversary is NP-Hard. It provides an approximation algorithm and proves that the performance bound is tight. It also presents the results of extensive experimentation using the collaboration network data. Experimental results show that the second player can easily defeat the first with this algorithm, if the first utilizes the node degree or closeness centrality based algorithms for the selection of influential nodes. The proposed algorithm also provides better performance if the second player utilizes it instead of the greedy algorithm to maximize its influence.
+
+Categories and Subject Descriptors
+F.2.2 [Analysis of Algorithms and Problem Complexity]: [Non-numerical Algorithms and Problems]
+
+General Terms
+Algorithms, Experimentation, Performance
+
+Keywords
+Social Networks, Influence Maximization, Adversarial Environment
+
+1.
+
+INTRODUCTION
+
+Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. To copy otherwise, to republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. CIKM'12, October 29­November 2, 2012, Maui, HI, USA. Copyright 2012 ACM 978-1-4503-1156-4/12/10 ...$15.00.
+
+It has been widely observed in various studies in social sciences and economics that an individuals' decision to adopt a product, behavior or innovation is often influenced by the recommendations of their friends and acquaintances. Motivated by this observation, the last few years have seen a number of studies on influence maximization problem in social networks [2, 3, 4, 6, 7, 11, 13]. One major goal of several of these studies is identification of k most influential nodes in a network. A product manufacturer may want to identify the k most influential nodes in the network, as she may want to incentivize these nodes to buy the new product by providing free samples to them, on the expectation that once these nodes are convinced about the quality of the product, they will recommend it to their friends on the social network and encourage them to buy the product. This set of k nodes, being the most influential on the network, will have the largest impact on convincing the rest of the nodes about the quality of the product. Since the manufacturer has a fixed budget for advertising, she can provide free samples only to a limited number of nodes in the network. The size of the advertising budget determines the value of the parameter k. It may be noted that most of the studies on influence propagation are geared toward a non-adversarial environment, where only one manufacturer (player) is attempting
+
+to influence the nodes of a social network to buy her product. However, in a realistic market scenario, most often there exists multiple players, each attempting to sell their competing products or innovations. For example, just as Coke attempts to convince customers in an emerging market about the quality of their beverage, its main competitor, Pepsi, also does the same. Both the competitors have only a finite advertisement budget and both of them want to derive the greatest benefit out of their advertising campaign. The goal of both the players often is to capture a share of this emerging market that is larger than its competition. The non-adversarial influence propagation models consider scenarios where a user (a node u in a social network graph G = (V, E )) adopts (or does not adopt) an innovation based on how her acquaintances have adopted the innovation. In these models each node u in the social network graph is in one of the following two states: (i) u has adopted innovation A, and (ii) u has not adopted innovation A but u is open to the idea of adoption. One can visualize such a scenario by coloring the nodes of the social network graph with red if they have adopted the innovation A and with white if they have not adopted A yet, but are open to the idea of adopting A in the future. As the diffusion process progresses with time, by observing changing color of the nodes of the graph one can infer if innovation A is being adopted by the members of the social network. Although, this paper focus on influence propagation in social networks, conceptually, the scenario is identical for spread of any contagion through a network - be it spread of diseases through a human contact network or spread of worms through the Internet. The influence (contagion) propagation models can be divided into three distinct classes: · Class I: Non-adversarial · Class II: Adversarial with passive adversary · Class III Adversarial with active adversary The problems in classes I and II can be stated as follows: · Class I: How to identify a set of k initial (seed) nodes, so that once they are influenced/infected, they will infect the largest number of uninfected nodes in the network? · Class II: Given that a subset of the nodes is already influenced/infected, how to identify a set of k uninfected nodes, so that when they are immunized, they will have the largest impact in preventing the uninfected nodes from being infected. In most of the influence propagation models, influence propagates in a step-by-step fashion and as such there is a notion of time step (or propagation step) involved. The expected number of nodes influenced at the end of time step D is at most the expected number of nodes influenced at the end of time step D + 1. In other words, expected number of nodes influenced at the end of time step D is a nondecreasing function of D. The Class I influence propagation problem considered in [11] may be viewed to have three dimensions, (i) the number of seed nodes activated at the beginning (budget or cost of influence), (ii) the expected number of activated nodes at the end of propagation (impact or coverage of initial seed nodes), and (iii) time steps for propagation. The objective of the influence maximization problem considered in [11], is
+
+to maximize the coverage subject to a budget constraint but without any constraint on the number of time steps. The Class I problem considered in [11] can be stated in the following way: "Which k white nodes should be colored red initially, so that the largest number of white nodes turn to red at the end of propagation process?". The Class II problems can be stated in the following way: "Given that some nodes are already colored red, which k white nodes should be colored blue, so that this set of nodes will have the largest impact in preventing the white nodes from turning red. In Class I, there is no notion of an adversary. The red nodes are trying to convert all the white nodes into red nodes and there is no agent that is actively trying to prevent this conversion. The Class II, although it has a notion of an adversary (i.e., the blue nodes) which is trying to slow down (or stop) white-to-red conversion, at best this agent can be viewed as a passive adversary, because its goal is to prevent white-to-red conversion, and it is not engaged in white-to-blue conversion. This gives rise to Class III, a truly adversarial scenario, where the red agent is trying to convert all the white nodes into red, while the blue agent is trying to convert all the white nodes into blue. In this case, the blue agent can be viewed as an active adversary of the red agent. The Class III models the scenario where a node u is being actively encouraged by an adversary not only not to adopt the innovation but also to adopt a competing innovation. In this case, each node u in the social network graph can be in one of following three states: (i) u has adopted innovation A , (ii) u has adopted innovation B , and (iii) u has not adopted any innovation A or B but is open to the idea of adopting either one of them. This adversarial scenario can be viewed as a classic case of a strategic conflict game between the proponent(s) and the opponent(s) of adoption of an innovation and a game is won by the proponent(s) if u decides to adopt the innovation A. This paper studies a Class III scenario where two vendors (players) are trying to sell their competing products by influencing the nodes of a social network. The goal of both the players is to have a market share that is larger than its competition. It considers the scenario where the first player (P1 ) has already chosen the k nodes to have a large influence (coverage) on the social network. The second player is aware of the first player's choice and the goal of the second player (P2 ) is to identify a smallest set of nodes (excluding the ones already chosen by the first player) so that the number of nodes influenced by the second player will be larger than the number of nodes influenced by the first player within D time steps. In other words, the objective of the problem is to minimze the cost subject to the constraint that the coverage of the second player is larger than the coverage of the first player within D time steps. Since the goal of the second player is to win the "game" (i.e., to have a larger coverage or market share), with influencing (incentivizing) as few nodes as possible, the problem under study in this paper is referred to as the "Winning with Minimum Investment" (WMI) problem. In [3], the authors study a similar problem belonging to class III. However, the objective of the problem studied in [3] is different from the one being studied in this paper. The goal of the second player in the problem studied in [3] is not to defeat the first player with least amount of investment, but to maximize its own influence.
+
+Using the same two influence propagation models introduced in [3], the contributions of the paper may be listed as follows: · Introduction of a new influence propagation problem in an adversarial setting where the goal of the second player is to defeat the first within D time steps and least amount of cost (i.e., number of seed nodes) · NP-Hardness proof for the problem under both the influence propagation models · Approximation algorithm for the problem with a tight performance bound. · Experimental evaluation of the Approximation algorithm with collaboration network data Experimental results show that utilizing the proposed algorithm, the second player can easily defeat the first, if the first player utilizes the node degree or closeness centrality based algorithms for the selection of the initial (seed) nodes. The proposed algorithm also provides better performance for the second player if she utilizes it instead of the algorithm to maximize influence proposed in [3], in the sense that it requires selection of a fewer number of seed nodes to defeat the first player. The rest of the paper is organized as follows. The section II summarizes related work on influence propagation. The section III describes the propagation models used in the paper in detail. The sections IV, V and VI discuss the problem statement, computational complexity and approximation algorithm results respectively. The results of experimental evaluation is presented in section VII and section VIII concludes the paper.
+
+2.
+
+BACKGROUND AND RELATED WORK
+
+The studies on identification of influential nodes in a social network were triggered by a paper authored by Domingos and Richardson [6]. They introduced the notion of "network value" of a node in a social network and using a Markov random field model where a joint distribution over all node behavior is specified, computed the network value of the nodes. Kempe, Kleinberg and Tardos followed up the work in [6] by providing new models derived from mathematical sociology and interacting particle systems [11]. They made a number of important contributions by providing approximation algorithms for maximizing the spread of influence in these models by utilizing the submodularity property of the objective functions. In addition to providing algorithms with provable performance guarantee, they also presented experimental results on large collaboration networks. Their experimental results showed that their greedy approximation algorithm significantly out-performed the node selection heuristics based on degree centrality and distance centrality [18]. The approximation algorithm proposed in [11] is computeintensive. Accordingly, several researchers approached the issue of scalability from different directions. Chen et. al. in [4] provided improvement of the original greedy algorithm of [11] and proposed a degree discount heuristic to improve influence spread. Mathioudakis in [13] introduced the notion of sparsification of influence networks and presented an algorithm, SPINE, to compute the "backbone" of the influence network. Utilizing SPINE as a pre-processing step for the
+
+influence maximization problem, they showed that computation on the sparsified model provided significant improvements in terms of speedup without compromising accuracy. Wang et. al. in [17] considered the influential node identification problem in a mobile social network and presented a two step process, where in the first step, communities in the social network are detected and in the second step a subset of communities is selected to identify the influential nodes. Experimental results with data from large real world mobile social network showed that their algorithm performed an order of magnitude faster than the state-of-the-art greedy algorithm for finding the top-k influential nodes. A simulated annealing (SA) based algorithm for finding the top-k influential nodes was presented in [10]. It has been reported in [10], that using data from four real networks, the SA based algorithm performed 2-3 orders of magnitude faster than the state-of-the-art greedy algorithm. In addition to attempts to address the scalability issue of the greedy algorithm in [11], efforts on variations of the original problem formulation and also the computation model is underway in the research community. In [7] two new problem formulations are provided. In the first formulation, the goal is to minimize the cost, subject to the constraint that coverage exceeds a minimum threshold  without any constraint on the number of time steps. The goal of the second formulation is to minimize the number of time steps, subject to a budget constraint k and a coverage constraint  . For the first version of the problem, the authors provide a simple greedy algorithm and show that it provides a bicriteria approximation. For the second version, they show that even bicriteria or tricriteria approximations are hard under several conditions. In [1], the authors argue that a user (a node in the social network) may be influenced by positive recommendations from a group of friends (neighbors in the network) but that does not necessarily imply that she will adopt the product herself. However, she may pass on her positive impression about the product to another group of friends. Clearly, such a model departs from the model considered in [11]. The authors in [1] consider an "adoption maximization" problem instead of "influence maximization" problem and present both analytical and experimental results for the new problem. The authors in [12] argue that a limitation of the traditional influence analysis technique is that they only consider positive relations (agreement, trust) and ignore the negative relations (distrust, disagreement). Moreover, the traditional techniques also ignore conformity of people, i.e., an individual's inclination to be influenced. The paper studies the interplay between influence and conformity of each individual and computes the influence and conformity indices of individuals. The authors in [5] suggest an alternate way of measuring the influencing capability of an individual on her peers, through the individuals reach within the social network for certain actions. All the references discussed in the last three paragraphs pertain to the class I (non-adversarial) problems as defined in the previous section. Results on study of class II problems (adversarial with passive adversary) is presented in [8]. It focuses on identification of blockers, the nodes that are most effective in blocking the spread of a dynamic process through a social network, and reports that simple local measures such as the degree of a node are good indicators of its effectiveness as a blocker. The blocker identification problem has been extensively studied in the public health community, where
+
+the goal is to stop or slow down progress of an infectious disease by immunizing a small set of key individuals in the community. As indicated in the previous section, the WMI problem studied in this paper belongs to Class III (adversarial with active adversary). Unfortunately, there exists only a handful of studies on problems belonging to Class III. Bharathi et. al. were one of the earliest to study a Class III problem [2]. They proposed a mathematical model for diffusion of multiple innovations in a network, an approximation algorithm with a (1 - 1/e) performance guarantee for computing the best response to an opponent's strategy. In addition they prove that the "price of competition" of the game is at most 2. While game theoretic framework was utilized for deriving the results in [2], Carnes et al. used an algorithmic framework to study a Class III problem [3]. Their research primarily extends the problem studied in [11] from the Class I domain to the Class III domain. They study the follower's perspective (i.e., the player who entered the market after the first player) and investigate how a follower can maximize her influence in the network with a limited budget, given that the first player has already entered the market and influenced a certain number of key individuals (nodes in the network). They prove that the influence maximization problem for the second player is NP-complete and provide an approximation algorithm that is guaranteed to produce a solution within 63% of the optimal. Adversarial models in evolutionary game dynamics was studied by Istrate em et al. in [9]. In all the problems discussed in [2, 3] once a node adopts an innovation (i.e., changes its color from white to red or white to blue), it is not allowed to change its color, i.e., the model precludes the possibility of an individual changing her mind. However, the model considered by Nowak et al. in [16] there are only red and blue nodes (no white nodes) and the model allows a node to change its color from red to blue and vice-versa. Although this model was developed to capture a biological phenomenon involving viruses and cells, this model can be equally effective in capturing the phenomenon of the spread of ideas and behaviors in human population. Using evolutionary game theoretic and evolutionary graph theoretic techniques, the authors establish fundamental laws that govern choices of competing players regarding strategies.
+
+spective. Since this paper studies the problem with only two competing players, the models proposed in [3] are more relevant for this study than the one proposed in [2]. Accordingly, the influence propagation models of [3] are used here. Since these models, Distance-based Model (DBM) and Wavepropagation Model (WPM), are generalization of the ICM, the paper first discusses ICM and then DBM and WPM.
+
+3.1
+
+Independent Cascade Model
+
+The social network is modeled as a graph G = (V, E ), where each node represents an individual. Each individual may either be active (i.e., has adopted innovation) or inactive. A node can switch from an inactive state to an active state but cannot switch back in the other direction. The propagation process from the perspective of an inactivate node v  V can be described in the following way: With passage of time, more and more of v 's neighbors become active and this may cause v to become active at some time step. The activation of v in turn may trigger activation of some of v 's inactive neighbors. In the ICM model there exists a set of nodes V  V that are active (seed nodes) initially and the rest of the nodes are inactive. Influence propagation unfolds in discrete steps following a randomized process. When a node v first becomes active in time step d, it has a single chance to activate each of its inactive neighbors w with probability pv,w at time step d + 1. If v succeeds, w become active at d + 1. However, if v fails, it doesn't get another chance to turn w active. The process of conversion of nodes from the inactive to the active state continues, till no further activation is possible. Since v influences w with probability pv,w , the v - w edge is considered active with probability pv,w . The set of active edges is denoted by Ea .
+
+3.2
+
+Generalized ICM for Adversarial Scenario
+
+3.
+
+INFLUENCE PROPAGATION MODELS
+
+A number of influence propagation models for the non-adversarial scenario have been proposed in the literature [11]. Among these, the Linear Threshold Model (LTM) and the Independent Cascade Model (ICM) have drawn most attention in the research community. As indicated earlier, the literature on influence propagation in adversarial scenario with active adversaries is very sparse [2, 3]. Bharati et al. in [2] and Carnes et al. in [3] have studied influence propagation in adversarial scenario with active adversaries, and have proposed two different models for it. Both of these two models are generalizations of the Independent Cascade Model. The model proposed in [2] is suitable for a multiplayer scenario, whereas the model proposed in [3] is for two competing players. Bharati et al. in [2] study the problem from a game-theoretic perspective and focus on finding best response strategies for the players. Carnes et al. on the other hand study the problem from an algorithmic per-
+
+The ICM can be adapted to handle adversarial scenario by allowing the nodes to be in one of the following three states - (i) active by adopting innovation A, (ii) active by adopting innovation B , and (iii) inactive. We use the notation IA and IB to indicate the initial adopters (seed nodes) of technologies A and B respectively. The nodes in the set V - (IA  IB ) are the nodes that are inactive initially. The sets IA and IB are disjoint, i.e., IA  IB = . Just as in ICM, an active node v may influence each one of its inactive neighbors w with probability pv,w . However, in an adversarial scenario, an inactive node w, may be in a situation where one of its active neighbor v attempts to influence w with innovation A, whereas another active neighbor u attempts to influence w with innovation B . In order to deal with this situation, the authors in [3] proposed two new models - (i) Distance-based Model, and (ii) Wave-propagation Model. The models specify the probability with which the node w will be influenced, when its active neighbors attempt to influence w with two competing technologies. The GICM operates on a random subgraph of the social network graph G = (V, E ), where each edge is included independently with probability pv,w . The details of these two models are described in the following two subsections.
+
+3.3
+
+Distance-based Model
+
+Suppose that du (I, Ea ) denotes the shortest path distance from the node u to the node set I where I = IA IB along the active edges in the edge set Ea . If u is not connected to any node of I using only the active edges Ea , then du (I, Ea ) =
+
+. Let u (IA , du (I, Ea )) and u (IB , du (I, Ea )) be the number of nodes in IA and IB respectively, at distance du (I, Ea ) from u along edges in Ea . The probability that node u adopts innovation i  {A, B } when maximum number of propagation steps is D is denoted by Pi (u|IA , IB , Ea , D) and is computed in the following way: if du (I, Ea )  D, u (Ii ,du (I,Ea )) ; Pi (u|IA , IB , Ea , D) = u (IA ,du ( I,Ea ))+u (IB ,du (I,Ea )) otherwise, it is zero. In this model the expected number of nodes which adopt i  {A, B } will be computed in the following way: j (IA , IB , D) = E
+uV
+
+L1
+...
+
+L2
+...
+
+L3
+...
+
+Ln
+...
+
+e1
+
+e2
+
+e3
+
+...
+
+en xn ... x2 ... a x1
+
+y1 y2
+
+... s1 s2 s3 sm
+
+ynr
+
+Figure 1: Graph G = (V, E ) of WMI instance in set cover reduction
+
+Pi (u|IA , IB , Ea , D)
+
+5.1
+
+Distance-based Model
+
+where j = 1 if i = A; else j = 2 and the expectation is over the set of active edges.
+
+Decision version of WMI: Is there a set IB where |IB |  M and 2 (IA , IB , D) > 1 (IA , IB , D)? Theorem 1. WMI is NP-hard for the distance-based model. Proof: In order to prove that WMI is NP-hard when diffusion is based on distance based model, we reduce the NPcompete Set Cover problem to W M I . The decision version of the Set Cover problem is defined in the following way: A ground set of elements S = {e1 , e2 , . . . , en }, a collection of sets C = {s1 , s2 , . . . , sm } such that si  S and a positive integer K  |C | are given. The question is whether there exists a collection Q  C that covers all the elements in S and |Q|  K . Given an instance of set cover problem we construct an instance of W M I . We compute G = (V, E ) in the following way. For every element ei  S we add a node ei and for every set sj  C we add a node sj to V . We add an edge (ei , sj ) to E for every ei and sj if ei  sj . Also, we add a node a and nodes x1 , . . . , xn to V . Then, for every ei we add edges (a, xi ) and (xi , ei ) to E . Moreover, for every ei we add a set of r nodes, Li = {li,j |1  j  r} to V and we connect them directly to ei . We identify the value of r later in the proof. Finally, we add n × r additional nodes, y1 , . . . , yn×r , to V and edges (yt , a), 1  t  n × r (Fig. 1). We consider that all edges are active; i.e., pu,v = 1 for all edges in E . We assign D = 4 equal to the diameter of the graph G, M = K and IA = {a}. Now, we show that the set cover problem has a solution if and only if there is a set IB  V - IA such that |IB |  M and 2 (IA , IB , D) > 1 (IA , IB , D). First we consider that there is a collection Q  C that covers S and |Q|  K . Then IB includes all nodes sj corresponding to the sets in Q. In this case, all ei will be at distance one from IB and two from IA . So, all ei and the nodes in Li will adopt IB with probability one. Moreover, the nodes sj  / IB are two hops away from IB while 3 hops away from IA . Hence, all nodes sj will adopt IB . Therefore, we have 2 (IA , IB , D) = m + n(1 + r); so, 2 (IA , IB , D) > 1 (IA , IB , D). Next, we show that if there is no collection Q of size K that covers all elements then there is no set IB  V - IA of size M where 2 (IA , IB , D) > 1 (IA , IB , D). Considering that set cover does not have a solution, there should be at least one ei whose distance from IB cannot be one; so, there is an ei and consequently nodes in Li that choose A and the probability that with the probability at least K1 +1 they choose B is at most KK . Also, at most K nodes from +1 x1 , . . . , xn can be at distance less than or equal to 1 from IB . Hence n - K of them will adopt A with probability one. Therefore, we have
+
+3.4
+
+Wave-propagation Model
+
+In this model, in step d < D all nodes that are at distance d - 1 from some node in I have adopted technology A or B and all nodes that are farther than d - 1 from I have not adopted any technology yet(where the distance is measured with respect to active edges). Every node at distance d from I chooses one of its neighbors at distance d - 1 from I independently at random and adopt the same technology as its neighbor. For every node u, S denotes the set of neighbors of u that are closer to I than u; i.e., their distance from I is du (I, Ea ) - 1. In this model Pi (u|IA , IB , Ea , D), the probability that node u adopts innovation i  {A, B } in at most D steps, is computed as follows: If du (I, Ea )  D, P (v |I ,IB ,Ea ,D ) ; Pi (u|IA , IB , Ea , D) = vS i |SA | otherwise, it is zero. In this model the expected number of nodes which adopt i  {A, B } will be computed in the following way: j (IA , IB , D) = E
+uV
+
+Pi (u|IA , IB , Ea , D)
+
+where j = 1 if i = A; else j = 2 and the expectation is over the set of active edges.
+
+4.
+
+PROBLEM STATEMENT
+
+The WMI problem can be stated informally as follows: Given a diffusion model and the information that a subset of network nodes IA have already adopted innovation A marketed by player P1 , what is the fewest number of nodes should player P2 (marketing innovation B ) target so that by the end of D time steps, the number of nodes that adopt innovation B will exceed the number of nodes that adopt innovation A? If 1 (IA , IB , D) and 2 (IA , IB , D) denote the expected number of nodes that adopt innovations A and B respectively within D time steps, the objective of the WMI problem is to minimize | IB | subject to 2 (IA , IB , D) > 1 (IA , IB , D)
+
+5.
+
+COMPUTATIONAL COMPLEXITY
+
+In this section, we prove that W M I problem is NP-hard for both propagation models.
+
+2 (IA , IB , D)  m + (n - 1)(1 + r) + KK (r + 1) + K and +1 1 1 (IA , IB , D)  1 + nr + n - K + K +1 (r + 1). We choose r in our instance large enough such that r > Then we have 1 + nr + n - K + K1 (r + 1) > m + (n - 1)(1 + +1 r) + KK ( r + 1) + K ; so  ( I , I , D) < 1 (IA , IB , D). 2 A B +1
+(m+2K -2)(K +1)+K -1 . 2
+
+Algorithm 1 GWMI
+Input: G = (V, E ), IA , D Output: IB 1: while  (IA , IB , D)  0 do 2: for every node i  V - (IA  IB ) do 3: Compute Fi 4: end for 5: Select node j with maximum Fj 6: IB = IB  {j } 7: end while 8: return IB
+
+5.2
+
+Wave Propagation Model
+
+Theorem 2. WMI is NP-hard for the wave propagation model. Proof: Similar to Theorem 1, we reduce decision version of Set Cover problem to decision version of W M I when wave propagation model is used for diffusion. We construct an instance of W M I in the same way as in Theorem 1. The only change that should be made to this instance is the value of r which will be computed later. We need to show that the set cover problem has a solution if and only if there is a set IB  V - IA such that |IB |  M and 2 (IA , IB , D) > 1 (IA , IB , D). First we consider that there is a collection Q  C that covers S and |Q|  K . Then IB includes all nodes sj corresponding to the sets in Q. Similar to the proof of Theorem 1 we have 2 (IA , IB , D) = m + n(1 + r); so, 2 (IA , IB , D) > 1 (IA , IB , D). Next, we show that if there is no collection Q of size K that covers all elements then there is no set IB  V - IA of size M where 2 (IA , IB , D) > 1 (IA , IB , D). Considering the construction of G and the fact that set cover does not have a solution , there should be at least one ei whose distance from IB cannot be one or smaller. Since the node xi connected to this ei will have probability 1 to accept A and the maximum number of nodes in first hop neighborhood of ei that are at distance one from IA  IB is m + 1, there is an ei and consequently nodes in Li that choose A and the probability that with the probability at least m1 +1 m they choose B is at most m . Also, at most K nodes from +1 x1 , . . . , xn or y1 , . . . , yn×r can be at distance less than or equal to 1 from IB . Hence n(r + 1) - K of them will adopt A with probability one. Therefore, we have m (r + 1) + K and 2 (IA , IB , D)  m + (n - 1)(1 + r) + m +1 1 1 (IA , IB , D)  1+ n(r +1) - K + m+1 (r +1). We choose r in
+3 our instance large enough such that r > m + K (m + 1) - 2 . 2 1 Then we have 1 + n(r + 1) - K + m+1 (r + 1) > m + (n - m 1)(1+ r)+ m (r +1)+ K ; so 2 (IA , IB , D) < 1 (IA , IB , D). +1
+2
+
+In [11], it is mentioned that computing the exact value of 1 (IA , , D) efficiently is an open question. Similarly, there is no known way to compute 1 (IA , IB , D), 2 (IA , IB , D) in both propagation models efficiently. However, by sampling the active sets we can get a close approximation with high probability. Given IA , IB and a set of active edges Ea , computation of 1 and 2 in both propagation models has O(n3 ) time complexity since it needs computation of single all-pairs shortest paths. Given IA , IB and input graph G, using sampling, we can then approximate 1 and 2 to within (1+  ) for any  > 0 where the running time depends on 1/ [3].
+
+6.1
+
+Upper Bound Computation
+
+Theorem 3. GWMI has a log n approximation ratio. t be the set of B 's initial adopters selected by Proof. Let IB 0 , D) = GW M I at step t. Initially, IB is empty and  (IA , IB -1 (IA , , D). In every iteration t, the nodes in the optiopt t-1  mal set of B 's initial adopters, IB , will make  (IA , IB opt opt IB , D) positive. We denote the size of IB by OP T and the size of the solution of GW M I by H . Therefore, There t-1 will be at least one node in V - {IA  IB } that increases
+t-1 , D) at least by  (IA , IB
+t-1 | (IA ,IB ,d)| . OP T
+
+Let, vt be the node
+t-1 | (IA ,IB ,D )| . OP T
+
+selected by GW M I at iteration t. Then, Fvt  Therefore, for t < H we have
+t t-1 , D )| - | (IA , IB , D)|  | (IA , IB
+
+t-1 | (IA , IB , D)| OP T
+
+0  | (IA , IB , D)|(1 -
+
+1 t ) OP T
+
+6.
+
+APPROXIMATION ALGORITHM
+
+Since we proved that finding the optimal solution for W M I is hard, in this section we propose a greedy algorithm called GW M I . In this algorithm either of the two propagation models discussed before can be used as the diffusion process. Let  (IA , IB , D) be (2 (IA , IB , D) - 1 (IA , IB , D)). We define Fi to denote the amount of increase in the value of  when node i is added to IB ; i.e., Fi =  (IA , IB  {i}, D) -  (IA , IB , D). Initially IB is empty. Hence,  (IA , IB , D)  0. The algorithm executes through iterations and in each iteration node i  V - IA with the maximum Fi is selected. The steps of the algorithm GW M I has been shown in Algorithm 1.
+
+0 , D)| = 1 (IA , , D)  n. Hence Also, we know that | (IA , IB we have -t 1 t t | (IA , IB , D)|  n(1 - )  ne OP T . OP T Since adding a node to IB will increase  (IA , IB , D) at least t by one, we need to find the smallest t that | (IA , IB , D)| < 1. Then adding at most one more node will make  (IA , IB , D) positive. Therefore, H  1 + OP T ln n. We note that this proof holds for both propagation models.
+
+6.2
+
+Lower Bound Computation
+
+We now give a construction giving the lower bound for GWMI when distance-based propagation model is used. Let vertices and G(n, 3/4) be the X and Y be disjoint sets of n 2 Erd os-Renyi random graph on X  Y with p = 3/4. We take two new vertices u and v , connect u to all vertices of X and v to all vertices of Y . Now, we add a disjoint star S with n + 2 leaves and connect the center of the star to u and v . This yields our graph G (Fig. 2).
+
+larly v ) is chosen, then increase is at most
+G(n, 3/4) X n/2 u Y n/2 v Red set
+
+1+
+
+1 1 |X | + |Y | (1) k+1 (k + 1)(k + 2) 1 n 1 n = (1/4)k + (1/4)k + O(n3/4 ). k+1 2 (k + 1)(k + 2) 2
+
+Figure 2: Construction of G.
+
+We consider that the center of the star is the only initial adopter of A (red node), and pu,v is uniform and it is 1 for all the edges of G and D = 3. An optimal set of initial adopters of B (initial blue nodes) includes u, v and any of the leaves of S . We claim that the greedy algorithm GW M I will select (log n) vertices with high probability, assuming n is large enough. In order to prove this we first state a technical lemma giving a condition that G satisfies with high probability. Let S  X  Y . We say S is fair if 1. |X \  (S )| = (1/4)|S | n + O(n3/4 ) and |Y \  (S )| = 2 |S | n 3/4 (1/4) 2 + O(n ). where  (S ) is the set of one hop neighbors of vertices in S. We claim the following lemma, whose proof we defer: Lemma 4. With probability 1 - o(1) every set S  X  Y 1 ln(n) is fair. Furthermore, the induced graph with |S | < 100 on X  Y has diameter 2, every vertex in Y is at distance at most 2 from u and every vertex in X is at distance at most 2 from v . Assuming Lemma 4 we prove the lower bound. In particular we prove the following: The greedy algorithm selects at 1 least 100 ln n vertices from X  Y . We proceed by induction. At the first step, the greedy algorithm has to choose between a vertex in X  Y , one of u or v , or one of the vertices in the star. Selecting a vertex in the star will cause the number of blue vertices to increase by one and red vertices to decrease, a net change of two. Selecting u (or resp. v ) will increase blue (and decrease red) by a total of 1 + n +n ; since every 2 4 vertex in X will be at distance 1 from a blue vertex and every vertex in Y will be at distance 2 from both u and the red vertex if u is selected. On the other hand, by fairness, if a vertex x in X  Y is selected; the increase in blue is at least n 3n +n + O(n3/4 ); since 34 + O(n3/4 ) vertices are at distance 4 8 n 1 from x and the other 4 + O(n3/4 ) are at distance 2 from both x and the red vertex. Therefore the greedy algorithm will select from X  Y at the first time. Now suppose that the greedy algorithm has selected from 1 X Y a total of k < 100 ln n times. Let B denote the selected set, and X = X \  (B ) and Y = Y \  (B ). Every vertex in X  Y is at distance two from all k blue vertices, and hence k they are currently blue with probability k+1 . Furthermore by fairness X and Y are both of size (1/4)k n + O(n3/4 ). 2 Again, the greedy algorithm must choose: If u (or simi-
+
+On the other hand, if a vertex x in X  Y is chosen, the increase is at least 1 1 | (x)  X | + | (x)  Y | (2) k+1 k+1 1 |X  Y \  (X )| + (k + 1)(k + 2) 1 3 n 1 n =2· · (1/4)k + (1/4)k+1 + O(n3/4 ); k+1 4 2 (k + 1)(k + 2) 2 therefore, (2) - (1) is positive and hence the vertex in X  Y will be chosen as desired. We note that this construction is for sufficiently large n and (1/4)k n >> n3/4 .
+1 Proof of Lemma 4. Let S  X Y , with |S | < 100 ln n. Then n E[|X \ S |] = (1/4)|S | (|X | - |X  S |) = (1/4)|S | + O(ln n). 2
+
+Let XS = |X \ S |. Chernoff bounds imply that P(|XS -E[XS ]| > n3/4 )  exp(-( n3/2 ))  exp(-(n1/2 )). E[XS ]
+
+Bounds for |Y \ S | follow similarly. On the other hand there are at most
+1 100
+
+ln n
+
+i=1
+
+n i
+
+
+
+1 ln(n) · nln n , 100
+
+sets S . Thus union bounds imply every set is fair with probability 1 - exp(-(n1/2 )). Note that the expected number of common neighbors ben tween x and y in X  Y is 9 , and Chernoff bounds plus 16 union bounds imply every pair x and y is of distance 2 (and n in fact has (1 - o(1)) 9 common neighbors). Likewise, u 16 n expected neighbors and Cherand a vertex in Y have 38 n noff bounds imply that every pair has (1 + o(1)) 38 common neighbors. Likewise, for v and vertices in X . A union bound over all events completes the proof.
+
+7.
+
+SIMULATION
+
+In this section we evaluate the performance of our approximation algorithm, GW M I , on a real network data set. It has been suggested in [15] that the co-authorship graphs are representative of typical social networks. As such, we use the real collaboration network data set of the scientists posting preprints on the high-energy theory archive at www.arxiv.org, 1995-1999 [14]. This network has 8361 nodes (authors) and 15751 edges. The largest connected component has 5835 number of nodes (authors) and maximum distance between the nodes in a connected component is 19. Our experiments were conducted on a high performance computer which is a 5K processor Dell Linux Cluster. The program is parallelized with OpenMP, optimized with Intel compiler and was executed on an 8 core compute node. The cores in the node have equal access to a common pool of shared memory. Each node is comprised of 2.66/2.83 GHz
+
+processors, 8MB cache, 16GB memory and 8 cores. Since our experiments required execution of the algorithm on a large number of instantiation of a social network (the graphs were different as their set of active edges were different), we used OpenMP for parallelization of the graph instances for the simulation with one data set. In the first set of experiments we evaluate the performance of GWMI algorithm against the results obtained from the heuristics based on node degree and closeness centrality. These heuristics are most often used in social networks to identify most influential nodes [11]. We also compare performance of GWMI with the greedy algorithm proposed in [3] for selection of seed nodes for the second player P2 . In our model the first player P1 is trying to market product A and the second player P2 is trying to market product B . Since WMI problem is NP-hard and the input data set is large, computation of the optimal solution within a reasonable amount of time is unlikely. It may be noted that there is no known way of computing the exact value of 1 (IA , IB , D) and 2 (IA , IB , D) efficiently [11]. Accordingly, we use sampling of the active edge sets to obtain close approximation of 1 (IA , IB , D), 2 (IA , IB , D) with high probability. As in the experiments reported in papers [11, 3], we assign the edge probabilities to be 0.1. In all the experiments we use WPM as the diffusion model. The node degree based heuristic selects the nodes in the decreasing order of their degrees and the closeness centrality based heuristic selects the nodes in the increasing order of their average distance to other nodes. The distance between two nodes that are not in the same connected component is taken to be n, where n is number of nodes in the network. In the greedy algorithm proposed in [3], in every iteration the node that increases 2 (IA , IB , D) the most is selected. We refer to this algorithm as Second Player Influence Maximization (SPIM) algorithm. In these experiments, maximum number of propagation steps is taken to be 10, i.e., D = 10. In the experiments, the player P1 used node degree based heuristic to select its k initial adopters. In our experiments, the size of initial adopters of A is varied from 20 to 100. The results of this set of experiments using the WPM is shown in Fig. 3. The Fig. 3 shows that all five sizes of the initial adopters of A (20, 40, 60, 80, 100), the GWMI algorithm required the fewest number of initial adopters of B necessary to defeat A's influence at the end of time step 10. The legend Degree-Degree in Fig. 3 denotes that both the players are using the node degree based heuristics to select the initial adopters. Similarly,the legend Degree-GWMI denotes that while P1 is using the node degree based heuristics to select the initial adopters, P2 is using the GWMI algorithm to do the same. The Figs. 4 and 5 show the coverage (i.e., the number of nodes influenced at the end of 10 time steps) for players P1 and P2 respectively. Although the GWMI algorithm does not make an effort to minimize the coverage of P1 , it may be observed from the Fig. 4, the coverage of P1 is less if P2 uses GWMI instead of SPIM. Thus P2 is better off using GWMI instead of SPIM, if in addition to be able to defeat P1 with least investment (i.e., initial adopters), P2 wants to have a smaller market share for P1 . The Fig. 5 shows the coverage of P2 at the end of ten time steps. It may be observed from the Fig. 5, that at all five data points the coverage for P2 is highest when she uses the SPIM algorithm. This is not surprising as the stated goal of SPIM is to maxi-
+
+200 Number of Initial Adopters of B 160
+
+120
+80 40
+
+Degree-Closeness Degree-Degree Degree-SPIM Degree-GWMI
+0 20 40 60 80 100 Number of Initial Adopters of A 120
+
+0
+
+Figure 3: Number of initial adopters of B for different values of |IA |
+
+350 300 Coverage of A 250 200 150 100 20 40 60 Number of Initial Adopters of A 80 Degree-Degree Degree-Closeness Degree-GWMI Degree-SPIM
+
+Figure 4: Expected number of nodes adopting A after 10 propagation steps
+
+mize P2 's coverage (influence). However, this figure may be somewhat misleading because it does not provide the information pertaining to the number of initial adopters required by the SPIM algorithm to achieve the higher coverage. By its stated objective, the number of initial adopters required by GWMI to defeat P1 cannot be higher than the the number of initial adopters required by SPIM. Once this is factored in, and we compute the coverage per initial adopter, we find that the coverage per initial adopter of the SPIM algorithm is very close to that of the GWMI algorithm. This is shown in Fig. 6. From Fig. 3 it is clear that the node degree and centrality based heuristics and the SPIM algorithm require a larger number of initial adopters of B to beat A than is needed by the GW M I algorithm. While this is a negative aspect of SPIM (cost), it also has a positive aspect in the sense that at the end of ten time steps, it also secures a larger coverage for B (benefit). We compute the additional benefit provided by the additional initial adopters. Let IB (X ) be the smallest set of initial adopters of B that is required by algorithm X to defeat A and 2(X ) be the expected number of nodes that adopt B after D propagation steps. Here X can be node-degree or centrality based heuristic or the SPIM algorithm. In the case, (2(X ) - 2(GW M I ) ) indicates the additional benefit and (|IB (X ) | - |IB (GW M I ) |) indicates the additional cost. In this case, (2(X ) - 2(GW M I ) )/(|IB (X ) | - |IB (GW M I ) |) indicates the average market share gain of B with each additional initial adopter when using algorithm
+
+350 300 Coverage of B 250
+Extended Benefit of B per Additional Initial Adopter
+
+0.4
+
+Degree-Degree Degree-Closeness Degree-GWMI Degree-SPIM
+
+0.3 0.2
+
+Degree-Degree Degree-Closeness Degree-SPIM
+
+200
+150 100 20 40 60 Number of Initial Adopters of A 80
+
+0.1 0 20 40 60 Number of Initial Adopters of A 80
+
+Figure 5: Expected number of nodes adopting B after 10 propagation steps
+9 8 7 6 5 4 3 Degree-Degree Degree-Closeness Degree-GWMI Degree-SPIM
+
+Figure 8: Extended benefit that B can capture per additional initial adopter with respect to GW M I but also (1(GW M I ) - 1(X ) ). It introduces a notion of extended benefit by combining these two factors in the following way: (2(X ) - 2(GW M I ) ) - (1(GW M I ) - 1(X ) ). With this notion of extended benefit, ((2(X ) - 2(GW M I ) ) + (1(GW M I ) - 1(X ) )) |IB (X ) | - |IB (GW M I ) | indicates the average market share gain of B with each additional initial adopter when using algorithm X . The Fig. 8 depicts the results for the heuristics and SPIM. It may be observed from Fig. 7 that when extended benefit is considered, the average market share gain of B with each additional initial adopter diminishes even more drastically with increase of the number of initial adopters of A, when it uses the SPIM algorithm. Moreover, the gain of each additional initial adopter is smaller than 1 and implies that the additional adopter is not worth its cost. In the second set of experiments we investigate different strategies for selection of initial adopters of A when P2 uses GW M I . The strategies that we consider for selection of initial adopters of A includes the greedy algorithm proposed in [11] and heuristics based on node degree and closeness centrality. In these experiments WPM is used as diffusion model and D = 10. Fig. 9 depicts the results of these experiments. We observe that the closeness-centrality based heuristic performs poorly in comparison to other two algorithms. This is true because the number of initial adopters of B that it needs to defeat A's overall influence (coverage) is much smaller than the size of initial adopters of A. More specifically, for closeness-centrality based heuristic, for |IA | values greater than 60, the number of initial adopters of B is less than 50% of |IA |. This set of results show that if the influence maximization algorithm (IM) proposed in [11] is used for the selection of IA , it forces P2 to select a large set for IB in order to be able to defeat P1 within D time steps.
+
+Coverage of B per Initial Adopter of B
+
+2 1 0
+20 40 60 Number of Initial Adopters of A 80
+
+Figure 6: Expected number of nodes adopting B per initial adopter of B after 10 propagation steps
+
+X . The Fig. 7 depicts the results for the heuristics and SPIM. The negative gains are not shown. It may be observed from Fig. 7 that the average market share gain of B with each additional initial adopter diminishes with increase of the number of initial adopters of A, when it uses the SPIM algorithm. While the stated objective of P2 is to have a larger market share than P1 with the fewest number of initial adopters, it may also have two other unstated objectives - (i) to have a large 2(X ) and (ii) a small 1(X ) for all X (1(X ) be the expected number of nodes that adopt A after D time steps). Therefore while considering the benefit of the additional initial adopters, we can consider not only (2(X ) - 2(GW M I ) )
+
+Average Increase in Market Share of B per additional initial adopter
+
+12
+Degree-Degree 10 8 Degree-Closeness Degree-SPIM
+
+6
+4
+
+8.
+
+CONCLUSION
+
+2
+0 20 40 60 Number of Initial Adopters of A 80
+
+Figure 7: Average market share increase that innovation B can capture per additional initial adopter with respect to GW M I
+
+In this paper we have introduced a new influence propagation problem in an adversarial setting where the goal of the second player is to defeat the first within D time steps and least cost, measured in terms of the number of seed nodes. Considering two different influence propagation models, we provided the NP-Hardness proof for the problem and an approximation algorithm with a tight performance bound. In addition, we evaluated the performance of the approximation algorithm with collaboration network data.
+
+120
+Number of Initial Adopters of B 100 80 60 40 20 0 0
+
+Degree-GWMI IM-GWMI Closeness-GWMI
+
+20
+
+40 60 80 Number of Initial adopters of A
+
+100
+
+120
+
+Figure 9: Size of initial adopters of B for different values of |IA | We can envisage at least two new directions of research with this problem. In the first direction, P2 is not aware of P1 's choice. In the second direction, back and forth transition of the nodes between two competing products is allowed.
+
+9.
+
+ACKNOWLEDGMENTS
+
+The research was supported in part by a grant to the Center for the Study of Religion and Conflict at Arizona State University (N00014-09-1-0815). The award was funded through the Office of the Secretary of Defense Minerva program, and managed out of the Office of Naval Research. The content is solely the responsibility of the authors and does not necessarily represent the views of the Office of Naval Research. In addition, it was also supported in part by the DTRA grant HDTRA1-09-1-0032 and the AFOSR grant FA955009-1-0120.
+
+10.
+
+REFERENCES
+
+[1] S. Bhagat, A. Goyal, and L. V. Lakshmanan. Maximizing product adoption in social networks. In Proceedings of the fifth ACM international conference on Web search and data mining, WSDM '12, pages 603­612, 2012. [2] S. Bharathi, D. Kempe, and M. Salek. Competitive influence maximization in social networks. In Proceedings of the 3rd international conference on Internet and network economics, WINE'07, pages 306­311, 2007. [3] T. Carnes, C. Nagarajan, S. M. Wild, and A. van Zuylen. Maximizing influence in a competitive social network: a follower's perspective. In Proceedings of the ninth international conference on Electronic commerce, ICEC '07, pages 351­360, 2007. [4] W. Chen, Y. Wang, and S. Yang. Efficient influence maximization in social networks. In Proceedings of the 15th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, KDD '09, pages 199­208, 2009. [5] K. Dave, R. Bhatt, and V. Varma. Modelling action cascades in social networks. 2011.
+
+[6] P. Domingos and M. Richardson. Mining the network value of customers. In Proceedings of the seventh ACM SIGKDD international conference on Knowledge discovery and data mining, KDD '01, pages 57­66, 2001. [7] A. Goyal, F. Bonchi, L. V. S. Lakshmanan, and S. Venkatasubramanian. Approximation analysis of influence spread in social networks. arXiv:1008.2005v4, 2011. [8] H. Habiba, Y. Yu, T. Y. Berger-Wolf, and J. Saia. Finding spread blockers in dynamic networks. In Proceedings of the Second international conference on Advances in social network mining and analysis, SNAKDD'08, pages 55­76, 2010. [9] G. Istrate, M. V. Marathe, and S. S. Ravi. Adversarial models in evolutionary game dynamics. In Proceedings of the twelfth annual ACM-SIAM symposium on Discrete algorithms, SODA '01, pages 719­720, 2001. [10] Q. Jiang, G. Song, C. Gao, Y. Wang, W. Si, and K. Xie. Simulated annealing based influence maximization in social networks. 2011. [11] D. Kempe, J. Kleinberg, and E. Tardos. Maximizing the spread of influence through a social network. In Proceedings of the ninth ACM SIGKDD international conference on Knowledge discovery and data mining, KDD '03, pages 137­146, 2003. [12] H. Li, S. S. Bhowmick, and A. Sun. Casino: towards conformity-aware social influence analysis in online social networks. In Proceedings of the 20th ACM international conference on Information and knowledge management, CIKM '11, pages 1007­1012, 2011. [13] M. Mathioudakis, F. Bonchi, C. Castillo, A. Gionis, and A. Ukkonen. Sparsification of influence networks. In Proceedings of the 17th ACM SIGKDD international conference on Knowledge discovery and data mining, KDD '11, pages 529­537, 2011. [14] M. Newman. http://networkdata.ics.uci.edu/data/hep-th/. [15] M. E. J. Newman. The structure of scientific collaboration networks. Proceedings of the National Academy of Sciences of the United States of America, 98(2):404­409, 2001. [16] M. A. Nowak, C. E. Tarnita, and T. Antal. Evolutionary dynamics in structured populations. Philosophical Transactions of the Royal Society B: Biological Sciences, 365(1537):19­30, 2010. [17] Y. Wang, G. Cong, G. Song, and K. Xie. Community-based greedy algorithm for mining top-k influential nodes in mobile social networks. In Proceedings of the 16th ACM SIGKDD international conference on Knowledge discovery and data mining, KDD '10, pages 1039­1048, 2010. [18] S. Wasserman and K. Faust. Social Network Analysis: Methods and Applications. Number 8 in Structural analysis in the social sciences. Cambridge University Press, 1 edition, 1994.
+
+

@@ -1,0 +1,245 @@
+Reasoning About the Beliefs of Agents in Multi-Agent Domains in the Presence of State Constraints: The Action Language mAL
+Chitta Baral1 , Gregory Gelfond1 , Enrico Pontelli2 , and Tran Cao Son2
+2
+
+Arizona State University, Tempe, AZ 85281 New Mexico State University, Las Cruces, NM 88011
+
+1
+
+Abstract. Reasoning about actions forms the basis of many tasks such as prediction, planning, and diagnosis in a dynamic domain. Within the reasoning about actions community, a broad class of languages called action languages has been developed together with a methodology for their use in representing dynamic domains. With a few notable exceptions, the focus of these efforts has largely centered around single-agent systems. Agents rarely operate in a vacuum however, and almost in parallel, substantial work has been done within the dynamic epistemic logic community towards understanding how the actions of an agent may affect the knowledge and/or beliefs of his fellows. What is less understood by both communities is how to represent and reason about both the direct and indirect effects of both ontic and epistemic actions within a multi-agent setting. This paper presents a new action language, mAL, which brings together techniques developed in both communities for reasoning about dynamic multi-agent domains involving both ontic and epistemic actions, as well as the indirect effects that such actions may have on the domain.
+
+1
+
+Introduction
+
+Reasoning about actions and change has been one of the cornerstones of artificial intelligence research ever since McCarthy's description of the "advice taker system" [16]. Since that time, a considerable body of work on a broad class of languages called action languages together with a corresponding methodology for their use has been developed [1,10,11]. A distinguishing characteristic of such languages is their simple syntax and semantics which allow for concise and natural representations of huge transition systems, and elegant solutions to the frame problem [3,5,10,15]. With a few notable exceptions, [5,14], the focus of such languages has been on representing an agent's knowledge concerning sensing and ontic actions (i.e., those which primarily affect the physical environment). Agents rarely operate in isolation, often exchanging information, and consequently almost in parallel, substantial work has been done within the Dynamic Epistemic Logic (DEL) community towards understanding epistemic actions (i.e., those which primarily affect the knowledge or beliefs of other agents) [2,8,7] and, to a lesser extent ontic actions [6]. What is less understood by both communities
+
+is how to represent and reason about both the direct and indirect effects of both classes of actions in a multi-agent setting. In this paper we present a new action language, mAL, which brings together techniques developed in both communities for reasoning about dynamic multi-agent domains involving both ontic and epistemic actions. Unlike prior works of both the action language [4], and dynamic epistemic logic communities [6], mAL allows for the representation of complex dependencies between fluents and provides a robust solution to the ramification problem [17,12,13]. In addition, it is capable of representing domains involving collaboration between agents for both ontic and epistemic actions.
+
+Example 1 (A Multi-Agent "Lin's Briefcase Domain"). Let us consider a multiagent variant of the "Lin's Briefcase Domain" [13]: Three agents, A, B , and C , are together in a room with a locked briefcase which contains a coin. The briefcase is locked by two independent latches, each of which may be flipped open (or closed) by an agent. Once both latches are open, the briefcase is unlocked and an agent may peek inside to determine which face of the coin is showing. Suppose that the briefcase is locked, and that this fact, together with the fact that none of the agents knows which face of the coin is showing is common knowledge amongst them. Furthermore, let us suppose that all of the agents are paying attention to their surroundings, and that this is common knowledge as well. Lastly, let us suppose that the coin is actually showing heads. How could agent A determine the face of the coin while keeping B aware of his activities but leaving C in the dark? One way could be as follows: A distracts C , causing him to look away; once this is done, he flips open both latches, thereby unlocking the briefcase; and finally A peeks inside. Note that the domain in Ex. 1 contains both ontic (e.g., flipping the latches) and epistemic (e.g., peeking into the briefcase) actions. In addition, the actions of signaling/distracting an agent and flipping the latches have two classes of indirect effects : those affecting the frames of reference (or degrees of awareness) that agents have with respect to subsequent action occurrences, and those affecting the physical properties of the domain. As an example of the former, once C is distracted, he will be unaware of A's subsequent activities. As an example of the latter, flipping a latch open when its counterpart is as well, causes the briefcase to become unlocked. While the languages of action and update models developed within the DEL community [2,6] provide an elegant means for deriving the direct effects of both ontic and epistemic actions, they fall short when it comes to solving the ramification problem, and consequently are unable to represent domains such as the one presented in Ex. 1. Furthermore, their graphical nature and unification of the distinct notions of an action and action occurrence, renders them inadequate from a knowledge representation standpoint due to their lack of elaboration tolerance. As we hope to show in this paper, both difficulties are overcome by mAL.
+
+2
+
+The Action Language mAL
+
+The action language mAL incorporates elements from the action languages AL [11,9] and mA+ [4], adding to mA+ the ability to describe various dependencies between fluents by the inclusion of state constraints. 2.1 Syntax
+
+Theories of mAL are defined over a multi-agent domain D with a signature  = (AG , F , A) where AG , F , and A, are finite, disjoint, non-empty sets of symbols respectively defining the names of the agents within the domain, the properties of the domain (or fluents ), and the elementary actions which the agents may perform. mAL supports two broad classes of actions: ontic and epistemic actions, the former describing actions which affect the properties of the domain represented by fluents, and the latter describing actions which primarily affect the agents' beliefs. Epistemic actions are further broken into two categories: sensing and communication. Sensing actions represent actions which an agent may perform in order to learn the value of a fluent, while communication actions are used to represent actions which communicate information between agents. Ontic properties of the domain are represented by fluents, while the various epistemic properties are represented by modal formulae: Definition 1 (Modal Formula [8]). Let D be a multi-agent domain with the signature  = (AG , F , A). The set of modal formulae over  is defined as follows: ­ f  F is a formula ­ if  is a formula, then ¬ is a formula ­ if 1 and 2 are formulae, then 1  2 , 1  2 , 1  2 , and 1  2 are formulae ­ if   AG and  is a formula, then B  is a formula ­ if   AG and  is a formula, then E  and C  are formulae As the modality of discourse is that of belief, we adopt the following readings of modal formulae: B , is understood to mean that "agent  believes "; formulae of the form E  denote that "every member of  believes ", while those of the form C  are read as "every member of  believes , and every member of  believes that every member of  believes , ad infinitum, (i.e.  is a commonly held belief amongst the agents of  )." The direct effects of ontic actions are described by dynamic causal laws which are statements of the form: a causes  if  (1) where a is an action,  is a fluent literal, and  is a conjunction of fluent literals. Laws of this form are read as: "performing the action a in a state which satisfies  causes  to be true." If  is a tautology, then we simply write the following: a causes  (2)
+
+Sensing actions are described by sensing axioms which have the form: a determines f (3)
+
+where a is the name of an action, and f is a fluent. Statements of this form are understood to mean: "if an agent performs the action a, he will learn the value of the fluent f ." Communication actions are described by communication axioms which have the form: a communicates  (4) where a is the name of an action, and  is a modal formula. In mAL only truthful announcements are allowed. The constructs (1)­(4) only describe the direct effects of their respective actions. In general, an agent's actions may indirectly affect the knowledge/beliefs of his fellows, as well as the values of various fluents. As in mA+, indirect effects of the first form are determined by the frames of reference (or levels of awareness ) that the agents have with respect to the action. In general, for any given action occurrence we divide the agents of the domain into three groups: those who are fully aware of both the action occurrence and its effects; those who are aware of the occurrence but not the full consequences of the action; and those agents who are oblivious as to what has transpired. Frames of reference are dynamic in nature and are described by perspective axioms which are statements of the form: X observes a if  X aware of a if  (5) (6)
+
+where X is a set of agent names, a is an action, and  is a modal formula. Perspective axioms of the first form (called observation axioms ) define the set of agents who are fully aware of both the action occurrence and its effects. Those of the second form (called awareness axioms ) define the set of agents who are aware of the occurrence, but only partially of its effects. By default, we assume that all other agents within the domain are oblivious. As with dynamic causal laws, if  is a tautology, we adopt the following shorthand: X observes a X aware of a (7) (8)
+
+The inclusion of observation axioms allows us to make explicit the assumption that agents are aware of the actions they perform. In mAL, the only assumptions made regarding the frames of reference of the agents are that those who are fully aware of an action occurrence and its effects, as well as those who are aware only of the occurrence, know the frames of reference of all of the agents within the domain. Unlike mA+, mAL includes state constraints which are statements of the form:  if  (9)
+
+where  is a fluent literal and  is a conjunction of fluent literals. Statements of this form are read as: "if  is true in a state, then  must also be true in that state." State constraints are used to represent dependencies between fluents and provide a powerful means for representing indirect effects of the second form. Lastly, executability conditions, which are statements of the form: impossible a if  (10)
+
+where a is an action and  is a modal formula, are used to describe when actions may not be performed. Definition 2 (Action Description of mAL). An action description, , in mAL is a collection of statements of the form (1)­(10). Now that the syntax has been introduced, we present a detailed axiomatization of the multi-agent variant of the Lin's Briefcase Domain from Ex. 1. Example 2 (Axiomatization of the Multi-Agent "Lin's Briefcase Domain"). Let  be a variable ranging over the set {l1 , l2 } representing the latches governing the briefcase. Similarly, let , 1 , and 2 , be variables ranging over the set of agents in our domain. We begin our representation by adopting the following domain signature  = (AG , F , A) where: AG = {A, B, C } F = {open(), locked, heads, attentive()} A = {f lip(, ), peek (), signal(1 , 2 ), distract(1 , 2 )} The direct effects of the action f lip(, ) are represented via the following pair of dynamic causal laws: f lip(, ) causes open() if ¬open() f lip(, ) causes ¬open() if open() (11) (12)
+
+The following state constraint models the indirect effects of the action, f lip(, ), namely that the briefcase is unlocked once both latches are open. ¬locked if open(l1 )  open(l2 ) (13)
+
+The agent directly performing the action f lip(, ), as well as any attentive agents are considered to be fully aware of the action occurrence and of its full effects. This information may be encoded by the following pair of perspective axioms: {} observes f lip(, ) {2 } observes f lip(1 , ) if attentive(2 ) (14) (15)
+
+The action, peek (), is an epistemic action -- in particular, it is a sensing action. Consequently its direct effects are represented by the following sensing axiom: peek () determines heads (16)
+
+The fact that an agent may not peek into a locked briefcase is represented by the following executability condition: impossible peek () if locked (17)
+
+Unlike the action f lip(, ), only the agent who is peeking is fully aware of the occurrence and its full effects. Agents who are attentive, are only partially aware of the action's effects. This is represented by the following perspective axioms: {} observes peek () {2 } aware of peek (1 ) if attentive(2 ) (18) (19)
+
+Lastly, the actions signal(1 , 2 ) and distract(1 , 2 ) are represented in a similar fashion: signal(1 , 2 ) causes attentive(2 ) {1 , 2 } observes signal(1 , 2 ) {} observes signal(1 , 2 ) if attentive() distract(1 , 2 ) causes ¬attentive(2 ) {1 , 2 } observes distract(1 , 2 ) {} observes distract(1 , 2 ) if attentive() 2.2 Semantics (20) (21) (22) (23) (24) (25)
+
+Before we discuss the semantics of our language, we must first introduce the notions of a Kripke structure and Kripke world. Definition 3 (Kripke Structure [8]). Let D be a multi-agent domain with signature,  = (AG , F , A), where AG = {1 , . . . , n }. A Kripke structure, M , is a tuple of the form (, , R1 , . . . , Rn ) where: ­  is a nonempty set of possible worlds ­  is an interpretation function which for each    gives an interpretation,  ( ) : F  {true, f alse} ­ each Ri is a binary relation on  called an accessibility relation for agent i Possible worlds and their respective interpretations describe potential physical configurations of the domain, while the accessibility relations represent its various epistemic properties. Intuitively, the pair ( ,  )  Ri represents the property that from within possible world  , agent i cannot distinguish between  and  . Definition 4 (Kripke World [8]). A Kripke world is a pair, (M,  ), where M is a Kripke structure, and  is a possible world of M .
+
+For a given Kripke world, (M,  ),  denotes which possible world of M corresponds to the real physical state of the world as known to an impartial external observer. Having defined the notions of a Kripke structure and a Kripke world, we can now define the semantics of modal logic. Definition 5 (Entailment Relation for Modal Formulae). Let (M,  ) be a Kripke world in a multi-agent domain, D, with the signature  = (AG , F , A). ­ ­ ­ ­ ­ (M,  ) |= f where f  F iff M. ( )(f ) = (M,  ) |= ¬ iff (M,  ) |=  (M,  ) |= 1  2 iff (M,  ) |= 1 and (M,  ) |= 2 (M,  ) |= 1  2 iff (M,  ) |= 1 or (M,  ) |= 2 (M,  ) |= B  iff (M,  ) |=  for all  such that ( ,  )  M.R
+
+k+1 Let E0  be E Ek   be equivalent to  and let E  .
+
+­ (M,  ) |= E  iff (M,  ) |= B  for each    ­ (M,  ) |= C  iff (M,  ) |= Ek   for k = 1, 2, 3, . . . As is the case with other action languages, an action description of mAL defines a transition diagram whose nodes correspond to states of the domain -- which we model as Kripke worlds -- and whose arcs are labeled by actions. Within a particular state, the possible worlds comprising the underlying Kripke world correspond to complete consistent sets of fluent literals closed under the state constraints of the action description. Example 3 (Initial State of the Multi-Agent "Lin's Briefcase Domain"). The initial state, 0 , of the domain from Ex. 1 corresponds to the Kripke world, (M0 , 1 ), shown in Fig. 1. 0 consists of two possible worlds, 1 and 2 , where: ­ M0 . (1 ) = {heads, attentive(A), attentive(B ), attentive(C ), ¬open(l1 ), ¬open(l2 ), locked} ­ M0 . (2 ) = {¬heads, attentive(A), attentive(B ), attentive(C ), ¬open(l1 ), ¬open(l2 ), locked} A graphical convention that we adopt in this work is to present Kripke structures/worlds as directed graphs whose nodes are drawn as circles with unbroken lines. The possible world(s) designated as pertaining to the real state of the world are marked by a double circle. The semantics of mAL is defined via a transition function,  (, a), which when applied to a state,  , and an action occurrence, a, yields the corresponding successor state(s). The approach taken in this paper combines methods used in defining the semantics of AL [9], with an approach based on that of [6]. The key intuition behind our semantics is that reasoning about the effects of an action is a two-step process: an agent first reasons about how his fellows may perceive his action, thereby establishing an epistemic configuration for the successor state; and then reasons about how his action may actually play out.
+
+A, B, C
+
+A, B, C
+
+A, B, C
+
+A, B, C
+
+1
+
+A, B, C
+
+2
+
+1
+
+A, B, C
+
+2
+
+(a)
+
+(b)
+
+Fig. 1. The initial state, 0 , of the Multi-Agent Lin's Briefcase Domain. 1(a) shows the underlying Kripke structure of 0 , while 1(b) corresponds to 0 itself.
+
+Frames of Reference In order to reason about how his fellows will perceive his actions, an agent must reason about their respective frames of reference; hence the inclusion of perspective axioms, which allow one to dynamically specify the levels of awareness that the agents have with respect to an action occurrence. It must be emphasized, that frames of reference are thought of as attributes of an action that differ from one action occurrence to another. This is in marked contrast with the approach of [2,6], in which different frames of references yield very different actions. Definition 6 (Frames of Reference). Let  be an action description of mAL,  = (M,  ) be a state of the transition diagram defined by , and a be an action. The various frames of reference of the agents are defined as follows: ­ the set of agents who are fully aware of a, denoted by f (, a), is {  AG | [ observes a if ]    (M,  ) |= } ­ the set of agents who are partially aware of a, denoted by p(, a), is {  AG | [ aware of a if ]    (M,  ) |= } ­ the set of agents who are oblivious of a, denoted by o(, a), is AG \ f (, a)  p(, a) Update Schema/Instantiations On a semantic level, an action occurrence is represented by an update schema 3 , which may be thought of as a Kripke structure capturing how the agents in a domain perceive various action occurrences. Rather than possible worlds, an action occurrence is described by a number of scenarios, each of which is associated with a necessary precondition. What the agents believe about the scenarios is described by their respective accessibility relations. This leads to the following definition: Definition 7 (Update Schema). Let L denote the set of all modal formulae that may be defined over the multi-agent domain, D, with signature  = (AG = {1 , . . . , n }, F , A). An update schema, U , is a tuple of the form (Sc , R1 , . . . , Rn , pre) where:
+3
+
+Update schema/instantiations are analogous to the certain structures described in [2,6], but have been renamed to reflect different intuitions behind their use.
+
+­ Sc is a finite, non-empty set of scenarios ­ each Ri is a binary relation on  called an accessibility relation for agent i ­ pre : Sc  L assigns a precondition function to each scenario An update schema only describes the beliefs of the agents with regards to a particular action occurrence. As with Kripke structures, they do not describe which scenario actually took place. To accomodate this additional information, update schema are instantiated by specifying which scenario actually occurred. Definition 8 (Update Instantiation). An update instantiation is a pair, (U, ), where U is an update schema, and  is a scenario of U . In the context of mAL, we define three particular update instantiations, for ontic, sensing, and communication actions respectively: o (, a), s (, a), and c (, a). The intuition behind o (, a) is relatively straightforward: the agents are either aware of the action occurrence or are oblivious. In addition, we make the assumption that those agents who are aware of the action occurrences know which agents are oblivious. Definition 9 (Ontic Instantiation). The function o (, a) yields the set of update instantiations represented by the pair (U,  ) where U is defined as follows: ­ U.Sc = {p , i } ­ U.R = {(p , p ), (i , i )} for each agent in f (, a) ­ U.R = {(p , i ), (i , i )} for each agent in o(, a) Let  = { | [impossible a if ]  }. ­ U.pre(p ) = ¬(  ) ­ U.pre(i ) = and  = {p }. s (, a) is based on the following intuition: the real value of f is revealed to those agents who are performing the action, causing it to become a commonly held belief amongst them; agents who observe the action learn that the value of f has been revealed to those agents who were directly involved in it; and the beliefs of oblivious agents remain unchanged. Definition 10 (Sensing Instantiation). The function s (, a) yields the set of update instantiations represented by the pair (U,  ) where U is defined as follows: ­ ­ ­ ­ U.Sc = {p , n , i } U.R = {(p , p ), (n , n ), (i , i )} for each agent in f (, a) U.R = {(p , p ), (n , n ), (i , i ), (p , n ), (n , p )} for each agent in p(, a) U.R = {(p , i ), (n , i ), (i , i )} for each agent in o(, a)
+
+Let f be the fluent determined by the sensing axiom for the action a, and let  = { | [impossible a if ]  }. ­ U.pre(p ) = f  ¬(  ) ­ U.pre(n ) = ¬f  ¬(  ) ­ U.pre(i ) = and  = {p , n }. The intuition behind c (, a) similar to that of sensing actions:  becomes a commonly held belief amongst those agents who receive/hear the message; agents who observe the action learn that the value of  has been revealed to those agents who heard it (they are however unaware of the truth of ); and lastly, the beliefs of oblivious agents are unchanged. Definition 11 (Communication Instantiation). The function c (, a) yields the set of update instantiations represented by the pair (U,  ) where U is defined as follows: ­ ­ ­ ­ U.Sc = {p , n , i } U.R = {(p , p ), (n , n ), (i , i )} for each agent in f (, a) U.R = {(p , p ), (n , n ), (i , i ), (p , n ), (n , p )} for each agent in p(, a) U.R = {(p , i ), (n , i ), (i , i )} for each agent in o(, a)
+
+Let  be the formula specified by the communication axiom for the action a, and let  = { | [impossible a if ]  }. ­ U.pre(p ) =   ¬(  ) ­ U.pre(n ) = ¬  ¬(  ) ­ U.pre(i ) = and  = {p }. Example 4 (Update Instantiations for the Action distract(A, C )). Consider an action occurrence distract(A, C ). Suppose that agent B is oblivious of the action occurrence. In this case, the corresponding ontic instantiation, is shown in Fig. 2(a). Now consider an occurrence of the action distract(A, C ), where all of the agents are fully aware of the action occurrence. This yields a different ontic instantiation, shown in Fig. 2(b). Here we adopt the graphical convention of presenting update schema/instantiations as directed graphs whose nodes are drawn as rounded rectangles with solid lines. Once again, it bears emphasizing that the action, distract(A, C ), is the same in both instances. Only the attributes corresponding to the agents' frames of reference (which are represented by the respective arcs) differ.
+
+A, C
+
+A, B, C
+
+A, B, C
+
+p
+
+B
+
+i
+
+p
+
+(a)
+
+(b)
+
+Fig. 2. 2(a) shows the ontic instantiation for an occurrence of the action distract(A, C ) with A and C fully aware of the occurrence, and agent B oblivious. 2(b) show the ontic instantiation of the same action with all agents fully aware of the occurrence.
+
+Epistemic Configurations When reasoning about the effects of an action, an agent first establishes what is called an epistemic configuration of the successor state. This is done by the application of what we term an epistemic update to a state, and the update instantiation of action occurrence in question. An epistemic configuration defines the general graphical structure of the successor state. Consequently it is similar to a Kripke structure, but does not include the interpretation function. This intuition leads to the following pair of definitions: Definition 12 (Epistemic Schema). Let D be a multi-agent domain with signature  = (AG = {1 , . . . , n }, F , A). An epistemic schema, E , is a tuple of the form (S, R1 , . . . , Rn ) where: ­ S is a nonempty set of situations ­ each Ri is a binary relation on S called an accessibility relation for agent i Definition 13 (Epistemic Configuration). An epistemic configuration is a pair, (E , s), where E is an epistemic schema, and s is a situation of E . In order to obtain the epistemic configuration of the successor state, we apply an operation that we call the epistemic update operation, which when applied to a state and an update instantiation, defines an epistemic configuration for the successor state. Definition 14 (Epistemic Update Operation). Given a state,  = (M,  ), and an update instantiation  = (U, ), such that  |= U.pre(), Eu(,  ) defines the epistemic configuration EC = (E , (, )) where: ­ E .S = {(j , j ) | j  M., j  U.Sc , (M, j ) |= U.pre(j )} ­ E .R = {((j , j ), (k , k )) | (j , k )  M.R , (j , k )  U.R } Example 5 (Applying the Epistemic Update). Recall from Ex. 1 that A first distracts C . The action distract(A, C ) is an ontic action which directly affects the fluent attentive(C ) as specified by the dynamic causal law (23). Perspective axioms (24) and (25), together with the fact that the agents are initially attentive,
+
+give f (0 , distract(A, C )) = {A, B, C } and o(0 , distract(A, C )) =  as the agents' frames of reference. o (0 , distract(A, C ))) is shown in Fig. 3(a) and the epistemic configuration of the successor state resulting from the occurrence of the action distract(A, C ) is given by Eu(0 , o (0 , distract(A, C ))), and is shown in Fig. 3(b). For epistemic configurations, we adopt the convention of presenting them as directed graphs whose nodes are drawn as dashed circles (the dashed lines help express the notion that the scenarios are later expanded into possible worlds). Those scenarios which correspond to potential real possible worlds are marked by a double dashed line.
+
+A, B, C
+
+A, B, C
+
+A, B, C
+
+p
+
+(1,p)
+
+A, B, C
+
+(2,p)
+
+(a)
+
+(b)
+
+Fig. 3. 3(a) shows the update instantiation for an occurrence of the action distract(A, C ) in 0 , while Fig. 3(b) shows the epistemic configuration of the successor state resulting from that action occurrence.
+
+From Epistemic Configurations to States The epistemic update only describes how an agent reasons about how his actions are perceived by his fellows. In order to obtain the full successor state, he must then reason about how his actions may actually play out. This is accomplished by abstracting away the presence of other agents, turning the problem into one concerning the effects of an action in a single-agent domain. This is done by applying what we term an ontic update operation to the epistemic configuration. Prior to defining the ontic update, we must first describe how to relate an epistemic configuration to the framework for reasoning about the effects of an action from the perspective of AL. Definition 15 (AL(,  )). Let  be an action description of mAL and  be a state of the transition diagram defined by . Each possible world,  of  corresponds to a complete consistent set of fluent literals, AL(,  ), defined as follows: {f | .. (f ) = }  {¬f | .. (f ) = } Intuitively, an epistemic configuration describes the basic structure of the successor state. Each situation s = (, ) in an epistemic configuration may be read as "scenario  transpires in the possible world  ", and corresponds to possibly multiple possible worlds in the successor state. The possible worlds of the sucessor state within the multi-agent transition diagram are obtained by applying the McCain-Turner equation [15] to the possible worlds defined by AL(,  ).
+
+Definition 16 (Scenario Expansion). Let  be a state of the transition diagram defined by ,  be an update instantiation corresponding to the occurrence of an action, a in  , EC be an epistemic configuration defined by Eu(,  ), and s = (, ) be a situation of EC . The expansion of the situation s consistent with the state,  , (denoted by C (, s)), is defined as follows: ­ if  = i , then C (, s) = {AL(,  )}, otherwise ­ C (, s) = { (s) |  (s) = Cn (E (AL(,  ), a)  (AL(,  )   (s)))} The expansion of the entire epistemic configuration, C (, EC ), is defined in a straightforward fashion as well: C (, EC ) = C (, s) for each s  EC .S
+
+Having defined this basic framework, we may now define the ontic update operation. Definition 17 (Ontic Update). Let  be an action description of mAL,  be a state of the transition diagram defined by , and EC = (E ,  ) be an epistemic configuration. Ou (, EC ) defines a set of Kripke worlds (M , RW ) where: ­ ­ ­ ­ ­ M . is the set of new symbols of the form i (s) for each i (s)  C (, EC ) M . (i (s) )(f ) = if f  i (s) M . (i (s) )(f ) =  if ¬f  i (s) M .R = {(i (s1 ) , j (s2 ) ) | i (s1 ) , j (s2 )  M ., and (s1 , s2 )  EC .R } RW = {i (s) | i (s)  C (,  )}
+
+Example 6 (Applying the Ontic Update). Let EC 0 denote the epistemic configuration from Ex. 5. Application of the ontic update operation, Ou (0 , EC 0 ), gives us the successor state, 1 = (M1 , 3 ), depicted in Fig. 4. The Kripke
+
+A, B, C
+
+A, B, C
+
+3
+
+A, B, C
+
+4
+
+Fig. 4. Successor state, 1 , resulting from the application of Ou (0 , EC 0 ).
+
+structure, M1 , shown in Fig. 4 consists of two possible worlds, 3 =  ((1 ,p )) , and 4 =  ((2 ,p )) where: ­ M1 . (3 ) = {heads, locked, ¬open(l1 ), ¬open(l2 ), attentive(A), attentive(B ), ¬attentive(C )} ­ M1 . (4 ) = {¬heads, locked, ¬open(l1 ), ¬open(l2 ), attentive(A), attentive(B ), ¬attentive(C )}
+
+The Transition Function As was mentioned previously, the transition function is based on the following intuition: an agent first reasons about how his action is perceived, and then reasons about how it may actually play out. This intuition is realized in the definition of our transition function,  (, a). Definition 18. Let  be an action description of mAL,  be a state of the transition diagram defined by , and a be an action. The successor state(s) obtained by performing the action a in the state  are defined as follows:   Ou (, Eu(, o (, a)) ontic action  (, a) = Ou (, Eu(, s (, a)) sensing action   Ou (, Eu(, c (, a)) otherwise 2.3 Properties of the Language
+
+The syntax and semantics of mAL may be of interest in and of themselves, but of particular interest is the fact that mAL satisfies certain useful properties - namely that it correctly captures certain intuitions concerning the effects of various types of actions. Space constraints preclude us from including the proofs of the subsequent theorems, which we leave to a future journal paper (the paper is currently in development and will cover mAL in greater detail, including application of the languages towards modeling collaboration amongst agents for both ontic and epistemic actions). Theorem 1. Let  be an action description of mAL;  = (M ,  ) be a state of the transition diagram defined by ; a be an ontic action; and  = (M ,  )   (, a). It holds that: 1. for every agent   f (, a) and dynamic causal law [a causes  if ] in , if (M ,  ) |= B  then (M ,  ) |= B  2. for every agent   f (, a) and state constraint [ if ] in , (M ,  ) |= B (  ) 3. for each agent   o(, a) and literal, , (M ,  ) |= B  if and only if (M ,  ) |= B  Theorem 2. Let  be an action description of mAL;  = (M ,  ) be a state of the transition diagram defined by ; a be a sensing action described by the axiom [a determines f ] in ; and  = (M ,  )   (, a). It holds that: 1. (M ,  ) |= Cf (,a)  if and only if (M ,  ) |=  where   {f, ¬f } 2. (M ,  ) |= Cp(,a) (Cf (,a) f  Cf (,a) ¬f ) 3. for each agent   o(, a) and literal, , (M ,  ) |= B  if and only if (M ,  ) |= B  Theorem 3. Let  be an action description of mAL;  = (M ,  ) be a state of the transition diagram defined by ; a be a communication action described by the axiom [a communicates ] in ; and  = (M ,  )   (, a). It holds that:
+
+1. (M ,  ) |= Cf (,a)  2. (M ,  ) |= Cp(,a) (Cf (,a)   Cf (,a) ¬) 3. for each agent   o(, a) and literal, , (M ,  ) |= B  if and only if (M ,  ) |= B 
+
+3
+
+Temporal Projection in mAL
+A, B A, B
+
+Recall that in Ex. 1 we presented the following sequence of actions by which A might achieve his goal: A distracts C , causing him to look away; 5 6 A, B once this is done, he then flips open both latches C C on the briefcase, thereby unlocking it; and finally C C A peeks inside. Space considerations preclude us from examining the entire trajectory, and conse7 8 A, B, C quently we will only show in detail how to obtain the successor state resulting from A flipping A, B, C A, B, C open the second latch (represented by the action Fig. 5: Successor state, 2 , re- f lip(A, l2 )). sulting from the action sequence Let 2 , shown in Fig. 5, be the state of the trandistract(A, C ), f lip(A, l1 ). sition diagram resulting from the sequence of actions: distract(A, C ), f lip(A, l1 ). 2 consists of four possible worlds4 , 5 , 6 , 7 , and 8 where: ­ M2 . (5 ) = {heads, locked, open(l1 ), ¬open(l2 ), attentive(A), attentive(B ), ¬attentive(C )} ­ M2 . (6 ) = {¬heads, locked, open(l1 ), ¬open(l2 ), attentive(A), attentive(B ), ¬attentive(C )} ­ M2 . (7 ) = {heads, locked, ¬open(l1 ), ¬open(l2 ), attentive(A), attentive(B ), ¬attentive(C )} ­ M2 . (8 ) = {¬heads, locked, ¬open(l1 ), ¬open(l2 ), attentive(A), attentive(B ), ¬attentive(C )} Like its predecessor, f lip(A, l2 ), is an ontic action, affecting only the values of the fluents of our possible worlds. Consequently, our intuition informs us that the structure of the successor state should essentially be unchanged. 2 and observation axioms (14) and (14) give f (2 , f lip(A, l2 )) = {A, B } and o(2 , f lip(A, l2 )) = {C } as the agents' frames of reference. Being an ontic action, the epistemic configuration, EC 2 , of the successor state resulting from f lip(A, l2 ) is given by Eu(2 , o (2 , f lip(A, l2 ))) and is shown in Fig. 6(a). As we can see, EC 2 is structurally similar to 2 , confirming our aforementioned intuition. According to the dynamic causal law (11), f lip(A, l2 ) causes open(l2 ). Furthermore, the state constraint (13), informs us that as a consequence of both l1 and l2 being open, the briefcase itself should become unlocked (i.e., ¬locked must now be true). The expansions of the scenarios in EC 2 , that are consistent with 2 :
+4
+
+The labels of the possible worlds have been abbreviated for legibility purposes.
+
+­ C (2 , (5 , p )) = {{heads, ¬locked, open(l1 ), open(l2 ), attentive(A), attentive(B ), ¬attentive(C )}} ­ C (2 , (6 , p )) = {{¬heads, ¬locked, open(l1 ), open(l2 ), attentive(A), attentive(B ), ¬attentive(C )}} ­ C (2 , (7 , i )) = {{heads, locked, ¬open(l1 ), ¬open(l2 ), attentive(A), attentive(B ), ¬attentive(C )}} ­ C (2 , (8 , i )) = {{¬heads, locked, ¬open(l1 ), ¬open(l2 ), attentive(A), attentive(B ), ¬attentive(C )}} confirm our intuition. Let 9 =  ((5 ,p )) , 10 =  ((6 ,p )) , 11 =  ((7 ,i )) , and 12 =  ((8 ,i )) . Application of the ontic update operation to 2 and EC 2 , Ou (2 , EC 2 ), yields the successor state, 3 , shown in Fig. 6(b). Careful examination of 3 shows that it entails a number of modal formulae, among which is C{A,B } ¬locked ­ indicating that it is a commonly held belief amongst A and B that the briefcase is unlocked. In addition, 3 entails C{A,B } ¬BC BA ¬locked, as well as other formulae illustrating that C is oblivious of all of the events that transpired since he was distracted, and that this is a commonly held belief amongst A and B .
+
+A, B
+
+A, B
+
+A, B
+
+A, B
+
+(5,p) C C
+
+A, B C
+
+(6,p)
+
+9 C
+
+A, B C
+
+10
+
+C
+
+C
+
+C
+
+(7,i)
+
+A, B, C
+
+(8,i)
+
+11
+
+A, B, C
+
+12
+
+A, B, C
+
+A, B, C
+
+A, B, C
+
+A, B, C
+
+(a)
+
+(b)
+
+Fig. 6. 6(a) shows the epistemic configuration, EC 2 , resulting from an occurrence of f lip(A, l2 ) in 2 , while 6(b) shows the resulting successor state, 3 .
+
+4
+
+Conclusions and Future Work
+
+In this paper we presented a new multi-agent action language mAL, which extends the language of mA+ [4] with state constraints from the language AL [9]. The language's application was presented in the context of representing and performing temporal projection in the context of a multi-agent variant of the Lin's Briefcase Domain [13], which heretofore could not be represented in either mA+ or the update model approaches of [2] and [6]. Future work includes a
+
+thorough analysis of the language's theoretical properties and formulation of the planning and diagnosis problems within a multi-agent context. Additional extensions to the language such as non-deterministic sensing actions, and false communication are under consideration as well.
+
+References
+1. Balduccini, M., Gelfond, M.: The AAA Architecture: An Overview. In: AAAI Spring Symposium 2008 on Architectures for Intelligent Theory-Based Agents (2008) 2. Baltag, A., Moss, L.S.: Logics for Epistemic Programs. Synthese 139(2), 165­224 (2004) 3. Baral, C.: Reasoning About Actions: Non-deterministic Effects, Constraints, and Qualification. In: Proceedings of the 14th International Joint Conferences on Artificial Intelligence 95. pp. 2017­2023. IJCAI '95, Morgan Kaufmann (1995) 4. Baral, C., Gelfond, G., Son, T.C., Pontelli, E.: An Action Language for Reasoning about Beliefs in Multi-Agent Domains. In: Proceedings of the 14th International Workshop on Non-Monotonic Reasoning (2012) 5. Baral, C., Gelfond, M.: Reasoning about effects of concurrent actions. Journal of Logic Programming 31, 85­117 (1997) 6. van Benthem, J., van Eijck, J., Kooi, B.: Logics of communication and change. Information and Computation 204(11), 1620­1662 (2006) 7. van Ditmarsch, H., van der Hoek, W., Kooi, B.: Dynamic Epistemic Logic. Springer (2008) 8. Fagin, R., Halpern, J.Y., Moses, Y., Vardi, M.Y.: Reasoning About Knowledge. MIT Press (1995) 9. Gelfond, M.: Handbook of Knowledge Representation ­ Chapter 7: Answer Sets. Elsevier (2007) 10. Gelfond, M., Lifschitz, V.: Representing Action and Change by Logic Programs. Journal of Logic Programming 17, 301­322 (1993) 11. Gelfond, M., Lifschitz, V.: Action Languages. Electronic Transactions on AI 3 (1998) 12. Lifschitz, V. (ed.): Formalizing Common Sense ­ Papers by John McCarthy. Ablex Publishing Corporation (1990) 13. Lin, F.: Embracing Causality in Specifying the Indirect Effects of Actions. In: Proceedings of the 14th International Joint Conferences on Artificial Intelligence. IJCAI '95, Morgan Kaufmann (1995) 14. Lin, F., Shoham, Y.: Provably correct theories of action. Journal of the ACM 42(2), 293­320 (1995) 15. McCain, N., Turner, H.: A Causal Theory of Ramifications and Qualifications. In: Proceedings of the 14th International Joint Conferences on Artificial Intelligence. IJCAI '95, Morgan Kaufmann (1995) 16. McCarthy, J.: Programs with common sense. In: Semantic Information Processing. pp. 403­418. MIT Press (1959) 17. McCarthy, J.: Mathematical Logic in Artificial Intelligence. Daedalus 117(1), 297­ 311 (1988)
+
+
