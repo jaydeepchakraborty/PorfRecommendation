@@ -1,170 +1,684 @@
-Exploring the KD45n Property of a Kripke Model After the Execution of an Action Sequence
+Exploring the KD45n Property of a Kripke Model After the Execution
+of an Action Sequence
 Tran Cao Son and Enrico Pontelli
-Computer Science Department New Mexico State University
 
 Chitta Baral and Gregory Gelfond
-Department of Computer Science and Engineering Arizona State University
+
+Computer Science Department
+New Mexico State University
+
+Department of Computer Science and Engineering
+Arizona State University
 
 Abstract
-The paper proposes a condition for preserving the KD45n property of a Kripke model when a sequence of update models is applied to it. The paper defines the notions of a primitive update model and a semi-reflexive KD45n (or sr-KD45n ) Kripke model. It proves that updating a sr-KD45n Kripke model using a primitive update model results in a sr-KD45n Kripke model, i.e., a primitive update model preserves the properties of a sr-KD45n Kripke model. It shows that several update models for modeling well-known actions found in the literature are primitive. This result provides guarantees that can be useful in presence of multiple applications of actions in multi-agent system (e.g., multi-agent planning).
+The paper proposes a condition for preserving the KD45n
+property of a Kripke model when a sequence of update models is applied to it. The paper defines the notions of a primitive
+update model and a semi-reflexive KD45n (or sr-KD45n )
+Kripke model. It proves that updating a sr-KD45n Kripke
+model using a primitive update model results in a sr-KD45n
+Kripke model, i.e., a primitive update model preserves the
+properties of a sr-KD45n Kripke model. It shows that several update models for modeling well-known actions found
+in the literature are primitive. This result provides guarantees that can be useful in presence of multiple applications of
+actions in multi-agent system (e.g., multi-agent planning).
 
 Introduction and Motivations
-In a multi-agent action setting, agents need to not just reason about the properties of the world, but also about their knowledge and beliefs about the world and about other agents' own knowledge and beliefs. Among the various formalizations of multi-agent actions and their impact on a physical and mental world, the action models introduced in (Baltag and Moss 2004; Baltag, Moss, and Solecki 1998) and later extended to update models in (van Benthem, van Eijck, and Kooi 2006; van Ditmarsch, van der Hoek, and Kooi 2007) are the most widely accepted. For example, these action models and update models1 have been employed in the study of epistemic planning problems in MAS (Bolander and Andersen 2011; L� owe, Pacuit, and Witzel 2011; van der Hoek and Wooldridge 2002; Baral et al. 2013). However, there is something fundamental missing in these formulations. Let us consider a variant of the coin example from (Baltag and Moss 2004): there are two agents, 1 and 2, and a coin in a box. The coin lies heads up, but the two agents are unaware of this fact. Let us assume that agent 1 alone learns that the coin lies heads up (e.g., by peeking into the box while 2 is looking away). Intuitively, in the resulting state, we should be able to conclude that the following formulae are true (Ki  and Bi  represent that i
-Copyright c 2014, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. 1 For the sake of simplicity, we will use the generic term "update model" to denote both "action models" and "update models." Furthermore, we will frequently use the terminology "execution of an action" to indicate the result of applying an update model.
+In a multi-agent action setting, agents need to not just
+reason about the properties of the world, but also about
+their knowledge and beliefs about the world and about other
+agents’ own knowledge and beliefs. Among the various
+formalizations of multi-agent actions and their impact on a
+physical and mental world, the action models introduced in
+(Baltag and Moss 2004; Baltag, Moss, and Solecki 1998)
+and later extended to update models in (van Benthem, van
+Eijck, and Kooi 2006; van Ditmarsch, van der Hoek, and
+Kooi 2007) are the most widely accepted. For example,
+these action models and update models1 have been employed in the study of epistemic planning problems in MAS
+(Bolander and Andersen 2011; Löwe, Pacuit, and Witzel
+2011; van der Hoek and Wooldridge 2002; Baral et al. 2013).
+However, there is something fundamental missing in these
+formulations. Let us consider a variant of the coin example
+from (Baltag and Moss 2004): there are two agents, 1 and
+2, and a coin in a box. The coin lies heads up, but the two
+agents are unaware of this fact. Let us assume that agent
+1 alone learns that the coin lies heads up (e.g., by peeking into the box while 2 is looking away). Intuitively, in
+the resulting state, we should be able to conclude that the
+following formulae are true (Ki ϕ and Bi ϕ represent that i
+c 2014, Association for the Advancement of Artificial
+Copyright 
+Intelligence (www.aaai.org). All rights reserved.
+1
+For the sake of simplicity, we will use the generic term “update model” to denote both “action models” and “update models.”
+Furthermore, we will frequently use the terminology “execution of
+an action” to indicate the result of applying an update model.
 
-knows that  is true (or i knows , for short) and i believes that  is true (i believes ); h denotes the coin being heads up): K1 h (1 knows h); �K2 h�K2 �h (2 does not know h); K1 (�K2 h�K2 �h) (1 knows that 2 does not know h); B2 (�K1 h�K1 �h) (2 believes that 1 does not know h); K1 (B2 (�K1 h�K1 �h)) (1 knows that 2 believes that 1 does not know h); etc. Intuitively, and as well accepted, the distinction between knowledge and beliefs is that knowledge must be true in the actual world while beliefs could be false. But when one looks at the formulations in (Baltag and Moss 2004; Baltag, Moss, and Solecki 1998) the Kripke models have only one accessibility relation and only one modality is defined; in (Baltag and Moss 2004) it is referred to as "knowledge". As one can notice, replacing B2 (�K1 h  �K1 �h) by K2 (�K1 h  �K1 �h) would not be intuitive. Also, the action and update model papers do not analyze the properties of the resulting Kripke models. In this paper, we propose a method for drawing conclusions regarding both knowledge and beliefs of agents (e.g., the above mentioned formulae) after the execution of a sequence of actions, in the spirit of belief updates (and update models) rather than the belief revision based approaches2 used in (Segerberg 1998; Baltag and Smets 2008; van Benthem 2007; van Ditmarsch 2005). We achieve this goal by noting that knowledge can be reduced to true belief in certain logics (Halpern, Samet, and Segev 2009). To see how this works, let us revisit the introductory example. The initial state of beliefs of agents 1 and 2 can be represented by the pointed Kripke model on the top-left of Fig. 1 (the actual world has a double circle). The logic of this model, together with the axiom Ki   Bi    (indicating knowledge is true belief), has �Ki h �Ki �h (i = 1, 2) as a consequence. The update model representing "1 peeks into the box while 2 is looking away" is given in the bottom-left of Fig. 1 which encodes the view of the action occurrence of each agent. Intuitively, it says that 1 sees the action occurs (denoted by the event  ) while 2 does not ( ). The result of the update is the pointed Kripke model on the right. It is easy to check that the logic specified by the result of the update (with the axiom Ki   Bi   ), entails the formulae in our initial example (e.g., 1 knows h, 1 knows that 2 believes that 1 does
-2 The belief revision based approach needs an additional ordering relation and is orthogonal to our approach.
+knows that ϕ is true (or i knows ϕ, for short) and i believes
+that ϕ is true (i believes ϕ); h denotes the coin being heads
+up): K1 h (1 knows h); ¬K2 h∧¬K2 ¬h (2 does not know
+h); K1 (¬K2 h∧¬K2 ¬h) (1 knows that 2 does not know h);
+B2 (¬K1 h∧¬K1 ¬h) (2 believes that 1 does not know h);
+K1 (B2 (¬K1 h∧¬K1 ¬h)) (1 knows that 2 believes that 1
+does not know h); etc. Intuitively, and as well accepted, the
+distinction between knowledge and beliefs is that knowledge
+must be true in the actual world while beliefs could be false.
+But when one looks at the formulations in (Baltag and
+Moss 2004; Baltag, Moss, and Solecki 1998) the Kripke
+models have only one accessibility relation and only one
+modality is defined; in (Baltag and Moss 2004) it is referred to as “knowledge”. As one can notice, replacing
+B2 (¬K1 h ∧ ¬K1 ¬h) by K2 (¬K1 h ∧ ¬K1 ¬h) would not
+be intuitive. Also, the action and update model papers do
+not analyze the properties of the resulting Kripke models.
+In this paper, we propose a method for drawing conclusions regarding both knowledge and beliefs of agents
+(e.g., the above mentioned formulae) after the execution of
+a sequence of actions, in the spirit of belief updates (and
+update models) rather than the belief revision based approaches2 used in (Segerberg 1998; Baltag and Smets 2008;
+van Benthem 2007; van Ditmarsch 2005). We achieve this
+goal by noting that knowledge can be reduced to true belief
+in certain logics (Halpern, Samet, and Segev 2009). To see
+how this works, let us revisit the introductory example. The
+initial state of beliefs of agents 1 and 2 can be represented by
+the pointed Kripke model on the top-left of Fig. 1 (the actual
+world has a double circle). The logic of this model, together
+with the axiom Ki ϕ ↔ Bi ϕ ∧ ϕ (indicating knowledge is
+true belief), has ¬Ki h∧¬Ki ¬h (i = 1, 2) as a consequence.
+The update model representing “1 peeks into the box while 2
+is looking away” is given in the bottom-left of Fig. 1 which
+encodes the view of the action occurrence of each agent. Intuitively, it says that 1 sees the action occurs (denoted by the
+event σ) while 2 does not (τ ). The result of the update is
+the pointed Kripke model on the right. It is easy to check
+that the logic specified by the result of the update (with the
+axiom Ki ϕ ↔ Bi ϕ ∧ ϕ), entails the formulae in our initial
+example (e.g., 1 knows h, 1 knows that 2 believes that 1 does
+2
+The belief revision based approach needs an additional ordering relation and is orthogonal to our approach.
 
 not knows h, etc.).
-1,2 s u 1,2 1,2 1 (s,) (u,) 2 1,2
-
-h
-
-�h
-
-h
-2
-
-�h
 1,2
+
+s
+
+h
 
 1
 
-pre: h
+1
 
-pre: true 1,2 2
+(s,σ)
 
+¬h
 
+2
 
+τ
 
+2
 
 1,2
 
+1,2
+
+(u,τ)
+2
+
 h
-(s,)
 
-Figure 1: Knowledge as true belief With our emphasis on distinguishing belief and knowledge, we also focus on what properties these modalities have and how they are preserved when a sequence of actions is executed. A limited attention to this has been paid in the literature--(Herzig, Lang, and Marquis 2005) being an exception. The focus has been mostly on properties of knowledge or beliefs of the agents after a single update-- e.g., (Baltag and Moss 2004) shows that all agents have the correct knowledge about a formula  after the execution of a public announcement. On the other hand, the more general question of whether the fundamental properties of beliefs (i.e., KD45n ) and knowledge (i.e., S4.4n ) are preserved by interesting classes of actions has been rarely touched. In this paper, we provide a feasible approach for drawing conclusions about the knowledge and beliefs of agents after the execution of an arbitrary sequence of actions, i.e., after updating a Kripke model by a sequence of update models. This is particularly important in applications such as in security (e.g., exchanging a key between a group of agents without revealing it to outsiders) and multi-agent planning (e.g., executing an attack plan while making the enemy believe otherwise). To this end, we present a sufficient syntactic condition on update models and Kripke models under which the KD45n property of the Kripke models is preserved after application of an update model. We observe that this result could be viewed as an extension of the result in (Halpern, Samet, and Segev 2009) to a dynamic setting. We demonstrate that update models found in the literature for representing several well-known actions satisfy the proposed sufficient condition. In the process, we identify some critical issues that need to be taken into consideration when update models are used.
+pre: true 1,2
 
-Li  ), referred to as (KLi ) for i = 1, . . . , k , and is closed under generalization, i.e., if it contains , then it will also contain Li . A logic generated by a set A of formulae (axioms) is the smallest normal logic containing A. For two sets of axioms 1 and 2 , 1 + 2 is the smallest normal logic containing 1 and 2 . Let AG = {1, 2, . . . , n} be a set of n agents. Each agent i is associated with a belief operator Bi and a knowledge operator Ki . Our focus is the logic of belief, called KD45n , over the language LAG (B1 , . . . , Bn ) that is generated by the following axioms: (D) Bi �Bi �, (4) Bi Bi Bi , and (5) �Bi Bi �Bi  where i  AG and   LAG (B1 , . . . , Bn ). It is shown in (Halpern, Samet, and Segev 2009) that knowledge can be reduced to true belief in KD45n . More specifically, the knowledge modality Ki is reducible to Bi in KD45n by the axiom Ki   (Bi   ). This also means that we can remove the knowledge modal operator from the language yet still be able to derive conclusions about knowledge of agents. A Kripke frame F is a tuple S, K1 , . . . , Kn where S is a set of worlds (or points) and Ki  S � S for i  AG , called the accessibility relation for i. A Kripke model M based on the frame F is a pair (F ,  ), where  : F [S ]  2P is a function that associates an interpretation of P to each world in F . For M = (F ,  ), M[ ] denotes  and M[S ] and M[i] denote the set of worlds S and Ki of F , respectively. A pointed Kripke model (or p-model) is a pair (M, s), where M is a Kripke model and s  M[S ], called the actual world. We will often represent a Kripke model M by a directed graph whose nodes are the worlds in M[S ] and the labeled edges are the members of M[i]. The name of a world is drawn next to the node and the interpretation associated to it is given by the label of the node. Entailment of formulae in LAG (L1 , . . . , Ln ) in a p-model is defined next. Definition 1 Given a formula  and a p-model (M, s): � (M, s) |=  if M[ ](s) |=  and  is an atomic formula; � (M, s) |= Li  if, for each t s.t. (s, t)  Ki , (M, t) |= ; � (M, s) |= � if (M, s) |= ; � (M, s) |= 1  2 if (M, s) |= �1 or (M, s) |= 2 . M |=  denotes that (M, s) |=  for each s  M[S ].  is said to be valid in a frame F if M |=  for every Kripke model M based on F . The set of valid formulae in F is denoted with T h(F ). For a class of frames S , T h(S ) is the set of formulae valid in each frame in S . A logic  is sound for S if   T h(S ); it is complete for S if T h(S )  . For a logic , a frame F is said to be a  frame if   T h(F ). A relation R  S � S is reflexive iff (u, u)  R for every u  S ; serial iff for every u  S there exists some v  S such that (u, v )  R; transitive iff (u, v )  R and (v, z )  R imply that (u, z )  R; Euclidean iff (u, v )  R and (u, z )  R imply that (v, z )  R. Frames can be characterized by the properties of their accessibility relations. It is known that a frame F = (S, K1 , . . . , Kn ) is a KD45n frame iff for every i = 1, . . . , n, Ki is serial, transitive, and Euclidean. A Kripke model M = (F ,  ) is said to be a KD45n model if its frame F is a KD45n frame.
+pre: h
+
+σ
+
+1,2
+
+u
+1,2
+
+¬h
+1,2
+
+h
+(s,τ)
+
+Figure 1: Knowledge as true belief
+With our emphasis on distinguishing belief and knowledge, we also focus on what properties these modalities
+have and how they are preserved when a sequence of actions is executed. A limited attention to this has been paid
+in the literature—(Herzig, Lang, and Marquis 2005) being
+an exception. The focus has been mostly on properties of
+knowledge or beliefs of the agents after a single update—
+e.g., (Baltag and Moss 2004) shows that all agents have the
+correct knowledge about a formula ϕ after the execution of a
+public announcement. On the other hand, the more general
+question of whether the fundamental properties of beliefs
+(i.e., KD45n ) and knowledge (i.e., S4.4n ) are preserved
+by interesting classes of actions has been rarely touched.
+In this paper, we provide a feasible approach for drawing conclusions about the knowledge and beliefs of agents
+after the execution of an arbitrary sequence of actions, i.e.,
+after updating a Kripke model by a sequence of update models. This is particularly important in applications such as in
+security (e.g., exchanging a key between a group of agents
+without revealing it to outsiders) and multi-agent planning
+(e.g., executing an attack plan while making the enemy believe otherwise). To this end, we present a sufficient syntactic condition on update models and Kripke models under
+which the KD45n property of the Kripke models is preserved after application of an update model. We observe
+that this result could be viewed as an extension of the result
+in (Halpern, Samet, and Segev 2009) to a dynamic setting.
+We demonstrate that update models found in the literature
+for representing several well-known actions satisfy the proposed sufficient condition. In the process, we identify some
+critical issues that need to be taken into consideration when
+update models are used.
 
 Background
-Logics of Knowledge and Belief. We consider the standard logics of knowledge and belief with a set of modalities L1 , . . . , Lk and use the notation from (Halpern, Samet, and Segev 2009). We use a collection P of propositions to describe the properties that characterize the world. LAG (L1 , . . . , Lk ) is the set of formulae defined as follows. Each p  P is a formula. If  and  are formulae then so are �,    , and Li  (i = 1, . . . , k ). The connectives , ,  can be defined in terms of � and . An atomic formula is a formula that does not contain a modal operator. A logic  is a set of formulae in LAG (L1 , . . . , Lk ) that (i) contains all propositional tautologies; (ii) is closed under modus ponens; and (iii) is closed under substitution. A logic is normal if it contains the axioms Li (   )  (Li  
+Logics of Knowledge and Belief. We consider the standard logics of knowledge and belief with a set of modalities L1 , . . . , Lk and use the notation from (Halpern, Samet,
+and Segev 2009). We use a collection P of propositions to describe the properties that characterize the world.
+LAG (L1 , . . . , Lk ) is the set of formulae defined as follows.
+Each p ∈ P is a formula. If ϕ and ψ are formulae then so
+are ¬ϕ, ϕ → ψ, and Li ϕ (i = 1, . . . , k). The connectives
+∨, ∧, ↔ can be defined in terms of ¬ and →. An atomic
+formula is a formula that does not contain a modal operator.
+A logic Λ is a set of formulae in LAG (L1 , . . . , Lk ) that
+(i) contains all propositional tautologies; (ii) is closed under
+modus ponens; and (iii) is closed under substitution. A logic
+is normal if it contains the axioms Li (ϕ → ψ) → (Li ϕ →
 
-Update Models. Update models describe transformations of (pointed) Kripke models according to a predetermined pattern. An update model uses structures similar to pointed Kripke models and they describe the effects of a transformation on p-models using an update operator (Baltag and Moss 2004; van Benthem, van Eijck, and Kooi 2006). A set {p   | p  P ,   LAG (B1 , . . . , Bn )} is called an LAG (B1 , . . . , Bn )-substitution (or substitution, for short). For each substitution sub and each p  P , we assume that sub contains exactly one formula p  . For simplicity of the presentation, we often omit p  p in a substitution. SU BLAG denotes the set of all substitutions. A substitution is used to encode changes caused by an action occurrence. A formula p   in a substitution states the condition () under which p will become true. For example, the action of flipping a coin can be represented by the substitution {h  �h} which says that h (the coin lies head up) is true iff �h (the coin lies head down) were true. Definition 2 (Update Model) An update model  is a tuple , R1 , . . . , Rn , pre, sub where �  is a set, whose elements are called events; � each Ri is a binary relation on ; � pre :   LAG (B1 , . . . , Bn ) is a function mapping each event a   to a formula in LAG (B1 , . . . , Bn ); and � sub :   SU BLAG . An update instance  is a pair (, e) where  is an update model and e   (or a designated event). An update template is a pair (, ) where  is an update model with the set of events  and   . Intuitively, an update model represents different views of an action occurrence, associated to the observability of agents. Each view is represented by an event in . The designated event in an update instance is the one that agents who are aware of the action occurrence will observe. Templates extend the notion of instance to capture non-deterministic actions and other non-simple actions. The relation Ri describes agent i's uncertainty about an action occurrence-- i.e., if (,  )  Ri and event  is performed, then agent i may believe that event  is executed instead. pre defines the action precondition and sub specifies the changes of fluent values after the execution of an action. An update model is serial (resp., reflexive, transitive, Euclidean) if, for every i  AG , Ri is serial (resp., reflexive, transitive, Euclidean). The update model in Fig. 1 is given by 0 = {,  }, {(,  ), (,  )}, {(,  ), (,  )}, pre, sub where pre( ) = h, pref ( ) = true, and sub( ) = sub( )=. It says that if the event  occurs then 1 is certain that  occurs while 2 thinks that  occurs. Definition 3 (Updates by an Update Model) Let  = , R1 , . . . , Rn , pre, sub be an update model and M=(F ,  ) be a Kripke model. The update operator induced by  defines a Kripke model M =M, where: � M [S ] = {(s,  ) | s  M[S ],   , (M, s) |= pre( )}; � ((s,  ), (s ,  ))  M [i] iff (s,  ), (s ,  )  M [S ], (s, s )  M[i] and (,  )  Ri ; � f  P .[M [ ]((s,  ))|=f iff f sub( ), (M, s)|=]. The update of a p-model (M, s) given an update template
+Li ψ), referred to as (KLi ) for i = 1, . . . , k, and is closed
+under generalization, i.e., if it contains ϕ, then it will also
+contain Li ϕ. A logic generated by a set A of formulae (axioms) is the smallest normal logic containing A. For two sets
+of axioms Λ1 and Λ2 , Λ1 + Λ2 is the smallest normal logic
+containing Λ1 and Λ2 .
+Let AG = {1, 2, . . . , n} be a set of n agents. Each
+agent i is associated with a belief operator Bi and a knowledge operator Ki . Our focus is the logic of belief, called
+KD45n , over the language LAG (B1 , . . . , Bn ) that is generated by the following axioms: (D) Bi ϕ→¬Bi ¬ϕ, (4)
+Bi ϕ→Bi Bi ϕ, and (5) ¬Bi ϕ→Bi ¬Bi ϕ where i ∈ AG and
+ϕ ∈ LAG (B1 , . . . , Bn ).
+It is shown in (Halpern, Samet, and Segev 2009) that
+knowledge can be reduced to true belief in KD45n . More
+specifically, the knowledge modality Ki is reducible to Bi in
+KD45n by the axiom Ki ϕ ↔ (Bi ϕ ∧ ϕ). This also means
+that we can remove the knowledge modal operator from the
+language yet still be able to derive conclusions about knowledge of agents.
+A Kripke frame F is a tuple hS, K1 , . . . , Kn i where S is a
+set of worlds (or points) and Ki ⊆ S × S for i ∈ AG, called
+the accessibility relation for i. A Kripke model M based on
+the frame F is a pair (F, π), where π : F[S] → 2P is a
+function that associates an interpretation of P to each world
+in F. For M = (F, π), M[π] denotes π and M[S] and
+M[i] denote the set of worlds S and Ki of F, respectively.
+A pointed Kripke model (or p-model) is a pair (M, s),
+where M is a Kripke model and s ∈ M[S], called the actual world. We will often represent a Kripke model M by
+a directed graph whose nodes are the worlds in M[S] and
+the labeled edges are the members of M[i]. The name of a
+world is drawn next to the node and the interpretation associated to it is given by the label of the node. Entailment of
+formulae in LAG (L1 , . . . , Ln ) in a p-model is defined next.
+Definition 1 Given a formula ϕ and a p-model (M, s):
+• (M, s) |= ϕ if M[π](s) |= ϕ and ϕ is an atomic formula;
+• (M, s) |= Li ϕ if, for each t s.t. (s, t) ∈ Ki , (M, t) |= ϕ;
+• (M, s) |= ¬ϕ if (M, s) 6|= ϕ;
+• (M, s) |= ϕ1 → ϕ2 if (M, s) |= ¬ϕ1 or (M, s) |= ϕ2 .
+M |= ϕ denotes that (M, s) |= ϕ for each s ∈ M[S]. ϕ
+is said to be valid in a frame F if M |= ϕ for every Kripke
+model M based on F. The set of valid formulae in F is
+denoted with T h(F). For a class of frames S, T h(S) is the
+set of formulae valid in each frame in S. A logic Λ is sound
+for S if Λ ⊆ T h(S); it is complete for S if T h(S) ⊆ Λ. For
+a logic Λ, a frame F is said to be a Λ frame if Λ ⊆ T h(F).
+A relation R ⊆ S × S is reflexive iff (u, u) ∈ R for
+every u ∈ S; serial iff for every u ∈ S there exists some
+v ∈ S such that (u, v) ∈ R; transitive iff (u, v) ∈ R and
+(v, z) ∈ R imply that (u, z) ∈ R; Euclidean iff (u, v) ∈ R
+and (u, z) ∈ R imply that (v, z) ∈ R.
+Frames can be characterized by the properties of their
+accessibility relations. It is known that a frame F =
+(S, K1 , . . . , Kn ) is a KD45n frame iff for every i =
+1, . . . , n, Ki is serial, transitive, and Euclidean. A Kripke
+model M = (F, π) is said to be a KD45n model if its
+frame F is a KD45n frame.
 
-(, ) is a set of p-models, denoted by (M, s)  (, ), where (M , s )(M, s)  (, ) iff it holds that M =M   and s = (s,  ) where    and s  M [S ]. Intuitively, the set (M, s)  (, ) is the set of p-models encoding the result of the execution of the action, which is represented by the update template (, ), in the p-model (M, s). It is easy to see that the p-model on the right of Fig. 1 is the unique element of (M0 , s)  (, { }) where M0 = ( {s, u}, K1 , K2 ,  ) with K1 = K2 = {(x, y ) | x, y  {s, u}},  (s)(h) = true, and  (u)(h) = f alse. We will often depict an update instance via a graph with rectangles representing events (double rectangles for designated events), and labeled edges representing each Ri .
+Update Models. Update models describe transformations
+of (pointed) Kripke models according to a predetermined
+pattern. An update model uses structures similar to pointed
+Kripke models and they describe the effects of a transformation on p-models using an update operator (Baltag and Moss
+2004; van Benthem, van Eijck, and Kooi 2006).
+A set {p → ϕ | p ∈ P, ϕ ∈ LAG (B1 , . . . , Bn )}
+is called an LAG (B1 , . . . , Bn )-substitution (or substitution,
+for short). For each substitution sub and each p ∈ P, we
+assume that sub contains exactly one formula p → ϕ. For
+simplicity of the presentation, we often omit p → p in a
+substitution. SU BLAG denotes the set of all substitutions.
+A substitution is used to encode changes caused by an action occurrence. A formula p → ϕ in a substitution states
+the condition (ϕ) under which p will become true. For example, the action of flipping a coin can be represented by
+the substitution {h → ¬h} which says that h (the coin lies
+head up) is true iff ¬h (the coin lies head down) were true.
+Definition 2 (Update Model) An update model Σ is a tuple
+hΣ, R1 , . . . , Rn , pre, subi where
+• Σ is a set, whose elements are called events;
+• each Ri is a binary relation on Σ;
+• pre : Σ → LAG (B1 , . . . , Bn ) is a function mapping
+each event a ∈ Σ to a formula in LAG (B1 , . . . , Bn ); and
+• sub : Σ → SU BLAG .
+An update instance ω is a pair (Σ, e) where Σ is an update
+model and e ∈ Σ (or a designated event). An update template is a pair (Σ, Γ) where Σ is an update model with the
+set of events Σ and Γ ⊆ Σ.
+Intuitively, an update model represents different views of an
+action occurrence, associated to the observability of agents.
+Each view is represented by an event in Σ. The designated
+event in an update instance is the one that agents who are
+aware of the action occurrence will observe. Templates extend the notion of instance to capture non-deterministic actions and other non-simple actions. The relation Ri describes agent i’s uncertainty about an action occurrence—
+i.e., if (σ, τ ) ∈ Ri and event σ is performed, then agent i
+may believe that event τ is executed instead. pre defines the
+action precondition and sub specifies the changes of fluent
+values after the execution of an action. An update model
+is serial (resp., reflexive, transitive, Euclidean) if, for every
+i ∈ AG, Ri is serial (resp., reflexive, transitive, Euclidean).
+The update model in Fig. 1 is given by Σ0 =
+h{σ, τ }, {(σ, σ), (τ, τ )}, {(σ, τ ), (τ, τ )}, pre, subi where
+pre(σ) = h, pref (τ ) = true, and sub(σ) = sub(τ )=∅. It
+says that if the event σ occurs then 1 is certain that σ occurs
+while 2 thinks that τ occurs.
+Definition 3 (Updates by an Update Model) Let
+Σ = hΣ, R1 , . . . , Rn , pre, subi be an update model
+and M=(F, π) be a Kripke model. The update operator
+induced by Σ defines a Kripke model M0 =M⊗Σ, where:
+• M0 [S] = {(s, τ ) | s ∈ M[S], τ ∈ Σ, (M, s) |= pre(τ )};
+• ((s, τ ), (s0 , τ 0 )) ∈ M0 [i] iff (s, τ ), (s0 , τ 0 ) ∈ M0 [S],
+(s, s0 ) ∈ M[i] and (τ, τ 0 ) ∈ Ri ;
+• ∀f ∈ P.[M0 [π]((s, τ ))|=f iff f →ϕ∈sub(τ ), (M, s)|=ϕ].
+The update of a p-model (M, s) given an update template
+
+(Σ, Γ) is a set of p-models, denoted by (M, s) ⊗ (Σ, Γ),
+where (M0 , s0 )∈(M, s) ⊗ (Σ, Γ) iff it holds that M0 =M ⊗
+Σ and s0 = (s, τ ) where τ ∈ Γ and s0 ∈ M0 [S].
+Intuitively, the set (M, s) ⊗ (Σ, Γ) is the set of p-models
+encoding the result of the execution of the action, which is
+represented by the update template (Σ, Γ), in the p-model
+(M, s). It is easy to see that the p-model on the right of
+Fig. 1 is the unique element of (M0 , s) ⊗ (Σ, {σ}) where
+M0 = (h{s, u}, K1 , K2 i, π) with K1 = K2 = {(x, y) |
+x, y ∈ {s, u}}, π(s)(h) = true, and π(u)(h) = f alse.
+We will often depict an update instance via a graph with
+rectangles representing events (double rectangles for designated events), and labeled edges representing each Ri .
 
 Maintaining KD45n via Update Models
-In this section, we present a sufficient condition for the maintenance of the KD45n property of a Kripke model M after the application of a sequence of update models 1 , . . . , k . The next lemma shows that updating a p-model by an update model does preserve reflexivity, transitivity, and Euclidicity of a Kripke model if the update model also satisfies the corresponding property. Observe that, since we are exploring structural properties of the frames underlying updated models, we will not emphasize the designated events and the actual world whenever it is unnecessary. Lemma 1 Let M = (F ,  ) be a Kripke model and  = , R1 , . . . , Rn , pre, sub be an update model. Then, the following properties hold: � if M and  are reflexive then M   is reflexive; � if M and  are transitive then M   is transitive; and � if M and  are Euclidean then M   is Euclidean. The lemma shows that reflexivity, transitivity, and Euclidicity of a Kripke model can be easily maintained if the update model possesses the same property. As reflexivity implies seriality, the properties of KD45n would be maintained if all update models used are reflexive, transitive, and Euclidean. This is, however, not always the case, as we will see later. Furthermore, seriality of M   is not guaranteed even when M and  are serial, as shown next. Example 1 Consider the domain with two agents 1 and 2 and the set of propositions {h}. Let us consider the update model 1 = { }, R1 , R2 , pre, sub , where R1 = R2 = {(,  )}, pre( ) = h, and sub( ) =  (Fig. 2, top left). Let M1 be the Kripke model (F1 , 1 ), where F1 = {s, u}, {(s, s), (u, u)}, {(s, u), (u, u)} , 1 (s) = {h}, and 1 (u) =  (Fig. 2, bottom left). As we will see later, the update model represents a public announcement that h is true. We can see that 1 and M1 are serial, transitive, and Euclidean. How(s,) 1,2  ever, M1  1  1 h pre: h (right, Fig. 2), is not serial, since 2 1,2 h �h there is no suc- 1 cessor of (s,  ) s u with respect to Figure 2: Lost of seriality the agent 2.
+In this section, we present a sufficient condition for the
+maintenance of the KD45n property of a Kripke model
+M after the application of a sequence of update models
+Σ1 , . . . , Σk . The next lemma shows that updating a p-model
+by an update model does preserve reflexivity, transitivity,
+and Euclidicity of a Kripke model if the update model also
+satisfies the corresponding property. Observe that, since we
+are exploring structural properties of the frames underlying updated models, we will not emphasize the designated
+events and the actual world whenever it is unnecessary.
+Lemma 1 Let M = (F, π) be a Kripke model and Σ =
+hΣ, R1 , . . . , Rn , pre, subi be an update model. Then, the
+following properties hold:
+• if M and Σ are reflexive then M ⊗ Σ is reflexive;
+• if M and Σ are transitive then M ⊗ Σ is transitive; and
+• if M and Σ are Euclidean then M ⊗ Σ is Euclidean.
+The lemma shows that reflexivity, transitivity, and Euclidicity of a Kripke model can be easily maintained if the update
+model possesses the same property. As reflexivity implies
+seriality, the properties of KD45n would be maintained
+if all update models used are reflexive, transitive, and Euclidean. This is, however, not always the case, as we will
+see later. Furthermore, seriality of M ⊗ Σ is not guaranteed
+even when M and Σ are serial, as shown next.
+Example 1 Consider the domain with two agents 1 and 2
+and the set of propositions {h}. Let us consider the update
+model Σ1 = h{σ}, R1 , R2 , pre, subi, where R1 = R2 =
+{(σ, σ)}, pre(σ) = h, and sub(σ) = ∅ (Fig. 2, top left).
+Let M1 be the Kripke model (F1 , π1 ), where F1 =
+h{s, u}, {(s, s), (u, u)}, {(s, u), (u, u)}i, π1 (s) = {h}, and
+π1 (u) = ∅ (Fig. 2, bottom left). As we will see later, the update model represents a public announcement that h is true.
+We can see that Σ1 and M1 are serial, transitive, and
+Euclidean. How(s,σ)
+1,2
+σ
+ever, M1 ⊗ Σ1
+⊗
+1
+h
+pre: h
+(right, Fig. 2), is
+not serial, since
+2
+1,2
+h
+¬h
+there is no suc- 1
+cessor of (s, σ)
+s
+u
+with respect to
+Figure 2: Lost of seriality
+the agent 2.
 
-The above example also highlights that the update models of epistemic actions might not work properly for logics different from S5. We will return to this issue in Discussion Section at the end of the paper. The main reason for the loss of the seriality in M1  1 lies in the fact that the precondition of  in 1 is h and both R1 and R2 are reflexive. This indicates that for M1  1 to maintain its seriality, in each world that satisfies the precondition of  , the accessibility relation of any agent must contain a successor with the same interpretation. Intuitively, this means that the agent cannot have wrong beliefs. We will refer to this property as semireflexivity and formalize it as follows. Let M be a Kripke model and let u, v  M[S ]. Let us define u  v iff M[ ](u)  M[ ](v ). Intuitively, u  v means that u and v are associated to the same interpretation over P by the function M[ ]. Definition 4 A Kripke model M is semi-reflexive if for every i  AG and u  M[S ], there exists some v such that (u, v )  M [i] and u  v . It is easy to see that a Kripke model is semi-reflexive then it is serial. Furthermore, semi-reflexivity is a property of a Kripke model and differs seriality, transitivity, or reflexivity which are properties of the frame of the Kripke model. Although semi-reflexive Kripke models can avoid the problem mentioned in Example 1, updating a semi-reflexive Kripke model using an arbitrary update model can result in a nonsemi-reflexive Kripke model as seen in the next example. Example 2 Consider again the domain in Example 1. Let 2 and M2 be the update model and Kripke model depicted in Fig. 3, top left and bottom left, respectively. The substitution function in 2 is given by sub( ) = {h  f alse} and sub( ) = {h  true}. It is easy to see that M2  2 (Fig. 3, right) is not semi-reflexive ((s,  ) wrt. agent 2).
-(s,) (s,!)
-
-beliefs prior to the occurrence of the action represented by . This is proved in the next lemma. Lemma 2 If M is semi-reflexive and  is primitive then M   is semi-reflexive. We are now ready to formalize a theorem that characterizes a sufficient condition for maintaining the belief structures of a Kripke model after the application of an update model. Definition 6 A Kripke model is a sr-KD45n Kripke model if it is semi-reflexive, transitive, and Euclidean. Theorem 1 For a sr-KD45n Kripke model M and a primitive update model , M  is a sr-KD45n Kripke model. The proof of the theorem follows directly from Lemmas 1 and 2. This leads to the following consequence. Corollary 1 The result of applying a sequence of primitive update models to a sr-KD45n Kripke model is a srKD45n Kripke model. The corollary, together with the result in (Halpern, Samet, and Segev 2009), implies that we can assert the state-ofknowledge of the agents after the execution of a sequence of actions in terms of update models if the initial p-model is given by a sr-KD45n Kripke model. We observe that the initial p-model in the majority of examples from the literature (e.g., the muddy children, the card game, the number game, etc.) are S5 Kripke models (and, thus, srKD45n ). This result is also significant to multi-agent planning approaches that employ update models (Bolander and Andersen 2011; L� owe, Pacuit, and Witzel 2011; van der Hoek and Wooldridge 2002) as the initial p-model in a multi-agent planning problem is often a S5 Kripke model. To support our claims, we need to show next that several classes of update models found in the literature (Baltag and Moss 2004; Baltag, Moss, and Solecki 1998; van Benthem, van Eijck, and Kooi 2006; van Ditmarsch, van der Hoek, and Kooi 2007) are indeed primitive. Truthful Public Announcements. A truthful public announcement of a formula is an action that communicates to all agents that pre: ! the formula is true. For example, in the muddy children example, the father informs his children that at 1..n least one of them is muddy. After the execution of a public announcement, all Figure 4: Ann (AG ; ; ) agents will know that the announced formula is true. A truthful public announcement of a formula  to the agents in AG is often given in the literature by an update model Ann (AG ; ; ) = { }, R1 , . . . , Rn , pre, sub where R1 = . . . = Rn = {(,  )}, pre( ) = , and sub( ) =  (Fig. 4). It is easy to see that if  is an atomic formula then the update model Ann (AG ; ; ) for truthful public announcement is a primitive update model. Private Announcements. A private announcement of a formula  to a group A  AG while other agents are unaware of its occurrence (e.g., the father whis-
+The above example also highlights that the update models of epistemic actions might not work properly for logics
+different from S5. We will return to this issue in Discussion
+Section at the end of the paper. The main reason for the loss
+of the seriality in M1 ⊗ Σ1 lies in the fact that the precondition of σ in Σ1 is h and both R1 and R2 are reflexive. This
+indicates that for M1 ⊗ Σ1 to maintain its seriality, in each
+world that satisfies the precondition of σ, the accessibility
+relation of any agent must contain a successor with the same
+interpretation. Intuitively, this means that the agent cannot
+have wrong beliefs. We will refer to this property as semireflexivity and formalize it as follows.
+Let M be a Kripke model and let u, v ∈ M[S]. Let us
+define u ∼ v iff M[π](u) ≡ M[π](v). Intuitively, u ∼ v
+means that u and v are associated to the same interpretation
+over P by the function M[π].
+Definition 4 A Kripke model M is semi-reflexive if for every i ∈ AG and u ∈ M[S], there exists some v such that
+(u, v) ∈ M [i] and u ∼ v.
+It is easy to see that a Kripke model is semi-reflexive then
+it is serial. Furthermore, semi-reflexivity is a property of a
+Kripke model and differs seriality, transitivity, or reflexivity
+which are properties of the frame of the Kripke model. Although semi-reflexive Kripke models can avoid the problem
+mentioned in Example 1, updating a semi-reflexive Kripke
+model using an arbitrary update model can result in a nonsemi-reflexive Kripke model as seen in the next example.
+Example 2 Consider again the domain in Example 1. Let
+Σ2 and M2 be the update model and Kripke model depicted
+in Fig. 3, top left and bottom left, respectively. The substitution function in Σ2 is given by sub(σ) = {h → f alse}
+and sub(τ ) = {h → true}. It is easy to see that M2 ⊗ Σ2
+(Fig. 3, right) is not semi-reflexive ((s, σ) wrt. agent 2).
+(s,σ)
 
 1
 
-
-pre: h
+σ
 
 2
 
+h
+s
+
+1,2
 
 pre: true
 
-1,2
-
-1
-
-�h
-
-2 2 2
-
-h
+pre: h
 
 1,2
 
-
-1,2
-
-1,2
-
-h s
+τ
 
 2
 
-�h u
+¬h
+u
 
-h
-(u,!)
+1
 
+⊗
 1,2
 
-Figure 3: Loss of semi-reflexivity In Example 2, M2 is reflexive. However, the accessibility relation for 2 in 2 is not. The key issue lies in that the substitution function in 2 assigns different interpretations for  and  . To maintain the semi-reflexivity of M2 , there are two possibilities: the update model should be reflexive or there must be a link in the update model that allows the preservation of the semi-reflexivity of M2 . This leads us to define a notion of a primitive update model: Definition 5 A serial, transitive, and Euclidean update model is primitive if the precondition pre( ) at every event  is an atomic formula and for every i  AG and (,  )  Ri such that  =  then either (i) (,  )  Ri ; or (ii) pre( ) = true and sub( ) = sub( ) = . A primitive update model  essentially guarantees that an agent cannot have false beliefs if she does not have false
-
-
-
-pering to one of his children that at least one of them is muddy) can be represented by an update model Ann (A; ; ) = {,  }, R1 , . . . , Rn , pre, sub where Ri = {(,  ), (,  )} pre: true pre: true for i  A, Ri = B A,B !  {(,  ), (,  )} for A i  A, pre( ) = , pre( ) = true, and Figure 5: Ann (A; ; ) sub( ) = sub( ) =  (Fig. 5). We can easily check that if  is an atomic formula then the update model Ann (A; ; ) for private announcement is a primitive update model. Semi-Private Announcements. The occurrence of a private announcement action can be observed by some agents. In this situation, the agents--who observe the action occurrence--will be aware of the fact that the agents--to whom the announcement is made--have knowledge about the formula. However, they do not know the truth value of the formula. The action is referred to as a semi-private announcement. Let A be the set of agents to whom the anpre: " pre: �" nouncement is made; let B B the set of agents who A B A B  ! observe the announcement, where A  B = ; C C let C = AG \ (A  B ). A B C A semi-private an nouncement to A with pre: true B observing can be forAnn Figure 6:  (A; B ; ) mulated by the update Ann model  (A; B ; )= {, , }, R1 , . . . , Rn , pre, sub where Ri ={(,  ), (,  ), ( , )} for i  A, Ri ={(,  ), (,  ), ( , ), (,  ), (,  )} for iB , Ri = {(, ), (, ), ( , )} for i  C , pre( ) = , pre( ) = �, pre( ) = true, and sub( ) = sub( ) = sub( ) =  (Fig. 6). We can easily check that if  is an atomic formula then the update model Ann (A; B ; ) for a semi-private announcement is a primitive update model. Sensing Actions. A sensing action helps an agent to determine the truth value of a formula . In a multiagent environment, the occurrence of a sensing action that determines the value of  has a similar effect on the pre: " pre: �" agents in the environB ment as a semi-private A B A B  ! announcement. Indeed, the update model C C Sensing (A; B ; ) for A B C a sensing action of a  formula  is identical to pre: true that of Ann (A; B ; ) Sensing (A; B ; ) where A and B are sets Figure 7:  of agents that are fully aware and partially aware of the action occurrence (Fig. 7). The main distinction between a semi-private announcement and a sensing action lies in that the former will have only one designated event ( ) while the latter will have two ( and  ). Again, we can check that Sensing (A; B ; ) is a primitive update model. A subtle difference between the occurrence of an announcement action and a sensing action lies in the non-determinism
-
-of the state-of-knowledge of agents who are fully aware of the action occurrence. Fully Observable Ontic Actions. An ontic action is different from announcement and sensing actions, in that it changes the "real" state of the world, and thereby changing the state of knowledge of the agents. For instance, the action of flipping a switch changes the position of the switch from on to �on (or off) and from �on to on. In general, the effects of an ontic action act can be given by the set C of formulae of the form p   where  is an atomic formula characterizing the p-model of the world in which p would become true after the execution of act, i.e., by a substitution. An occurrence of an ontic action that is fully observable by all agents can be modeled by an update model On (AG ; ; C ) = ({ }, R1 , . . . , Rn , pre, sub) where R1 = . . . = Rn = {(,  )}, pre( ) = , and sub( ) = C where  is the precondition of the action and C is the set of its effects. Again, we can see that if  is an atomic formula then On (AG ; ; C ) is a primitive update model.
-
-Discussions
-Our work in this paper is closely related to (Herzig, Lang, and Marquis 2005). Indeed, in our terminology, Proposition 1 in (Herzig, Lang, and Marquis 2005) states that the result of an update on a KD45n Kripke model is a KD45n Kripke model. As it turns out, the key difference between the two formalizations lies in the assumption made about the actions and the type of actions that are considered. We observe that the work in (Herzig, Lang, and Marquis 2005) considers only two types of actions, ontic actions and observation actions; furthermore, the latter type of actions is considered only in S5 models. Our result, as shown in the previous section, is on the other hand applicable to all different types of actions. More importantly, it is assumed in (Herzig, Lang, and Marquis 2005) that the execution of an action in a given p-model of the world always results in some other p-model--this assumption means that actions can always be executed. This is, in our view, not a realistic assumption; for example, one cannot open a locked door without having a key for it. In our notation, this implies that for every update model  = , R1 , . . . , Rn , pre, sub , we have that pre( ) = true for every   . It is easy to see that, under this assumption, the update M   is a KD45n Kripke model if M and  are serial, transitive, and Euclidean. Observe that the result of our work is also applicable for single agent domains. To the best of our knowledge, it is the first to distinguish between knowledge and beliefs of an agent in a single-agent domains. Previous works on reasoning about knowledge of an agent in the presence of incomplete information and sensing actions in single-agent domains (e.g., (Scherl and Levesque 2003; Son and Baral 2001)) do not investigate this distinction as they considered only the knowledge modal operator. We conclude this section with an example that shows that the proposed sufficient condition does not cover the most general case of ontic actions and highlights a weakness of the approach using update models. We then discuss a possible solution for the issue raised by this example.
-
-Example 3 Consider a variation of Example 2 from (Baral et al. 2013): a domain with 3 agents AG = {1, 2, 3} and two propositions: o (opened) and h (head). The agents are in a room with a box that is not open (�o). The box contains a coin that lies head up (h), but none of the agent knows this. The initial p-model (M0 , s) encoding the knowledge of the agents and the actual world is given in Fig. 8 (left), where the double circle represents the actual world. The interpretation associated to each world is given by the label of the node. The names of the world (s and u) are given as text next to the node. On the right of Fig. 8 is an update template (f lip , { }), encoding the occurrence of the action flip that makes o true; agents 1 and 2 are aware of the action occurrence, while 3 is oblivious of it. The substitution in f lip is given by sub( ) = {o  true} and sub( ) = . Observe that f lip is not a primitive update model.
-s �o h
-1,2,3
-
-(2 f lip , { }) which is obtained from (f lip , { }) by adding an additional event  as in (Fig. 11) where sub( ) = sub( ). The result of updating (M0 , s) using (2 f lip , { }), (M2 , (s,  )) (Fig. 12), remains a sr-KD45n pmodel. We can verify that updating (M2 , (s,  )) with (Ann (AG ; ; o), { }) results in a sr-KD45n p-model.
-1,2,3 3 1,2,3 1,2,3
+¬h
 
 (s,!)
 
+2
+2
+
+1,2
+
+h
+2
+
+h
+
+1,2
+
 (u,!)
 
-(u,)
+Figure 3: Loss of semi-reflexivity
+In Example 2, M2 is reflexive. However, the accessibility
+relation for 2 in Σ2 is not. The key issue lies in that the
+substitution function in Σ2 assigns different interpretations
+for σ and τ . To maintain the semi-reflexivity of M2 , there
+are two possibilities: the update model should be reflexive
+or there must be a link in the update model that allows the
+preservation of the semi-reflexivity of M2 . This leads us to
+define a notion of a primitive update model:
+Definition 5 A serial, transitive, and Euclidean update
+model is primitive if the precondition pre(σ) at every event
+σ is an atomic formula and for every i ∈ AG and (σ, τ ) ∈
+Ri such that σ 6= τ then either (i) (σ, σ) ∈ Ri ; or (ii)
+pre(τ ) = true and sub(τ ) = sub(σ) = ∅.
+A primitive update model Σ essentially guarantees that an
+agent cannot have false beliefs if she does not have false
 
-�o h
+beliefs prior to the occurrence of the action represented by
+Σ. This is proved in the next lemma.
+Lemma 2 If M is semi-reflexive and Σ is primitive then
+M ⊗ Σ is semi-reflexive.
+We are now ready to formalize a theorem that characterizes
+a sufficient condition for maintaining the belief structures of
+a Kripke model after the application of an update model.
+Definition 6 A Kripke model is a sr-KD45n Kripke model
+if it is semi-reflexive, transitive, and Euclidean.
+Theorem 1 For a sr-KD45n Kripke model M and a primitive update model Σ, M⊗Σ is a sr-KD45n Kripke model.
+The proof of the theorem follows directly from Lemmas 1
+and 2. This leads to the following consequence.
+Corollary 1 The result of applying a sequence of primitive update models to a sr-KD45n Kripke model is a srKD45n Kripke model.
+The corollary, together with the result in (Halpern, Samet,
+and Segev 2009), implies that we can assert the state-ofknowledge of the agents after the execution of a sequence
+of actions in terms of update models if the initial p-model
+is given by a sr-KD45n Kripke model. We observe that
+the initial p-model in the majority of examples from the
+literature (e.g., the muddy children, the card game, the
+number game, etc.) are S5 Kripke models (and, thus, srKD45n ). This result is also significant to multi-agent
+planning approaches that employ update models (Bolander and Andersen 2011; Löwe, Pacuit, and Witzel 2011;
+van der Hoek and Wooldridge 2002) as the initial p-model in
+a multi-agent planning problem is often a S5 Kripke model.
+To support our claims, we need to show next that several
+classes of update models found in the literature (Baltag and
+Moss 2004; Baltag, Moss, and Solecki 1998; van Benthem,
+van Eijck, and Kooi 2006; van Ditmarsch, van der Hoek, and
+Kooi 2007) are indeed primitive.
+Truthful Public Announcements.
+A truthful public
+announcement of a formula is an action that communicates to all agents that
+pre: !
+the formula is true. For
+example, in the muddy
+children example, the father
+informs his children that at 1..n
+least one of them is muddy.
+After the execution of a
+public announcement, all
+Figure 4: ΣAnn (AG; ∅; ϕ)
+agents will know that the
+announced formula is true.
+A truthful public announcement of a formula ϕ to the agents
+in AG is often given in the literature by an update model
+ΣAnn (AG; ∅; ϕ) = h{σ}, R1 , . . . , Rn , pre, subi where
+R1 = . . . = Rn = {(σ, σ)}, pre(σ) = ϕ, and sub(σ) = ∅
+(Fig. 4). It is easy to see that if ϕ is an atomic formula
+then the update model ΣAnn (AG; ∅; ϕ) for truthful public
+announcement is a primitive update model.
+Private Announcements. A private announcement of
+a formula ϕ to a group A ⊆ AG while other agents
+are unaware of its occurrence (e.g., the father whis-
+
+σ
+
+pering to one of his children that at least one of them
+is muddy) can be represented by an update model
+ΣAnn (A; ∅; ϕ) = h{σ, τ }, R1 , . . . , Rn , pre, subi where
+Ri
+=
+{(σ, σ), (τ, τ )}
+pre: true
+pre: true
+for i ∈ A, Ri =
+B
+A,B
+!
+σ
+{(σ, τ ), (τ, τ )}
+for A
+i 6∈ A, pre(σ) = ϕ,
+pre(τ ) = true, and
+Figure 5: ΣAnn (A; ∅; ϕ)
+sub(σ) = sub(τ ) = ∅
+(Fig. 5). We can easily check that if ϕ is an atomic
+formula then the update model ΣAnn (A; ∅; ϕ) for private
+announcement is a primitive update model.
+Semi-Private Announcements. The occurrence of a
+private announcement action can be observed by some
+agents. In this situation, the agents—who observe the action
+occurrence—will be aware of the fact that the agents—to
+whom the announcement is made—have knowledge about
+the formula. However, they do not know the truth value
+of the formula. The action is referred to as a semi-private
+announcement. Let A be the set of agents to whom the anpre: "
+pre: ¬"
+nouncement is made; let
+B
+B the set of agents who A B
+A
+B
+σ
+!
+observe the announcement, where A ∩ B = ∅;
+C
+C
+let C = AG \ (A ∪ B).
+A
+B
+C
+A semi-private anε
+nouncement to A with
+pre: true
+B observing can be forAnn
+Figure
+6:
+Σ
+(A; B; ϕ)
+mulated by the update
+Ann
+model Σ
+(A; B; ϕ)=h{σ, τ, }, R1 , . . . , Rn , pre, subi
+where Ri ={(σ, σ), (τ, τ ), (, )} for i
+∈
+A,
+Ri ={(σ, σ), (τ, τ ), (, ), (σ, τ ), (τ, σ)} for i∈B, Ri =
+{(σ, ), (τ, ), (, )} for i ∈ C, pre(σ) = ϕ, pre(τ ) = ¬ϕ,
+pre() = true, and sub(σ) = sub(τ ) = sub() = ∅
+(Fig. 6). We can easily check that if ϕ is an atomic formula
+then the update model ΣAnn (A; B; ϕ) for a semi-private
+announcement is a primitive update model.
+Sensing Actions. A sensing action helps an agent to
+determine the truth value of a formula ϕ. In a multiagent environment, the occurrence of a sensing action
+that determines the value of ϕ has a similar effect on the
+pre: "
+pre: ¬"
+agents in the environB
+ment as a semi-private A B
+A
+B
+σ
+!
+announcement.
+Indeed, the update model
+C
+C
+ΣSensing (A; B; ϕ) for
+A
+B
+C
+a sensing action of a
+ε
+formula ϕ is identical to
+pre: true
+that of ΣAnn (A; B; ϕ)
+Sensing
+(A; B; ϕ)
+where A and B are sets Figure 7: Σ
+of agents that are fully aware and partially aware of the
+action occurrence (Fig. 7). The main distinction between a
+semi-private announcement and a sensing action lies in that
+the former will have only one designated event (σ) while
+the latter will have two (σ and τ ). Again, we can check that
+ΣSensing (A; B; ϕ) is a primitive update model.
+A subtle difference between the occurrence of an announcement action and a sensing action lies in the non-determinism
+
+of the state-of-knowledge of agents who are fully aware of
+the action occurrence.
+Fully Observable Ontic Actions. An ontic action is different from announcement and sensing actions, in that it
+changes the “real” state of the world, and thereby changing
+the state of knowledge of the agents. For instance, the action
+of flipping a switch changes the position of the switch from
+on to ¬on (or off) and from ¬on to on. In general, the effects
+of an ontic action act can be given by the set C of formulae
+of the form p → ψ where ψ is an atomic formula characterizing the p-model of the world in which p would become
+true after the execution of act, i.e., by a substitution.
+An occurrence of an ontic action that is fully observable by all agents can be modeled by an update model
+ΣOn (AG; ϕ; C) = ({σ}, R1 , . . . , Rn , pre, sub) where
+R1 = . . . = Rn = {(σ, σ)}, pre(σ) = ϕ, and sub(σ) = C
+where ϕ is the precondition of the action and C is the set of
+its effects. Again, we can see that if ϕ is an atomic formula
+then ΣOn (AG; ϕ; C) is a primitive update model.
+
+Discussions
+Our work in this paper is closely related to (Herzig, Lang,
+and Marquis 2005). Indeed, in our terminology, Proposition
+1 in (Herzig, Lang, and Marquis 2005) states that the result of an update on a KD45n Kripke model is a KD45n
+Kripke model. As it turns out, the key difference between
+the two formalizations lies in the assumption made about
+the actions and the type of actions that are considered. We
+observe that the work in (Herzig, Lang, and Marquis 2005)
+considers only two types of actions, ontic actions and observation actions; furthermore, the latter type of actions is considered only in S5 models. Our result, as shown in the previous section, is on the other hand applicable to all different
+types of actions. More importantly, it is assumed in (Herzig,
+Lang, and Marquis 2005) that the execution of an action in
+a given p-model of the world always results in some other
+p-model—this assumption means that actions can always be
+executed. This is, in our view, not a realistic assumption;
+for example, one cannot open a locked door without having a key for it. In our notation, this implies that for every
+update model Σ = hΣ, R1 , . . . , Rn , pre, subi, we have that
+pre(σ) = true for every σ ∈ Σ. It is easy to see that, under this assumption, the update M ⊗ Σ is a KD45n Kripke
+model if M and Σ are serial, transitive, and Euclidean.
+Observe that the result of our work is also applicable for
+single agent domains. To the best of our knowledge, it is
+the first to distinguish between knowledge and beliefs of an
+agent in a single-agent domains. Previous works on reasoning about knowledge of an agent in the presence of incomplete information and sensing actions in single-agent
+domains (e.g., (Scherl and Levesque 2003; Son and Baral
+2001)) do not investigate this distinction as they considered
+only the knowledge modal operator.
+We conclude this section with an example that shows that
+the proposed sufficient condition does not cover the most
+general case of ontic actions and highlights a weakness of
+the approach using update models. We then discuss a possible solution for the issue raised by this example.
+
+Example 3 Consider a variation of Example 2 from (Baral
+et al. 2013): a domain with 3 agents AG = {1, 2, 3} and
+two propositions: o (opened) and h (head). The agents are
+in a room with a box that is not open (¬o). The box contains
+a coin that lies head up (h), but none of the agent knows this.
+The initial p-model (M0 , s) encoding the knowledge of the
+agents and the actual world is given in Fig. 8 (left), where
+the double circle represents the actual world. The interpretation associated to each world is given by the label of the
+node. The names of the world (s and u) are given as text
+next to the node. On the right of Fig. 8 is an update template
+(Σf lip , {σ}), encoding the occurrence of the action flip that
+makes o true; agents 1 and 2 are aware of the action occurrence, while 3 is oblivious of it. The substitution in Σf lip is
+given by sub(σ) = {o → true} and sub(τ ) = ∅. Observe
+that Σf lip is not a primitive update model.
+s
+
+u
+1,2,3
+
+¬o
+h
 
 1,2,3
 
-�o �h
+pre: true
 
-3
+¬o
+¬h
 
-o �h
+σ
+
 1,2,3
 
-3 3 3 1,2 3
-
-3 3 3 3
-
-3
-
-(s,)
-
-o h
 1,2
 
-(u,)
+1,2,3
 
-o �h
-1,2
-
-o h
-1,2
-
-(s,)
-
-u �o �h
-
-3
-
-pre: true
-
-pre: true
-
-
+δ
 
 3
 
@@ -172,41 +686,240 @@ pre: true
 
 1,2,3
 
-1,2,3
+(s,σ,δ)
+1,2
 
+o
+h
+
+(s,!,δ)
 1,2
 
 1,2,3
 
-Figure 8: (M0 , s) (left) and (f lip , { }) (right) After some inspection, we can see that updating (M0 , s) by (f lip , { }) results in the p-model (M1 , (s,  )) in 1,2,3 1,2,3 Fig. 9. M1 is no longer a (u,!) semi-reflexive Kripke model, (s,!) �o 1,2,3 �o h �h but it is still a serial one. Let us now update the 3 3 3 3 p-model (M1 , (s,  )) 1,2 o o with an update template, h �h (s,) (u,) Ann ( (AG ; ; o), { }), shown in Fig. 10 (left), 1,2 1,2 representing the public announcement of o. The result of Figure 9: (M1 , (s,  )) this update is shown on the right of Fig. 10. This resulting p-model is no longer serial. Even worse, the result renders that agent 3 becomes confused as his belief is inconsistent.
+1,2,3
+
+3
+
+1,2,3
+
+(s,!)
+
+(u,!)
+
+¬o
+h
+
+3
+
+o
+h
+
+o
+¬h
+
+1,2
+
+Figure 10: (ΣAnn (AG; ∅; o), {δ}) (left) and its result (right)
+The above example shows that even when the initial p-model
+is S5, the execution of a sequence of non-primitive uppre: true
+date models can result in the
+loss of the KD45n property.
+1,2,3
+η
+pre: true
+3
+This means that the proposed
+σ
+3
+condition is one of the weakest
+sufficient conditions that guar3
+!
+1,2,3
+antees the maintenance of the
+1,2
+KD45n property of the initial
+pre: true
+p-model. Observe that the is- Figure 11: (Σ2 , {σ})
+f lip
+sue displayed in this example
+can be attributed to the fact that agent 3 is oblivious of
+the occurrence of flip. If 3 was suspicious that the action might occur, then the update template would have been
+
+o
+¬h
+
+3
+
+1,2,3
+
+3
+
+(s,σ)
+
+(u,η)
+
+¬o
+¬h
+
+1,2,3
+
+3
+3
+
+3
+
+1,2
+
+(u,σ)
+
+3
+
+3
+
+3
+
+o
+¬h
+
+3
+
+o
+h
+
+(s,η)
+
+1,2
+1,2
+
+3
+
+pre: true
+
+Figure 8: (M0 , s) (left) and (Σf lip , {σ}) (right)
+After some inspection, we can see that updating (M0 , s)
+by (Σf lip , {σ}) results in the p-model (M1 , (s, σ)) in
+1,2,3
+1,2,3
+Fig. 9. M1 is no longer a
+(u,!)
+semi-reflexive Kripke model, (s,!) ¬o
+1,2,3
+¬o
+h
+¬h
+but it is still a serial one.
+Let us now update the
+3
+3
+3
+3
+p-model
+(M1 , (s, σ))
+1,2
+o
+o
+with an update template,
+h
+¬h
+(s,σ)
+(u,σ)
+Ann
+(Σ
+(AG; ∅; o), {δ}),
+shown in Fig. 10 (left),
+1,2
+1,2
+representing the public announcement of o. The result of Figure 9: (M1 , (s, σ))
+this update is shown on the right of Fig. 10. This resulting
+p-model is no longer serial. Even worse, the result renders
+that agent 3 becomes confused as his belief is inconsistent.
 pre: o
 
-Figure 12: (M2 , (s,  )) The above example also shows that action models might yield counterintuitive results if applied to non-S5 Kripke models. This is a legitimate concern, as the initial p-model (M0 , s) is a S5 model. Thus, the question of whether previously developed action models are suitable for applications such as multi-agent planning (Bolander and Andersen 2011; L� owe, Pacuit, and Witzel 2011; van der Hoek and Wooldridge 2002) should be investigated. The above discussion also highlights the question of whether or not an agent should be considered as oblivious with respect to occurrences of ontic actions if he is not aware of the action occurrence. We believe that both of these issues are important for reasoning about effects of actions in multi-agent systems. They will be our main concerns in the near future.
+(Σ2f lip , {σ}) which is obtained from (Σf lip , {σ}) by adding
+an additional event η as in (Fig. 11) where sub(η) = sub(σ).
+The result of updating (M0 , s) using (Σ2f lip , {σ}),
+(M2 , (s, σ)) (Fig. 12), remains a sr-KD45n pmodel. We can verify that updating (M2 , (s, σ)) with
+(ΣAnn (AG; ∅; o), {δ}) results in a sr-KD45n p-model.
+
+1,2
+
+Figure 12: (M2 , (s, σ))
+The above example also shows that action models might
+yield counterintuitive results if applied to non-S5 Kripke
+models. This is a legitimate concern, as the initial p-model
+(M0 , s) is a S5 model. Thus, the question of whether previously developed action models are suitable for applications such as multi-agent planning (Bolander and Andersen
+2011; Löwe, Pacuit, and Witzel 2011; van der Hoek and
+Wooldridge 2002) should be investigated. The above discussion also highlights the question of whether or not an
+agent should be considered as oblivious with respect to occurrences of ontic actions if he is not aware of the action occurrence. We believe that both of these issues are important
+for reasoning about effects of actions in multi-agent systems.
+They will be our main concerns in the near future.
 
 Conclusions
-Our main goal in this paper is to extend the result of (Halpern, Samet, and Segev 2009)--which states that knowledge is reducible to true beliefs in KD45n --to reasoning about knowledge and beliefs after the execution of an action sequence. To achieve this goal, we presented one of the weakest sufficient conditions on Kripke models and update models which preserves the KD45n property of a Kripke model after it is updated by a sequence of update models. This provides a simple way for drawing conclusions regarding the knowledge of agents after the execution of an action sequence (via updates by update models) since knowledge is reducible to true belief in KD45n models. On the one hand, the result opens the door for multi-agent planning systems proposed in the literature to attack planning problems which require the manipulation of not only knowledge but also beliefs of agents. On the other hand, this result can also be used as a guideline for the development of update models in practical applications. We related our work to others, elaborated an issue faced by our formalization, and identified problems that need to be investigated further. In addition to the mentioned issues, we intend to extend the result of this paper to other types of actions (e.g., lying, misleading, announcement of knowledge formula).
-
-(s,,)
-1,2
-
-(s,!,)
-1,2
-
-1,2,3
-
-
-
-o h
-
-o �h
-
-1,2
-
-Figure 10: (Ann (AG ; ; o), { }) (left) and its result (right) The above example shows that even when the initial p-model is S5, the execution of a sequence of non-primitive uppre: true date models can result in the loss of the KD45n property. 1,2,3  pre: true 3 This means that the proposed  3 condition is one of the weakest sufficient conditions that guar3 ! 1,2,3 antees the maintenance of the 1,2 KD45n property of the initial pre: true p-model. Observe that the is- Figure 11: (2 , { }) f lip sue displayed in this example can be attributed to the fact that agent 3 is oblivious of the occurrence of flip. If 3 was suspicious that the action might occur, then the update template would have been
+Our main goal in this paper is to extend the result
+of (Halpern, Samet, and Segev 2009)—which states that
+knowledge is reducible to true beliefs in KD45n —to reasoning about knowledge and beliefs after the execution of
+an action sequence. To achieve this goal, we presented one
+of the weakest sufficient conditions on Kripke models and
+update models which preserves the KD45n property of a
+Kripke model after it is updated by a sequence of update
+models. This provides a simple way for drawing conclusions regarding the knowledge of agents after the execution
+of an action sequence (via updates by update models) since
+knowledge is reducible to true belief in KD45n models.
+On the one hand, the result opens the door for multi-agent
+planning systems proposed in the literature to attack planning problems which require the manipulation of not only
+knowledge but also beliefs of agents. On the other hand,
+this result can also be used as a guideline for the development of update models in practical applications. We related
+our work to others, elaborated an issue faced by our formalization, and identified problems that need to be investigated
+further. In addition to the mentioned issues, we intend to
+extend the result of this paper to other types of actions (e.g.,
+lying, misleading, announcement of knowledge formula).
 
 References
-Baltag, A., and Moss, L. 2004. Logics for epistemic programs. Synthese. Baltag, A., and Smets, S. 2008. A qualitative theory of dynamic interactive belief revision. In Proc. of 7th LOFT, Texts in Logic and Games 3, 13�60. Amsterdam University Press. Baltag, A.; Moss, L.; and Solecki, S. 1998. The logic of public announcements, common knowledge, and private suspicions. In 7th TARK, 43�56. Baral, C.; Gelfond, G.; Pontelli, E.; and Son, T. C. 2013. Reasoning about the beliefs of agents in multi-agent domains in the presence of state constraints: The action language mal. In Leite, J.; Son, T. C.; Torroni, P.; van deer Torre, L.; and Woltran, S., eds., Proceedings of the 14th International Workshop, Computational Logic in Multi-Agent Systems, CLIMA VIX, Coruna, Spain, September 16-18, 2013, volume 8143 of Lecture Notes in Computer Science, 290�306. Springer. Bolander, T., and Andersen, M. 2011. Epistemic Planning for Single and Multi-Agent Systems. Journal of Applied Non-Classical Logics 21(1). Halpern, J.; Samet, D.; and Segev, E. 2009. Defining knowledge in terms of belief: The modal logic perspective. Reviews of Symbolic Logic 2(3):469�486. Herzig, A.; Lang, J.; and Marquis, P. 2005. Action Progression and Revision in Multiagent Belief Structures. In Sixth Workshop on Nonmonotonic Reasoning, Action, and Change (NRAC). L� owe, B.; Pacuit, E.; and Witzel, A. 2011. Del planning and some tractable cases. In van Ditmarsch, H.; Lang, J.; and Ju, S., eds., Logic, Rationality, and Interaction, volume 6953 of Lecture Notes in Computer Science. Springer Berlin / Heidelberg. 179�192. Scherl, R., and Levesque, H. 2003. Knowledge, action, and the frame problem. Artificial Intelligence 144(1-2). Segerberg, K. 1998. Irrevocable belief revision in dynamic doxastic logic. Notre Dame Journal of Formal Logic 39(3):287�306. Son, T. C., and Baral, C. 2001. Formalizing sensing actions - a transition function based approach. Artificial Intelligence 125(1-2):19�91. van Benthem, J.; van Eijck, J.; and Kooi, B. P. 2006. Logics of communication and change. Inf. Comput. 204(11):1620� 1662. van Benthem, J. 2007. Dynamic logic of belief revision. Journal of Applied Non-Classical Logics 17(2):129�155. van der Hoek, W., and Wooldridge, M. 2002. Tractable multiagent planning for epistemic goals. In The First International Joint Conference on Autonomous Agents & Multiagent Systems, AAMAS 2002, July 15-19, 2002, Bologna, Italy, Proceedings, 1167�1174. ACM. van Ditmarsch, H.; van der Hoek, W.; and Kooi, B. 2007. Dynamic Epistemic Logic. Springer.
+Baltag, A., and Moss, L. 2004. Logics for epistemic programs. Synthese.
+Baltag, A., and Smets, S. 2008. A qualitative theory of
+dynamic interactive belief revision. In Proc. of 7th LOFT,
+Texts in Logic and Games 3, 13–60. Amsterdam University
+Press.
+Baltag, A.; Moss, L.; and Solecki, S. 1998. The logic of public announcements, common knowledge, and private suspicions. In 7th TARK, 43–56.
+Baral, C.; Gelfond, G.; Pontelli, E.; and Son, T. C. 2013.
+Reasoning about the beliefs of agents in multi-agent domains in the presence of state constraints: The action language mal. In Leite, J.; Son, T. C.; Torroni, P.; van deer
+Torre, L.; and Woltran, S., eds., Proceedings of the 14th International Workshop, Computational Logic in Multi-Agent
+Systems, CLIMA VIX, Coruna, Spain, September 16-18,
+2013, volume 8143 of Lecture Notes in Computer Science,
+290–306. Springer.
+Bolander, T., and Andersen, M. 2011. Epistemic Planning
+for Single and Multi-Agent Systems. Journal of Applied
+Non-Classical Logics 21(1).
+Halpern, J.; Samet, D.; and Segev, E. 2009. Defining knowledge in terms of belief: The modal logic perspective. Reviews of Symbolic Logic 2(3):469–486.
+Herzig, A.; Lang, J.; and Marquis, P. 2005. Action Progression and Revision in Multiagent Belief Structures. In
+Sixth Workshop on Nonmonotonic Reasoning, Action, and
+Change (NRAC).
+Löwe, B.; Pacuit, E.; and Witzel, A. 2011. Del planning
+and some tractable cases. In van Ditmarsch, H.; Lang, J.;
+and Ju, S., eds., Logic, Rationality, and Interaction, volume
+6953 of Lecture Notes in Computer Science. Springer Berlin
+/ Heidelberg. 179–192.
+Scherl, R., and Levesque, H. 2003. Knowledge, action, and
+the frame problem. Artificial Intelligence 144(1-2).
+Segerberg, K. 1998. Irrevocable belief revision in dynamic doxastic logic. Notre Dame Journal of Formal Logic
+39(3):287–306.
+Son, T. C., and Baral, C. 2001. Formalizing sensing actions
+- a transition function based approach. Artificial Intelligence
+125(1-2):19–91.
+van Benthem, J.; van Eijck, J.; and Kooi, B. P. 2006. Logics
+of communication and change. Inf. Comput. 204(11):1620–
+1662.
+van Benthem, J. 2007. Dynamic logic of belief revision.
+Journal of Applied Non-Classical Logics 17(2):129–155.
+van der Hoek, W., and Wooldridge, M. 2002. Tractable
+multiagent planning for epistemic goals. In The First International Joint Conference on Autonomous Agents & Multiagent Systems, AAMAS 2002, July 15-19, 2002, Bologna,
+Italy, Proceedings, 1167–1174. ACM.
+van Ditmarsch, H.; van der Hoek, W.; and Kooi, B. 2007.
+Dynamic Epistemic Logic. Springer.
 
-van Ditmarsch, H. 2005. Prolegomena to dynamic logic for belief revision. Synthese (Knowledge, Rationality & Action) 147:229�275.
+van Ditmarsch, H. 2005. Prolegomena to dynamic logic for
+belief revision. Synthese (Knowledge, Rationality & Action)
+147:229–275.
 
 

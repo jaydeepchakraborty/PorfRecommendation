@@ -1,141 +1,596 @@
-Invariance, Maintenance and other declarative objectives of triggers { a formal characterization of active databases
-Department of CSE Department of CSE University of Texas at Arlington Arizona State University Arlington, TX 76019, USA Tempe, AZ 85287, USA nakamura@cse.uta.edu chitta@asu.edu
-
+Invariance, Maintenance and other declarative
+objectives of triggers { a formal characterization
+of active databases
 Mutsumi Nakamura
 
 Chitta Baral
 
-1 Introduction and Motivation
-
-In this paper we take steps towards a systematic design of active features in an active database. We propose having declarative speci cations that specify the objective of an active database and formulate the correctness of triggers with respect to such speci cations. In the process we distinguish between the notions of `invariance' and `maintenance' and propose four di erent classes of speci cation constraints. We also propose three di erent types of triggers with distinct purposes and show through the analysis of an example from the literature, the correspondence between these trigger types and the speci cation classes. Finally, we brie y introduce the notion of k-maintenance that is important from the perspective of a reactive (active database) system.
+Department of CSE
+Department of CSE
+University of Texas at Arlington Arizona State University
+Arlington, TX 76019, USA
+Tempe, AZ 85287, USA
+nakamura@cse.uta.edu
+chitta@asu.edu
 
 Abstract
 
-Many commercial database systems (such as Oracle, Sybase, IBM's DB2-V2, etc.) and the database standard SQL3 incorporate active features { namely constraints (also referred to as integrity constraints) and triggers. Due to these active features explicit update requests to the database may have several consequences from the request being refused (as it may violate `integrity constraints'), to the request being ful lled with slight changes (as modi ed through `before triggers'), to additional changes triggered by cascade deletes and inserts used in the processing of some constraints and/or ring of `after triggers'. Although originally, integrity constraints were thought of as declarative constraints about database states and de ned which database states were valid and which were not, with the presence of cascade operations in the SQL3 constraints and the use of after triggers to maintain the integrity of the data, there is currently little tradition (except in CF97] and few other cases) of using or following standard software engineering practices of separating speci cation from implementation when designing and developing active databases. This means that 1
+In this paper we take steps towards a systematic design of active features in an active database. We propose having declarative specications
+that specify the objective of an active database and formulate the correctness of triggers with respect to such specications. In the process
+we distinguish between the notions of `invariance' and `maintenance' and
+propose four dierent classes of specication constraints. We also propose
+three dierent types of triggers with distinct purposes and show through
+the analysis of an example from the literature, the correspondence between
+these trigger types and the specication classes. Finally, we briey introduce the notion of k-maintenance that is important from the perspective
+of a reactive (active database) system.
 
-often active database developers do not even specify what the purpose of the active features of their database are. Thus there is no way to verify the correctness of the active features. We believe this is one of the reasons why many companies balk at using the active features of a database. Our goal in this paper is to take steps towards developing a systematic approach to the design of active databases. In the process we will develop several language constructs that can be used in specifying the purpose of an active database; formulate the correctness of the procedural triggers with respect to declarative speci cations; and develop guidelines that match the procedural aspects with the declarative aspects. One major hindrance in this pursuit has been the multitude of syntax and semantics (and their complexity) associated with the various di erent implementation of active rules WC96, Pat98] and the complexity of their semantics. In this paper we will follow the SQL3 standard (and the DB2-V2 implementation) to some extent and make certain simpli cations. The basic goal of the active features of a database is to constrain the evolution of the database. Based on analyzing a large class of active database examples, we have identi ed four kind of constraints: state invariance constraints; state maintenance constraints (or quiescent state constraints); trajectory invariance constraints; and trajectory maintenance constraints. In the above constraints there are two dimensions: (i) state vs trajectory (ii) invariance vs maintenance. Intuitively, in state constraints we are concerned about the integrity about particular states, while the trajectory constraints focus on the trajectory of evolution of the database. On the other hand, invariance constraints worry about all states of the database, while the maintenance constraints focus only on the quiescent states. De nition 1 (State Constraints) ADA93] A state constraint s on a database scheme R, is a function that associates with each database r of R a boolean value s (r). A database r of R is said to satisfy s if s (r) is true and is said to violate s if s (r) is false. In the former case, it is also said that s holds in r. A database r is said to satisfy a set of state constraints if it satis es each element of the set. 2 De nition 2 (Trajectory Constraints) A trajectory constraint t on a database scheme R, is a function that associates with each database sequence of R a boolean value t ( ). A database sequence of R is said to satisfy t if t ( ) is true and is said to violate t if t ( ) is false. In the former case, it is also said that t holds in . A database sequence is said to satisfy a set of trajectory constraints if it satis es each element of the set. 2 Often static integrity constraints are expressed through sentences in propositional logic or rst-order predicate calculus while we need temporal operators to express trajectory constraints. We further discuss this in Section 3. 2
+1 Introduction and Motivation
+
+Many commercial database systems (such as Oracle, Sybase, IBM's DB2-V2,
+etc.) and the database standard SQL3 incorporate active features { namely
+constraints (also referred to as integrity constraints) and triggers. Due to these
+active features explicit update requests to the database may have several consequences from the request being refused (as it may violate `integrity constraints'),
+to the request being fullled with slight changes (as modied through `before
+triggers'), to additional changes triggered by cascade deletes and inserts used in
+the processing of some constraints and/or ring of `after triggers'.
+Although originally, integrity constraints were thought of as declarative constraints about database states and dened which database states were valid and
+which were not, with the presence of cascade operations in the SQL3 constraints
+and the use of after triggers to maintain the integrity of the data, there is currently little tradition (except in [CF97] and few other cases) of using or following
+standard software engineering practices of separating specication from implementation when designing and developing active databases. This means that
+1
+
+often active database developers do not even specify what the purpose of the
+active features of their database are. Thus there is no way to verify the correctness of the active features. We believe this is one of the reasons why many
+companies balk at using the active features of a database.
+Our goal in this paper is to take steps towards developing a systematic approach
+to the design of active databases. In the process we will develop several language
+constructs that can be used in specifying the purpose of an active database;
+formulate the correctness of the procedural triggers with respect to declarative
+specications; and develop guidelines that match the procedural aspects with
+the declarative aspects.
+One major hindrance in this pursuit has been the multitude of syntax and semantics (and their complexity) associated with the various dierent implementation of active rules [WC96, Pat98] and the complexity of their semantics. In
+this paper we will follow the SQL3 standard (and the DB2-V2 implementation)
+to some extent and make certain simplications.
 
 1.1 The declarative notions
 
+The basic goal of the active features of a database is to constrain the evolution
+of the database. Based on analyzing a large class of active database examples,
+we have identied four kind of constraints: state invariance constraints; state
+maintenance constraints (or quiescent state constraints); trajectory invariance
+constraints; and trajectory maintenance constraints.
+In the above constraints there are two dimensions: (i) state vs trajectory (ii)
+invariance vs maintenance. Intuitively, in state constraints we are concerned
+about the integrity about particular states, while the trajectory constraints
+focus on the trajectory of evolution of the database. On the other hand, invariance constraints worry about all states of the database, while the maintenance
+constraints focus only on the quiescent states.
+Denition 1 (State Constraints) [ADA93] A state constraint s on a database
+scheme R, is a function that associates with each database r of R a boolean value
+s (r). A database r of R is said to satisfy s if s (r) is true and is said to violate s if s (r) is false. In the former case, it is also said that s holds in r. A
+database r is said to satisfy a set of state constraints if it satises each element
+of the set.
+2
+Denition 2 (Trajectory Constraints) A trajectory constraint t on a database
+scheme R, is a function that associates with each database sequence  of R a
+boolean value t (). A database sequence  of R is said to satisfy t if t () is
+true and is said to violate t if t () is false. In the former case, it is also said
+that t holds in . A database sequence  is said to satisfy a set of trajectory
+constraints if it satises each element of the set.
+2
+Often static integrity constraints are expressed through sentences in propositional logic or rst-order predicate calculus while we need temporal operators
+to express trajectory constraints. We further discuss this in Section 3.
+2
+
 1.2 The procedural features of an active database
 
-In SQL3 (and DB2-V2) the active features are: Constraints; Before triggers; and After triggers. The constraints in DB2-V2 are of the kinds: NOT NULL constraints, column defaults, unique indexes, check constraints, primary key constraints, and foreign key constraints. Among these, the NOT NULL constraints, unique indexes, check constraints, primary key constraints and some of the foreign key constraints (with NO ACTION or RESTRICT in the action part) refuse updates that violate the constraints. These correspond to the state invariance constraints mentioned in the previous section. On the other hand column default constraints and the foreign key constraints with CASCADE or SET NULL in the action part accept the updates but make additional changes. The former correspond to the state invariance constraints, while the later correspond to the state maintenance constraints. The before triggers act on the update request directly (instead of the updated database) and modify it if necessary while the after triggers are triggered by the update request and can either refuse the update (through a rollback) or force additional changes. Here, the former can implement state and trajectory invariance constraints, while the later can implement any of the four types of constraints. From the above analysis, it seems that certain speci cations such as a state maintenance constraint can be implemented in multiple ways, through a DB2V2 constraint or through after triggers. But the trigger processing architecture treats DB2-V2 constraints very di erently from after triggers. Thus it becomes very di cult to formulate and verify the correctness of the DB2-V2 (or SQL3) active features with respect to speci cations mentioned in Section 1.1. We propose a di erent class of active features that are close to the SQL3 features, but that are distinct in terms of their goals. Our class consists of three kind of procedural features (triggers): refusal triggers, wrapper triggers, and maintenance triggers. Intuitively, the refusal triggers when triggered refuse the update that caused the triggering. Thus refusal triggers can express not only after triggers with refuse actions, but also NOT NULL constraints, unique indexes, check constraints, primary key constraints, and foreign key constraints with NO ACTION or RESTRICT in the action part. The wrapper triggers, wrap the update request by additional changes and thus can express both before triggers and column default constraints. The maintenance triggers1 trigger additional updates and thus can express both after triggers with similar purpose, and foreign key constraints with CASCADE or SET NULL in the action part.
+In SQL3 (and DB2-V2) the active features are: Constraints; Before triggers;
+and After triggers.
+The constraints in DB2-V2 are of the kinds: NOT NULL constraints, column
+defaults, unique indexes, check constraints, primary key constraints, and foreign key constraints. Among these, the NOT NULL constraints, unique indexes, check constraints, primary key constraints and some of the foreign key
+constraints (with NO ACTION or RESTRICT in the action part) refuse updates that violate the constraints. These correspond to the state invariance
+constraints mentioned in the previous section.
+On the other hand column default constraints and the foreign key constraints
+with CASCADE or SET NULL in the action part accept the updates but make
+additional changes. The former correspond to the state invariance constraints,
+while the later correspond to the state maintenance constraints.
+The before triggers act on the update request directly (instead of the updated
+database) and modify it if necessary while the after triggers are triggered by
+the update request and can either refuse the update (through a rollback) or
+force additional changes. Here, the former can implement state and trajectory
+invariance constraints, while the later can implement any of the four types of
+constraints.
+From the above analysis, it seems that certain specications such as a state
+maintenance constraint can be implemented in multiple ways, through a DB2V2 constraint or through after triggers. But the trigger processing architecture
+treats DB2-V2 constraints very dierently from after triggers. Thus it becomes
+very dicult to formulate and verify the correctness of the DB2-V2 (or SQL3)
+active features with respect to specications mentioned in Section 1.1.
+We propose a dierent class of active features that are close to the SQL3 features, but that are distinct in terms of their goals. Our class consists of three
+kind of procedural features (triggers): refusal triggers, wrapper triggers, and
+maintenance triggers.
+Intuitively, the refusal triggers when triggered refuse the update that caused the
+triggering. Thus refusal triggers can express not only after triggers with refuse
+actions, but also NOT NULL constraints, unique indexes, check constraints,
+primary key constraints, and foreign key constraints with NO ACTION or RESTRICT in the action part. The wrapper triggers, wrap the update request by
+additional changes and thus can express both before triggers and column default
+constraints. The maintenance triggers1 trigger additional updates and thus can
+express both after triggers with similar purpose, and foreign key constraints
+with CASCADE or SET NULL in the action part.
 
-1 In Section 4 we will further divide maintenance triggers to two classes: short-term and long-term. This becomes necessary when we need to worry about reactive response to update requests.
+1 In Section 4 we will further divide maintenance triggers to two classes: short-term and
+long-term. This becomes necessary when we need to worry about reactive response to update
+requests.
 
 3
 
-Our division of the triggers into the above three classes makes them distinct in terms of what they set out to achieve. This is di erent from the active features in DB2-V2 and SQL3 where there is overlapping of goals making it di cult in designing active databases and formulating their correctness.
+Our division of the triggers into the above three classes makes them distinct in
+terms of what they set out to achieve. This is dierent from the active features
+in DB2-V2 and SQL3 where there is overlapping of goals making it dicult in
+designing active databases and formulating their correctness.
 
 2 Actions, Events and Triggers
 
-In this section we describe the necessary mechanism for reasoning about actions and events which we will then use to formulate correctness of triggers with respect to declarative speci cations. Intuitively, an action when executed in a world changes the state of the world. In databases, an action can take several meanings; from the basic insert, delete and update actions to SQL update statements. In this paper by an action we will usually refer to an uninterruptable transaction. To specify the e ects of an action on a database we borrow constructs from the speci cation language A GL93] and our earlier work in BL96, BLT97]. In the following by a uent we will mean a database fact, and by a uent literal we will mean either a database fact or its negation. E ects of actions are speci ed through e ect axioms of the following form:
+In this section we describe the necessary mechanism for reasoning about actions
+and events which we will then use to formulate correctness of triggers with
+respect to declarative specications.
 
-2.1 Actions and e ects
+2.1 Actions and eects
 
-state. A word of caution is needed regarding the safeness Ull88] of variables in the causal law . The preconditions p1 (X1 ); : : : ; pn (Xn ) will be evaluated as regular queries in the database and a(X ) is an action that could be invoked by a user or an active rule. Thus, variables appearing in Y or in any negated uent in the preconditions must also appear in one of the positive uents in the precondition. If there are variables in X that do not appear in any of the positive uents in the preconditions these arguments must be ground at the time of the invocation of the action, otherwise there will be an error in the execution. Moreover, the variables are schema variables, and intuitively an e ect axiom with variables represents the set of ground e ect axioms where the variables are replaced by ground terms in the domain. Two e ect axioms with preconditions p1 ; : : : ; pn and q1 ; : : : ; qm respectively are said to be contradictory if they describe the e ect of the same action a on complementary f s, and fp1; : : : ; pn g \ fq1 ; : : : ; qm g = ; A state is a set of uent names. Given a uent name f and a state , we say that f holds in if f 2 ; :f holds in if f 62 . A transition function is a 4
+Intuitively, an action when executed in a world changes the state of the world.
+In databases, an action can take several meanings; from the basic insert, delete
+and update actions to SQL update statements. In this paper by an action we
+will usually refer to an uninterruptable transaction.
+To specify the eects of an action on a database we borrow constructs from the
+specication language A [GL93] and our earlier work in [BL96, BLT97]. In the
+following by a uent we will mean a database fact, and by a uent literal we
+will mean either a database fact or its negation. Eects of actions are specied
+through eect axioms of the following form:
 
-a(X ) causes f (Y ) if p1 (X1 ); : : : ; pn (Xn ) (2.1) where a(X ) is an action and f (Y ); p1 (X1 ); : : : ; pn (Xn ) are uent literals (n 0). p1 (X1 ); : : : ; pn (Xn ) are called preconditions. The intuitive meaning of (2.1) is that in any state of the active database execution in which p1 (X1 ); : : : ; pn(Xn ) are true, the execution of the action a(X ) causes f (Y ) to be true in the resulting
+a(X ) causes f (Y ) if p1 (X1 ); : : : ; pn (Xn )
+(2.1)
+where a(X ) is an action and f (Y ); p1 (X1 ); : : : ; pn (Xn ) are uent literals (n  0).
+p1 (X1 ); : : : ; pn (Xn ) are called preconditions. The intuitive meaning of (2.1) is
+that in any state of the active database execution in which p1 (X1 ); : : : ; pn(Xn )
+are true, the execution of the action a(X ) causes f (Y ) to be true in the resulting
 
-mapping of the set of pairs (a; ), where a is an action name and is a state, into the set of states. A collection of e ect axioms (EA) for various actions in our world { with no contradictory e ect axioms in them, de ne a transition function from the set of actions and the set of database states to the set of database states. For every action a and every state ,
-0 ) n 00 ; (a; ) = ( where 0 ( 00 ) is the set of uent names f such that EA includes an e ect proposition describing the e ect of action a on f (respectively, :f ) whose preconditions hold in . We now show how the e ect of simple actions such as insert, delete and update can be speci ed using e ect axioms.
+state. A word of caution is needed regarding the safeness [Ull88] of variables
+in the causal law . The preconditions p1 (X1 ); : : : ; pn (Xn ) will be evaluated as
+regular queries in the database and a(X ) is an action that could be invoked
+by a user or an active rule. Thus, variables appearing in Y or in any negated
+uent in the preconditions must also appear in one of the positive uents in
+the precondition. If there are variables in X that do not appear in any of the
+positive uents in the preconditions these arguments must be ground at the time
+of the invocation of the action, otherwise there will be an error in the execution.
+Moreover, the variables are schema variables, and intuitively an eect axiom
+with variables represents the set of ground eect axioms where the variables are
+replaced by ground terms in the domain.
+Two eect axioms with preconditions p1 ; : : : ; pn and q1 ; : : : ; qm respectively are
+said to be contradictory if they describe the eect of the same action a on
+complementary f s, and fp1; : : : ; pn g \ fq1 ; : : : ; qm g = ;
+A state is a set of uent names. Given a uent name f and a state , we say
+that f holds in  if f 2 ; :f holds in  if f 62 . A transition function is a
+4
 
-insert(R(t)) causes R(t) delete(R(t)) causes :R(t) update(R(t); R(t0)) causes R(t0 ) if R(t) update(R(t); R(t0)) causes :R(t) if R(t)
+mapping  of the set of pairs (a; ), where a is an action name and  is a state,
+into the set of states.
+A collection of eect axioms (EA) for various actions in our world { with no
+contradictory eect axioms in them, dene a transition function from the set of
+actions and the set of database states to the set of database states.
+For every action a and every state ,
+(a; ) = ( [ 0 ) n 00 ;
+where 0 (00 ) is the set of uent names f such that EA includes an eect
+proposition describing the eect of action a on f (respectively, :f ) whose preconditions hold in .
+We now show how the eect of simple actions such as insert, delete and update
+can be specied using eect axioms.
 
-(2.2) (2.3) (2.4) (2.5)
+insert(R(t)) causes R(t)
+delete(R(t)) causes :R(t)
+update(R(t); R(t0)) causes R(t0 ) if R(t)
+update(R(t); R(t0)) causes :R(t) if R(t)
 
-We now show how we can specify the e ect of actions corresponding to more complex transactions:
+(2.2)
+(2.3)
+(2.4)
+(2.5)
 
-Example 1 Consider another transaction a2 from Cha96]:
+We now show how we can specify the eect of actions corresponding to more
+complex transactions:
 
-UPDATE parts SET qonorder = qonhand, qonhand = qonorder WHERE partno = `P207'; Its e ects can be described in our language through the following e ect propositions: a2 causes parts(P 207; Descr; qonhand; qonorder) if parts(P 207; Descr; qonorder; qonhand) a2 causes :parts(P 207; Descr; qonhand; qonorder) if parts(P 207; Descr; qonhand; qonorder) 2
+Example 1 Consider another transaction a2 from [Cha96]:
 
-To reason about the e ect of a sequence of actions on a database , we need to extend the function , to allow sequence of actions as its rst parameter. This extension is de ned as follows: ( ]; ) = , and ( ja]; ) = (a; ( ; )). 5
+UPDATE parts
+SET qonorder = qonhand,
+qonhand = qonorder
+WHERE partno = `P207';
+Its eects can be described in our language through the following eect propositions:
+a2 causes parts(P 207; Descr; qonhand; qonorder) if
+parts(P 207; Descr; qonorder; qonhand)
+a2 causes :parts(P 207; Descr; qonhand; qonorder) if
+parts(P 207; Descr; qonhand; qonorder)
+2
+
+To reason about the eect of a sequence of actions on a database , we need to
+extend the function , to allow sequence of actions as its rst parameter. This
+extension is dened as follows:
+
+ ([]; ) = , and
+ ([ja]; ) = (a; (; )).
+5
 
 2.2 Events and ECA rules
 
-Triggers (or active rules) in active databases are normally WC96] represented as a triple consisting of events, conditions and actions. In most active database architectures, the sequence of actions that have been executed since the last evaluation point are evaluated to decide on what events have taken place. These events together with the valuation of the condition with respect to the current database state determine whether a particular ECA active rule should be triggered or not. Di erent active databases allow di erent event sets and have di erent ways of evaluating the events. In the simplest case, the events can be the set of inserts and deletes explicitly performed by the last action. On the other hand, in Starburst Wid96] events are de ned in terms of the net e ects of a sequence of transitions. To allow the exibility of de ning a set of events and computing them from a sequence of actions we use the notion of event de nitions from BLT97]. An event de nition proposition is an expression of the form:
-
-where e(X ); e1 (Y1 ); : : : ; em (Ym ) are event literals2 and q1 (Z1 ); : : : ; qn (Zn ) are uent literals. This proposition says that the execution of the action a(W ) ordered in a state in which each of the uent literals qi (Zi ) is true and each of the event literals ej (Yj ) is true generates the event literal e(X ) if the event literal is positive, or removes the event from the set of current events if the event literal e(X ) is negative. If the execution is ordered in a state in which some of the qi (Zi ) or ej (Yj ) does not hold then (2.6) has no e ect. Each of the (schema) variables appearing in X or in a negated event or uent literals, has to appear either in W or in a positive event/ uent literal. The default assumption is that the event persists from one state to another, with two possible exceptions: either the event is consumed by an active rule (see below), or the event is removed by an action based on the speci cation of an event de nition. For example, if we have an expression :e1 after a1 , the execution of the action a1 will cause the event e1 not to be present in the resulting state. Hence, the meaning of \an event is true in a given state" is: the event was induced (i.e. generated) in some state prior to the given one and the event persisted, or the event was induced by an execution of an action in the previous state.
+Triggers (or active rules) in active databases are normally [WC96] represented
+as a triple consisting of events, conditions and actions. In most active database
+architectures, the sequence of actions that have been executed since the last evaluation point are evaluated to decide on what events have taken place. These
+events together with the valuation of the condition with respect to the current database state determine whether a particular ECA active rule should be
+triggered or not.
+Dierent active databases allow dierent event sets and have dierent ways of
+evaluating the events. In the simplest case, the events can be the set of inserts
+and deletes explicitly performed by the last action. On the other hand, in
+Starburst [Wid96] events are dened in terms of the net eects of a sequence
+of transitions. To allow the exibility of dening a set of events and computing
+them from a sequence of actions we use the notion of event denitions from
+[BLT97].
+An event denition proposition is an expression of the form:
 
 e(X ) after a(W ) if e1(Y1 ); : : : ; em (Ym ); q1 (Z1 ); : : : ; qn (Zn )
 
 (2.6)
 
-Example 2 (Events in Starburst) In Starburst net e ects (or events) are
-expressed in words through the following conditions: If a tuple is inserted and then updated, it is considered an insertion of the updated tuple.
+where e(X ); e1 (Y1 ); : : : ; em (Ym ) are event literals2 and q1 (Z1 ); : : : ; qn (Zn ) are
+uent literals. This proposition says that the execution of the action a(W )
+ordered in a state in which each of the uent literals qi (Zi ) is true and each
+of the event literals ej (Yj ) is true generates the event literal e(X ) if the event
+literal is positive, or removes the event from the set of current events if the event
+literal e(X ) is negative. If the execution is ordered in a state in which some of
+the qi (Zi ) or ej (Yj ) does not hold then (2.6) has no eect. Each of the (schema)
+variables appearing in X or in a negated event or uent literals, has to appear
+either in W or in a positive event/uent literal.
+The default assumption is that the event persists from one state to another,
+with two possible exceptions: either the event is consumed by an active rule
+(see below), or the event is removed by an action based on the specication
+of an event denition. For example, if we have an expression :e1 after a1 ,
+the execution of the action a1 will cause the event e1 not to be present in the
+resulting state. Hence, the meaning of \an event is true in a given state" is: the
+event was induced (i.e. generated) in some state prior to the given one and the
+event persisted, or the event was induced by an execution of an action in the
+previous state.
+
+Example 2 (Events in Starburst) In Starburst net eects (or events) are
+expressed in words through the following conditions:
+ If a tuple is inserted and then updated, it is considered an insertion of the
+updated tuple.
 2
 
-Like uent literals, an event literal is an event or its negation.
+Like uent literals, an event literal is an event or its negation.
 
 6
 
-If a tuple is updated and then deleted, it is considered as a deletion of the original tuple. If a tuple is updated more than once, it is considered as an update from the original value to the newest value. If a tuple is inserted and then deleted, it is not considered in the net e ect at all. These four premises can be encoded through event de nitions as follows:
+ If a tuple is updated and then deleted, it is considered as a deletion of the
 
-e del(G) :e upd(G; F ) e upd(G; I ) :e upd(G; H ) :e add(G)
-
-:e add(G)
+original tuple.
+ If a tuple is updated more than once, it is considered as an update from
+the original value to the newest value.
+ If a tuple is inserted and then deleted, it is not considered in the net eect
+at all.
+These four premises can be encoded through event denitions as follows:
 
 e add(H )
 
-after upd(G; H ) if e add(G) after upd(G; H ) if e add(G) after del(F ) if e upd(G; F ) after del(F ) if e upd(G; F ) after upd(H; I ) if e upd(G; H ) after upd(H; I ) if e upd(G; H ) after del(G) if e add(G)
+:e add(G)
+
+e del(G)
+:e upd(G; F )
+e upd(G; I )
+:e upd(G; H )
+:e add(G)
+
+after upd(G; H ) if e add(G)
+after upd(G; H ) if e add(G)
+after del(F ) if e upd(G; F )
+after del(F ) if e upd(G; F )
+after upd(H; I ) if e upd(G; H )
+after upd(H; I ) if e upd(G; H )
+after del(G) if e add(G)
 
 (2.7)
 
-In the above example, at the rst glance it appears that our notation is more verbose than the original rules. For each of the rst three rules we needed two event de nition propositions. This is because we assume that events have inertia. This assumption actually cuts down in writing individual event de nition propositions encoding the persistence of each event due to actions that do not a ect it. For example we do not need to explicitly write:
+In the above example, at the rst glance it appears that our notation is more
+verbose than the original rules. For each of the rst three rules we needed two
+event denition propositions. This is because we assume that events have inertia. This assumption actually cuts down in writing individual event denition
+propositions encoding the persistence of each event due to actions that do not
+aect it. For example we do not need to explicitly write:
 
 e add(H ) after del(G) if e add(H ); H 6= G
-We characterize events using the function whose input is a set of events, a state, and an action and the output is a set of events. More formally, let E + (E; ; a) = f e : there is an event de nition proposition of the form e after a if e1 ; : : : em; q1 ; : : : ; qn where e1 ; : : : ; em hold in E and q1 ; : : : ; qn hold in g; and let E ? (E; ; a) = f e : there is an event de nition proposition of the form :e after a if e1 ; : : : em ; q1 ; : : : ; qn where e1 ; : : : ; em hold in E and q1 ; : : : ; qn hold in g. (E; ; a) is then de ned as follows: (E; ; a) = (E E + (E; ; a)) n E ? (E; ; a) To be able to compute events with respect to a sequence of actions we extend as follows: (E; ; ]) = E , and (E; ; ja]) = ( (E; ; ); ( ; ); a). 7
+We characterize events using the function  whose input is a set of events,
+a state, and an action and the output is a set of events. More formally,
+let E + (E; ; a) = f e : there is an event denition proposition of the form
+e after a if e1 ; : : : em; q1 ; : : : ; qn where e1 ; : : : ; em hold in E and q1 ; : : : ; qn
+hold in  g; and let E ? (E; ; a) = f e : there is an event denition proposition
+of the form :e after a if e1 ; : : : em ; q1 ; : : : ; qn where e1 ; : : : ; em hold in E and
+q1 ; : : : ; qn hold in  g. (E; ; a) is then dened as follows:
+(E; ; a) = (E [ E + (E; ; a)) n E ? (E; ; a)
+To be able to compute events with respect to a sequence of actions we extend
+ as follows:
 
-As mentioned in Section 1.2, we have three kinds of triggers: wrapper triggers, refusal triggers and maintenance triggers. We represent each of them through ECA rules but distinguish them by the action part. In wrapper triggers the action part is a wrapping function ! which maps an action sequence and a database state to an action sequence. Intuitively, for a single action a, by !(a; ) = a0 we mean that a0 is the action obtained by wrapping a with ! in state . In refusal triggers the action part is the special action REFUSE and in maintenance triggers the action part could be an arbitrary sequence of actions. Thus an ECA rule is a triple he; c; i, where e is an event in our language, c is a temporal formula about the database history, and is either a wrapping function, the special action REFUSE, or a sequence of actions. Often we will represent a single action as the ECA rule h;; True; ai. In this subsection our goal is to give a formal characterization of the evolution of a database due to a sequence of actions in presence of a set of ECA rules. In our characterization we strive to keep a balance between not making the semantics too complicated and at not losing expressibility. We now give an intuitive description of our characterization. Intuitively, after the action sequence (with necessary modi cations due to wrapper triggers) is executed the set of events corresponding to that sequence of actions are evaluated. Then the ECA rules that match with the events are identi ed. We assume (as in many implemented systems Cha96]) that there is a total ordering among the ECA rules with the condition that refusal triggers have higher priority than maintenance triggers. Using this total ordering a priority list of the identi ed ECA rules is created. Then the condition parts of the ECA rules in the priority list are evaluated in the order of their priority and if the condition evaluates to be true, the action part is executed. Since the action part may trigger additional ECA rules, an important concern is how these ECA rules are assimilated into the already existing prioritized list of ECA rules. Two straightforward approaches are to view the list as a stack where newly triggered ECA rules are pushed onto the top of the stack, or to view the list as a queue where newly triggered ECA rules are put at the end of the queue. In both cases, among the newly added rules, the wrapper triggers have the highest priority, the refusal triggers have the second highest priority and the maintenance triggers have the lowest priority. So after the execution of the action part of the currently considered ECA rule, the newly triggered ECA rules are put into the priority list and the evaluation of the ECA rules in the modi ed list are again done based on their priority. This loop of executing the action part of the currently chosen ECA rule, updating the list of ECA rules, and evaluating the list to nd the next ECA rule, continues until the list is empty. During the execution when faced with a trigger whose action part is REFUSE, the database is rolled back. We now formally de ne the function ( ; ; List), where is a database state, is a sequence of actions and List is a prioritized list of ECA rules that are 8
+ (E; ; []) = E , and
+ (E; ; [ja]) = ((E; ; ); (; ); a).
+7
 
-2.3 Characterizing database evolution due to ECA rules
+2.3 Characterizing database evolution due to ECA rules
 
-yet to be processed, and the output of the function is a sequence of database states. Once we de ne this function, the evolution of a database state due to an action sequence , can then be expressed by ( ; ; ]). (For lack of space we only consider the simple case where there are no triggers with REFUSE in their action part.)
+As mentioned in Section 1.2, we have three kinds of triggers: wrapper triggers,
+refusal triggers and maintenance triggers. We represent each of them through
+ECA rules but distinguish them by the action part. In wrapper triggers the
+action part is a wrapping function ! which maps an action sequence and a
+database state to an action sequence. Intuitively, for a single action a, by
+!(a; ) = a0 we mean that a0 is the action obtained by wrapping a with ! in
+state . In refusal triggers the action part is the special action REFUSE and in
+maintenance triggers the action part could be an arbitrary sequence of actions.
+Thus an ECA rule is a triple he; c; i, where e is an event in our language, c
+is a temporal formula about the database history, and  is either a wrapping
+function, the special action REFUSE, or a sequence of actions. Often we will
+represent a single action as the ECA rule h;; True; ai.
+In this subsection our goal is to give a formal characterization of the evolution
+of a database due to a sequence of actions in presence of a set of ECA rules.
+In our characterization we strive to keep a balance between not making the
+semantics too complicated and at not losing expressibility. We now give an
+intuitive description of our characterization.
+Intuitively, after the action sequence (with necessary modications due to wrapper triggers) is executed the set of events corresponding to that sequence of
+actions are evaluated. Then the ECA rules that match with the events are
+identied. We assume (as in many implemented systems [Cha96]) that there is
+a total ordering among the ECA rules with the condition that refusal triggers
+have higher priority than maintenance triggers. Using this total ordering a priority list of the identied ECA rules is created. Then the condition parts of the
+ECA rules in the priority list are evaluated in the order of their priority and if
+the condition evaluates to be true, the action part is executed. Since the action
+part may trigger additional ECA rules, an important concern is how these ECA
+rules are assimilated into the already existing prioritized list of ECA rules. Two
+straightforward approaches are to view the list as a stack where newly triggered
+ECA rules are pushed onto the top of the stack, or to view the list as a queue
+where newly triggered ECA rules are put at the end of the queue. In both cases,
+among the newly added rules, the wrapper triggers have the highest priority, the
+refusal triggers have the second highest priority and the maintenance triggers
+have the lowest priority.
+So after the execution of the action part of the currently considered ECA rule,
+the newly triggered ECA rules are put into the priority list and the evaluation of
+the ECA rules in the modied list are again done based on their priority. This
+loop of executing the action part of the currently chosen ECA rule, updating the
+list of ECA rules, and evaluating the list to nd the next ECA rule, continues
+until the list is empty. During the execution when faced with a trigger whose
+action part is REFUSE, the database is rolled back.
+We now formally dene the function 	(; ; List), where  is a database state,
+ is a sequence of actions and List is a prioritized list of ECA rules that are
+8
 
-De nition 3 Evolution due to actions and triggers]
-1. ( ; ; List) = if is a state, is an empty sequence, and List = ]. 2. ( ; ; List) is an empty list if is unde ned. 3. ( ; ; List) = if (a) 0 = (!( ); ), where ! is the composition of the wrapping functions of the before triggers triggered by the events in (;; ; ). (If there are no before triggers triggered by the events in (;; ; ) then ! is the identity function; i.e., 8 :!( ) = ). (b) List1 is the list obtained by adding the new ECA rules triggered by the events in (;; ; !( )) to List and adjusting the priorities, (c) eca is the ECA rule with the highest priority in the priority list List1, (d) 0 is the action part in eca, (e) List2 = List1 n fecag, and (f) ( 0 ; 0 ; List2) = . 2 Because of the second condition above, when (!( ); ) is unde ned we obtain as an empty list, and then ( ; ; List) is a sequence of length one with as the only element. Rollbacks can be accounted for by having an additional parameter in which stores the initial state, where the database should be rolled back to when a trigger with REFUSE in its action part is triggered.
+yet to be processed, and the output of the function is a sequence of database
+states. Once we dene this function, the evolution of a database state  due to
+an action sequence , can then be expressed by 	(; ; [ ]). (For lack of space
+we only consider the simple case where there are no triggers with REFUSE in
+their action part.)
 
-Our next step is to formally de ne when a set of ECA rules are correct with respect to invariant and maintenance constraints. For state maintenance constraints, intuitively, the correctness means that the ECA rules force the database to evolve in such a way that the nal state that is reached is a state where all the state maintenance constraints are satis ed. For state invariant constraints, intuitively, the correctness means that the ECA rules force the database to evolve in such a way that the state invariance constraints are satis ed in all states of the trajectory. Since our ultimate goal is to be able to use this de nition to verify the correctness, we add another dimension to the de nition: the class of exogenous actions that we consider; where exogenous actions are the actions that outside users are 9
+Denition 3 [Evolution due to actions and triggers]
+1. 	(; ; List) =  if  is a state,  is an empty sequence, and List = [ ].
+2. 	(; ; List) is an empty list if  is undened.
+3. 	(; ; List) =    if
+(a) 0 = (!(); ), where ! is the composition of the wrapping functions of the before triggers triggered by the events in (;; ; ). (If
+there are no before triggers triggered by the events in (;; ; ) then
+! is the identity function; i.e., 8:!() = ).
+(b) List1 is the list obtained by adding the new ECA rules triggered by
+the events in (;; ; !()) to List and adjusting the priorities,
+(c) eca is the ECA rule with the highest priority in the priority list List1,
+(d) 0 is the action part in eca,
+(e) List2 = List1 n fecag, and
+(f) 	(0 ; 0 ; List2) = .
+2
+Because of the second condition above, when (!(); ) is undened we obtain
+ as an empty list, and then 	(; ; List) is a sequence of length one with 
+as the only element. Rollbacks can be accounted for by having an additional
+parameter in 	 which stores the initial state, where the database should be
+rolled back to when a trigger with REFUSE in its action part is triggered.
 
 2.4 Correctness of ECA rules
 
-allowed to execute on the database. It should be noted that the action part of the ECA rules may have actions other than the exogenous actions. We now formally de ne correctness with respect to state invariant and maintenance constraints. state maintenance constraints, A be a set of exogenous actions, and T be a set of ECA rules. We say T is correct with respect to ?si ?sm and A, if for all database states where the constraints in ?si and ?sm hold, and for all action sequences consisting of exogenous actions from A, all the states in the sequence ( ; ; ]) satisfy the constraints in ?si ; and the last state of the evolution given by ( ; ; ]) satis es the constraints in ?sm . 2 To expand the De nition 4 to de ne correctness with respect to trajectory constraints we need to consider a larger evolution window where the database evolves through several exogenous requests each consisting of a sequence of (exogenous) actions. For this we use the notation to denote the last state of the evolution given by ( ; ; ]). We use the notation ( 1 ; 2 ) to denote the last state of the evolution given by ( 1 ; 2 ; ]), and similarly de ne ( 1 ;:::; i ) . state maintenance constraints, ?ti be a set of trajectory invariant constraints, ?tm be a set of trajectory maintenance constraints, A be a set of exogenous actions, and T be a set of ECA rules. We say T is correct with respect to ?si ?sm ?ti ?tm and A, if for all database states where the constraints in ?si and ?sm hold, and for all action sequences 1 ; : : : ; n consisting of exogenous actions from A, all the states in the sequences ( ; 1 ; ]), ( 1 ; 2 ; ]), . . . , ( ( 1 ;:::; n?1 ) ; n ; ]) satisfy the constraints in ?si ; all the states 1 ; : : : ; ( 1 ;:::; n ) satisfy the constraints in ?sm ; the trajectory obtained by concatenating ( ; 1 ; ]) with ( 1 ; 2 ; ]), . . . , ( ( 1 ;:::; n?1 ) ; n ; ]) satisfy the constraints in ?ti ; and the trajectory ; 1 ; : : : ; ( 1 ;:::; n ) satis es the constraints in ?tm . 2 Example 3 Consider the relational Schema: Employee(Emp#; Name; Salary; Dept#) Dept(Dept#; Mgr#) We have two state maintenance constraints: (i) If (e; n; s; d) is a tuple in Employee then there must be a tuple (d0 ; m0 ) in 10
+Our next step is to formally dene when a set of ECA rules are correct with
+respect to invariant and maintenance constraints. For state maintenance constraints, intuitively, the correctness means that the ECA rules force the database
+to evolve in such a way that the nal state that is reached is a state where all the
+state maintenance constraints are satised. For state invariant constraints, intuitively, the correctness means that the ECA rules force the database to evolve
+in such a way that the state invariance constraints are satised in all states of
+the trajectory.
+Since our ultimate goal is to be able to use this denition to verify the correctness, we add another dimension to the denition: the class of exogenous actions
+that we consider; where exogenous actions are the actions that outside users are
+9
 
-De nition 4 Let ?si be a set of state invariant constraints, ?sm be a set of
+allowed to execute on the database. It should be noted that the action part of
+the ECA rules may have actions other than the exogenous actions.
+We now formally dene correctness with respect to state invariant and maintenance constraints.
 
-De nition 5 Let ?si be a set of state invariant constraints, ?sm be a set of
+Denition 4 Let ?si be a set of state invariant constraints, ?sm be a set of
+state maintenance constraints, A be a set of exogenous actions, and T be a set
+of ECA rules. We say T is correct with respect to ?si [ ?sm and A, if for all
 
-The set of maintenance triggers that can be shown to be correct with respect to the above maintenance constraints and exogenous actions consists of the following trigger. For any Delete (e; n; s; d) from Employee, if (d; e) is a tuple in Dept, delete that tuple from Dept and delete all tuples of the form (e0 ; n0 ; s0 ; d0 ) from Employee, where d = d0 . 2 We can now make the formal claim that the above maintenance triggers are correct with respect to the above mentioned state maintenance constraints and exogenous actions.
+database states  where the constraints in ?si and ?sm hold, and for all action
+sequences  consisting of exogenous actions from A,
 
-Dept such that d = d0 . (ii) If (d; m) is a tuple in Dept, then there must be a tuple (e0 ; n0 ; s0 ; d0 ) in Employee such that d = d0 and m = e0 The only allowable exogenous action is del(Employee(E; N; S; D)).
+ all the states in the sequence 	(; ; [ ]) satisfy the constraints in ?si ; and
+ the last state of the evolution given by 	(; ; [ ]) satises the constraints
+2
+
+in ?sm .
+
+To expand the Denition 4 to dene correctness with respect to trajectory
+constraints we need to consider a larger evolution window where the database
+evolves through several exogenous requests each consisting of a sequence of (exogenous) actions. For this we use the notation  to denote the last state of the
+evolution given by 	(; ; [ ]). We use the notation (1 ;2 ) to denote the last
+state of the evolution given by 	(1 ; 2 ; [ ]), and similarly dene (1 ;:::;i ) .
+
+Denition 5 Let ?si be a set of state invariant constraints, ?sm be a set of
+
+state maintenance constraints, ?ti be a set of trajectory invariant constraints,
+?tm be a set of trajectory maintenance constraints, A be a set of exogenous
+actions, and T be a set of ECA rules. We say T is correct with respect to
+?si [ ?sm [ ?ti [ ?tm and A, if for all database states  where the constraints in
+?si and ?sm hold, and for all action sequences 1 ; : : : ; n consisting of exogenous
+actions from A,
+
+ all the states in the sequences
+
+	(; 1 ; [ ]), 	(1 ; 2 ; [ ]), . . . , 	((1 ;:::;n?1 ) ; n ; [ ]) satisfy the constraints in ?si ;
+ all the states 1 ; : : : ; (1 ;:::;n ) satisfy the constraints in ?sm ;
+ the trajectory obtained by concatenating 	(; 1 ; [ ]) with 	(1 ; 2 ; [ ]),
+. . . , 	((1 ;:::;n?1 ) ; n ; [ ]) satisfy the constraints in ?ti ; and
+ the trajectory ; 1 ; : : : ; (1 ;:::;n ) satises the constraints in ?tm . 2
+Example 3 Consider the relational Schema:
+Employee(Emp#; Name; Salary; Dept#)
+Dept(Dept#; Mgr#)
+We have two state maintenance constraints:
+(i) If (e; n; s; d) is a tuple in Employee then there must be a tuple (d0 ; m0 ) in
+10
+
+Dept such that d = d0 .
+(ii) If (d; m) is a tuple in Dept, then there must be a tuple (e0 ; n0 ; s0 ; d0 ) in
+Employee such that d = d0 and m = e0
+The only allowable exogenous action is del(Employee(E; N; S; D)).
+
+The set of maintenance triggers that can be shown to be correct with respect
+to the above maintenance constraints and exogenous actions consists of the
+following trigger.
+ For any Delete (e; n; s; d) from Employee, if (d; e) is a tuple in Dept, delete that
+tuple from Dept and delete all tuples of the form (e0 ; n0 ; s0 ; d0 ) from Employee,
+where d = d0 .
+2
+We can now make the formal claim that the above maintenance triggers are
+correct with respect to the above mentioned state maintenance constraints and
+exogenous actions.
 
 3 Elaborating on our abstractions
 
-In Section 1.1 we de ned state constraints and trajectory constraints as boolean functions on database states and sequences of database states respectively. Our next concern is how to represent such functions parsimoniously. One approach is to use logical constructs. In this section we introduce several language constructs that we proposed to use in specifying state and trajectory constraints and show their use through examples. We start with a description of the mail order business active database from Cha96]. To save space and to make it readable without knowing the syntax of triggers in DB2-V2, we describe the triggers of this active database in words, and not in the syntax of DB2-V2. The ve tables that are mentioned in the database in Cha96] and their attributes are: Cust(C#, Cname, Caddr, Baldue, Creditlmt) Suppl(S#, Sname, Saddr, Amtowed) Inv(It#, Iname, S#, Qonhand, Unitsalpr, Qonorder, Unitorderpr, Orderthreshold, Minorder) Purch(Orddate, Ordtime, S#, It#, Qordered, Dtrecvd, Qrcvd, Unitpr) Sales(Sldate, Sltime, C#, It#, Qsold, Unitpr, Totalsale) Due to lack of space we only consider two of the eight triggers given in Cha96], and identify the state and trajectory constraints corresponding to these triggers. (PT1: a wrapper trigger) When inserting into the Purch table modify the tuples (to be inserted) 11
+In Section 1.1 we dened state constraints and trajectory constraints as boolean
+functions on database states and sequences of database states respectively. Our
+next concern is how to represent such functions parsimoniously. One approach is
+to use logical constructs. In this section we introduce several language constructs
+that we proposed to use in specifying state and trajectory constraints and show
+their use through examples.
+We start with a description of the mail order business active database from
+[Cha96]. To save space and to make it readable without knowing the syntax of
+triggers in DB2-V2, we describe the triggers of this active database in words,
+and not in the syntax of DB2-V2.
 
 3.1 The tables
 
+The ve tables that are mentioned in the database in [Cha96] and their attributes are:
+Cust(C#, Cname, Caddr, Baldue, Creditlmt)
+Suppl(S#, Sname, Saddr, Amtowed)
+Inv(It#, Iname, S#, Qonhand, Unitsalpr, Qonorder, Unitorderpr, Orderthreshold, Minorder)
+Purch(Orddate, Ordtime, S#, It#, Qordered, Dtrecvd, Qrcvd, Unitpr)
+Sales(Sldate, Sltime, C#, It#, Qsold, Unitpr, Totalsale)
+
 3.2 A subset of the triggers
 
-so that for any It#, the values for S# and Unitpr are the values for S# and Unitorderpr for that It# in the Inv table. (Note that because of the constraints associated with the Purch table that allow Orddate and Ordtime to get the current date and time by default, It# and Qordered are the only pieces of information required to do insertions into the Purch table.) (PT2 { a maintenance trigger) After inserting an order for an It# to Purch, update the Inv table by increasing the Qonorder (in the tuple with that It#) by Qordered. We rst list the constraints in a high level language that we developed and then explain the meaning of the constructs in this language. (C1) ForAll It#: Inv:S # = Purch:S # is invariant (C2) ForAll It#: Inv:Unitorderpr = Purch:Unitpr is invariant (C3) newtuple Purch requires Orddate = Currentdate and Ordtime = Currenttime (C4) ForAll It#: Purch:Sum(Qordered) ? Purch:Sum(Qrcvd) = Inv:Qonorder is maintained Among the above constraints, the rst two are state invariant constraints, the second is a trajectory invariant constraint, and the third is a state maintenance constraint. These constraints can be speci ed in rst-order logic with temporal and aggregate constructs. We specify them using such constructs below with the assumption that all free variables are universally quanti ed and all the existentially quanti ed variables are denoted by underscores \ ". (C1') (Inv(It#; ; S1 ; ; ; ; ; ; ) ^ Purch( ; ; S2 ; It#; ; ; ; )) ) (S1 = S2 ) (C2') (Inv(It#; ; ; ; ; ; UOP1 ; ; ) ^ Purch( ; ; ; It#; ; ; ; UP2 )) ) (UOP1 = UP2 ) (C3') (:Purch(OD; OT; S #; It#; ; ; ; )^ nexttime (Purch(OD; OT; S #; It#; ; ; ; ))) ) nexttime (OD = date ^ OT = time) (C4.1') R1 (It#; Sum Qord) = It# GSum Qordered(Purch) (C4.2') R2 (It#; Sum Qrcvd) = It# GSum Qrcvd(Purch) (C4') (quiescent ^ R1 (It#; Sum Qord) ^ R2 (It#; Sum Qrcvd) ^ Inv(It#; ; ; ; ; Qonorder; ; ; )) ) (Sum Qord?Sum Qrcvd = Qonorder) 12
+Due to lack of space we only consider two of the eight triggers given in [Cha96],
+and identify the state and trajectory constraints corresponding to these triggers.
+
+ (PT1: a wrapper trigger)
+
+When inserting into the Purch table modify the tuples (to be inserted)
+11
+
+so that for any It#, the values for S# and Unitpr are the values for S#
+and Unitorderpr for that It# in the Inv table. (Note that because of
+the constraints associated with the Purch table that allow Orddate and
+Ordtime to get the current date and time by default, It# and Qordered
+are the only pieces of information required to do insertions into the Purch
+table.)
+ (PT2 { a maintenance trigger)
+After inserting an order for an It# to Purch, update the Inv table by
+increasing the Qonorder (in the tuple with that It#) by Qordered.
 
 3.2.1 The corresponding constraints
 
-The rst order formulas (C1') and (C2') are low level representations of the state invariant constraints (C1) and (C2) respectively. The temporal formula (C3') is a low level representation of the trajectory invariant constraints (C3) and the temporal operator nexttime in (C3') has the usual FTL (future temporal logic) CT95] meaning. Next we have the formulas (C4.1'), (C4.2') containing grouping aggregation expressions using the notation3 from the text book SKS96], and (C4') which are a low level representation of the state maintenance constraint (C4). Note the di erence between (C4') and (C1'-C2'). Since the former is a maintenance constraint, we use the proposition quiescent in the left hand side of the implication, meaning that the implication only holds in quiescent states. On the other hand the implications in (C1'-C2') must hold in all states.
+We rst list the constraints in a high level language that we developed and then
+explain the meaning of the constructs in this language.
 
-Proposition 1 Let DB be the schema declaration in Section 3.1, and the only allowable exogenous action is `Insert into Purch with Dtrecvd and Qrcvd as null, and Qordered as a positive value'. Then in the context of DB the set of triggers fPT1,PT2g, is correct w.r.t. the set of constraints fC1, C2, C3, C4g, and the above mentioned exogenous action. 2
+ (C1) ForAll It#: Inv:S # = Purch:S # is invariant
+ (C2) ForAll It#: Inv:Unitorderpr = Purch:Unitpr is invariant
+ (C3) newtuple Purch requires Orddate = Currentdate and Ordtime
+= Currenttime
+ (C4) ForAll It#: Purch:Sum(Qordered) ? Purch:Sum(Qrcvd)
+= Inv:Qonorder is maintained
+
+Among the above constraints, the rst two are state invariant constraints, the
+second is a trajectory invariant constraint, and the third is a state maintenance
+constraint. These constraints can be specied in rst-order logic with temporal
+and aggregate constructs. We specify them using such constructs below with
+the assumption that all free variables are universally quantied and all the
+existentially quantied variables are denoted by underscores \ ".
+
+ (C1') (Inv(It#; ; S1 ; ; ; ; ; ; ) ^ Purch( ; ; S2 ; It#; ; ; ; ))
+) (S1 = S2 )
+ (C2') (Inv(It#; ; ; ; ; ; UOP1 ; ; ) ^ Purch( ; ; ; It#; ; ; ; UP2 ))
+) (UOP1 = UP2 )
+ (C3') (:Purch(OD; OT; S #; It#; ; ; ; )^
+nexttime (Purch(OD; OT; S #; It#; ; ; ; ))) )
+nexttime (OD = date ^ OT = time)
+ (C4.1') R1 (It#; Sum Qord) = It# GSum Qordered(Purch)
+(C4.2') R2 (It#; Sum Qrcvd) = It# GSum Qrcvd(Purch)
+(C4') (quiescent ^ R1 (It#; Sum Qord) ^ R2 (It#; Sum Qrcvd) ^
+Inv(It#; ; ; ; ; Qonorder; ; ; )) ) (Sum Qord?Sum Qrcvd = Qonorder)
+12
+
+The rst order formulas (C1') and (C2') are low level representations of the
+state invariant constraints (C1) and (C2) respectively. The temporal formula
+(C3') is a low level representation of the trajectory invariant constraints (C3)
+and the temporal operator nexttime in (C3') has the usual FTL (future
+temporal logic) [CT95] meaning. Next we have the formulas (C4.1'), (C4.2')
+containing grouping aggregation expressions using the notation3 from the text
+book [SKS96], and (C4') which are a low level representation of the state maintenance constraint (C4). Note the dierence between (C4') and (C1'-C2'). Since
+the former is a maintenance constraint, we use the proposition quiescent in the
+left hand side of the implication, meaning that the implication only holds in
+quiescent states. On the other hand the implications in (C1'-C2') must hold in
+all states.
+
+Proposition 1 Let DB be the schema declaration in Section 3.1, and the only
+allowable exogenous action is `Insert into Purch with Dtrecvd and Qrcvd as
+null, and Qordered as a positive value'. Then in the context of DB the set of
+triggers fPT1,PT2g, is correct w.r.t. the set of constraints fC1, C2, C3, C4g,
+and the above mentioned exogenous action.
+2
 
 4 Interrupting exogenous updates
-So far we have (implicitly) assumed that if new exogenous update requests come in when the active database system is in the midst of processing ECA rules due to a previous exogenous update, the new requests are kept in hold until the processing (due to the previous update) comes to an end. Such an assumption is perhaps acceptable when the exogenous updates are not that frequent and/or trigger processing is not that time consuming, and there is no guaranteed quality of service requirement. With the popularity of e-commerce where updates to the database would often be due to e-transactions over the web, companies may require a guaranteed quality of service requirement. In particular, they may require immediate response to requests. In such a case, it may be a good idea to partition maintenance triggers to two kinds short term and long term, with the idea that in order to give reactive response to new update requests, processing of long term maintenance triggers may be postponed in favor of processing the new update request.
-3 In this notation the general form is: G1 ;G2 ;:::;Gn GF1 A1 ;F2 A2 ;:::;Fm Am (E ), where E is any relational-algebra expression, G1 ; : : : ; Gn constitute a list of attributes on which to group, each Fi is an aggregate function, and each Ai is an attribute name. The meaning of the operation is de ned as follows. The tuples in the result of expression E are partitioned into groups such that: (i) All tuples in a group have the same values for G1 ; : : : ; Gn . (ii) Tuples in di erent groups have di erent values for G1 ; : : : ; Gn . The groups now can be identi ed by the values of the attributes G1 ; : : : ; Gn of the relation, and for each group (g1 ; : : : ; gn ), the result has a tuple (g1 ; : : : ; gn ; a1 ; : : : ; am ) where, for each i, ai is the result of applying the aggregate function Fi on the multi-set of values for the attribute Ai in the group.
+So far we have (implicitly) assumed that if new exogenous update requests come
+in when the active database system is in the midst of processing ECA rules due
+to a previous exogenous update, the new requests are kept in hold until the
+processing (due to the previous update) comes to an end. Such an assumption
+is perhaps acceptable when the exogenous updates are not that frequent and/or
+trigger processing is not that time consuming, and there is no guaranteed quality
+of service requirement.
+With the popularity of e-commerce where updates to the database would often
+be due to e-transactions over the web, companies may require a guaranteed quality of service requirement. In particular, they may require immediate response
+to requests. In such a case, it may be a good idea to partition maintenance triggers to two kinds short term and long term, with the idea that in order to give
+reactive response to new update requests, processing of long term maintenance
+triggers may be postponed in favor of processing the new update request.
+3 In this notation the general form is:
+G1 ;G2 ;:::;Gn GF1 A1 ;F2 A2 ;:::;Fm Am (E ), where E
+is any relational-algebra expression, G1 ; : : : ; Gn constitute a list of attributes on which to
+group, each Fi is an aggregate function, and each Ai is an attribute name. The meaning of
+the operation is dened as follows. The tuples in the result of expression E are partitioned
+into groups such that:
+(i) All tuples in a group have the same values for G1 ; : : : ; Gn .
+(ii) Tuples in dierent groups have dierent values for G1 ; : : : ; Gn .
+The groups now can be identied by the values of the attributes G1 ; : : : ; Gn of the relation,
+and for each group (g1 ; : : : ; gn ), the result has a tuple (g1 ; : : : ; gn ; a1 ; : : : ; am ) where, for each
+i, ai is the result of applying the aggregate function Fi on the multi-set of values for the
+attribute Ai in the group.
 
 13
 
-The formulation of correctness in such a case becomes tricky, and we have made a small start in that direction. In this we only consider condition-action triggers, and consider all triggers to be long term. Before we get to our de nition of correctness in such cases, we have the following notation. Let T be a set of condition-action triggers, and be a database state. By T ( ) we denote the action of the trigger which has the highest priority among the triggers whose conditions are satis ed in . We also have the following additional notations: 0 0 T ( ) = T ( ) and T = . k+1 ( ) = T ( k+1 ) and k+1 = ( K ( ); k ).
-
-De nition 6 (k-maintenance) Let T be a set of condition-action triggers, ?
-
+The formulation of correctness in such a case becomes tricky, and we have made a
+small start in that direction. In this we only consider condition-action triggers,
+and consider all triggers to be long term. Before we get to our denition of
+correctness in such cases, we have the following notation. Let T be a set of
+condition-action triggers, and  be a database state. By T () we denote the
+action of the trigger which has the highest priority among the triggers whose
+conditions are satised in . We also have the following additional notations:
+ 0T () = T () and T0 = .
+ k+1 () = T (k+1 ) and k+1 = (K (); k ).
 T
 
 T
@@ -146,18 +601,74 @@ T
 
 T
 
-be a set of long term maintenance constraints, S be a set of states, and A be a set of allowable exogenous actions. By Closure(S; T; A) we denote the smallest set of states that is a superset of S and that satis es the properties that if 2 S , then for an exogenous action a from A, (a; ) 2 S , and ( T ( ); )) 2 S . We say T k-maintains the maintenance constraints ? from S and A, if for each 0;:::; T k satis es ?. state in S , the sequence T 2
+Denition 6 (k-maintenance) Let T be a set of condition-action triggers, ?
+
+be a set of long term maintenance constraints, S be a set of states, and A be a
+set of allowable exogenous actions.
+By Closure(S; T; A) we denote the smallest set of states that is a superset of S
+and that satises the properties that if  2 S , then for an exogenous action a
+from A, (a; ) 2 S , and (T (); )) 2 S .
+We say T k-maintains the maintenance constraints ? from S and A, if for each
+state  in S , the sequence T0 ; : : : ; Tk satises ?.
+2
+
+Intuitively, the notion of k-maintenance means that the active database system
+will get back to consistency (with respect to ?) if it is given a window of opportunity of processing k triggers without any outside interference in terms of new
+update requests.
+An important aspect of such a notion of k-maintainability is that in reactive
+(active database) systems, if we know that our system is k-maintainable, and
+each transition takes say t time units, then we can implement a transaction
+mechanism that will regulate the number of exogenous actions allowed per unit
+time to be k1 t . On the other hand, given a requirement that we must allow m
+requests (exogenous actions) per unit time, we can work backwards to determine
+the value of k, and then nd a set of triggers to make the system k-maintainable.
 
 5 Conclusion and future work
 
-Intuitively, the notion of k-maintenance means that the active database system will get back to consistency (with respect to ?) if it is given a window of opportunity of processing k triggers without any outside interference in terms of new update requests. An important aspect of such a notion of k-maintainability is that in reactive (active database) systems, if we know that our system is k-maintainable, and each transition takes say t time units, then we can implement a transaction mechanism that will regulate the number of exogenous actions allowed per unit time to be k 1 t . On the other hand, given a requirement that we must allow m requests (exogenous actions) per unit time, we can work backwards to determine the value of k, and then nd a set of triggers to make the system k-maintainable.
+In this paper we have taken several steps towards the systematic design of
+active features in an active database. The main steps that we have taken are
+identifying a few constructs for specication, classifying triggers into distinct
+classes based on their purpose, linking the trigger classes with the specication
+classes, formulating correctness of triggers with respect to a given specication,
+elaborating our formulation through examples and briey introducing the notion
+of k-maintainability.
+Due to space limitations we were not able to detail our formulation (especially,
+the prioritization used in dening 	 and the dierentiation between row and
+statement triggers) and show the design methodology with respect to a large
+14
 
-In this paper we have taken several steps towards the systematic design of active features in an active database. The main steps that we have taken are identifying a few constructs for speci cation, classifying triggers into distinct classes based on their purpose, linking the trigger classes with the speci cation classes, formulating correctness of triggers with respect to a given speci cation, elaborating our formulation through examples and brie y introducing the notion of k-maintainability. Due to space limitations we were not able to detail our formulation (especially, the prioritization used in de ning and the di erentiation between row and statement triggers) and show the design methodology with respect to a large 14
-
-example. In the full version we will show how our formulation in this paper can be used in systematically developing the triggers for the complete example in Cha96], starting from a speci cation which is not given in Cha96]. Our main future work will be to develop composition methods and theorems so that given sets of triggers T1 and T2 that are correct with respect to speci cations S1 and S2 respectively, we can construct triggers that are correct with respect to S1 S2 . We also plan to identify additional speci cation constructs with matching trigger sub-classes, and further elaborate on our notion of k-maintainability.
+example. In the full version we will show how our formulation in this paper can
+be used in systematically developing the triggers for the complete example in
+[Cha96], starting from a specication which is not given in [Cha96]. Our main
+future work will be to develop composition methods and theorems so that given
+sets of triggers T1 and T2 that are correct with respect to specications S1 and
+S2 respectively, we can construct triggers that are correct with respect to S1 [S2 .
+We also plan to identify additional specication constructs with matching trigger
+sub-classes, and further elaborate on our notion of k-maintainability.
 
 References
-ADA93] P. Atzeni and V. De Antonellis. Relational database theory. The Benjamin/Cummings publishing company, 1993. BL96] C. Baral and J. Lobo. Formal characterization of active databases. In Proc. of International Workshop on Logic in Databases { LID'96 (LNCS 1154), pages 175{195, 1996. BLT97] C. Baral, J. Lobo, and G. Trajcevski. Formal characterization of active databases: Part II. In DOOD 97, 1997. CF97] S. Ceri and P. Fraternali. Designing database applications with objects and rules { the IDEA methodology. Addison-Wesley, 1997. Cha96] D. Chamberlin. Using the new DB2: IBM's Object-relational database system. Morgan Kaufmann, 1996. CT95] J. Chomicki and D. Toman. Implementing temporal integrity constraints using an active dbms. IEEE transactions on knowledge and data engineering, 1995. GL93] M. Gelfond and V. Lifschitz. Representing actions and change by logic programs. Journal of Logic Programming, 17(2,3,4):301{323, 1993. Pat98] N. Paton. Active rules in database systems. Springer-Verlag, 1998. SKS96] A. Silberschatz, H. Korth, and S. Sudershan. Database System Concepts. McGraw Hill, 3rd edition, 1996. Ull88] J. Ullman. Principles of Database and Knowledge-base Systems, volume I. Computer Science Press, 1988. WC96] J. Widom and S Ceri, editors. Active Database Systems - Triggers and Rules for advanced database processing. Morgan Kaufmann, 1996. Wid96] J. Widom. The Starbust rule system. In J. Widom and S Ceri, editors, Active Database Systems, pages 87{110. Morgan Kaufmann, 1996.
+[ADA93] P. Atzeni and V. De Antonellis. Relational database theory. The
+Benjamin/Cummings publishing company, 1993.
+[BL96] C. Baral and J. Lobo. Formal characterization of active databases.
+In Proc. of International Workshop on Logic in Databases { LID'96
+(LNCS 1154), pages 175{195, 1996.
+[BLT97] C. Baral, J. Lobo, and G. Trajcevski. Formal characterization of active
+databases: Part II. In DOOD 97, 1997.
+[CF97] S. Ceri and P. Fraternali. Designing database applications with objects
+and rules { the IDEA methodology. Addison-Wesley, 1997.
+[Cha96] D. Chamberlin. Using the new DB2: IBM's Object-relational database
+system. Morgan Kaufmann, 1996.
+[CT95] J. Chomicki and D. Toman. Implementing temporal integrity constraints using an active dbms. IEEE transactions on knowledge and
+data engineering, 1995.
+[GL93] M. Gelfond and V. Lifschitz. Representing actions and change by logic
+programs. Journal of Logic Programming, 17(2,3,4):301{323, 1993.
+[Pat98] N. Paton. Active rules in database systems. Springer-Verlag, 1998.
+[SKS96] A. Silberschatz, H. Korth, and S. Sudershan. Database System Concepts. McGraw Hill, 3rd edition, 1996.
+[Ull88] J. Ullman. Principles of Database and Knowledge-base Systems, volume I. Computer Science Press, 1988.
+[WC96] J. Widom and S Ceri, editors. Active Database Systems - Triggers and
+Rules for advanced database processing. Morgan Kaufmann, 1996.
+[Wid96] J. Widom. The Starbust rule system. In J. Widom and S Ceri, editors,
+Active Database Systems, pages 87{110. Morgan Kaufmann, 1996.
 
 15
 

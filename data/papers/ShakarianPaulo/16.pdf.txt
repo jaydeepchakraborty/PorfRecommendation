@@ -1,188 +1,679 @@
-Noname manuscript No. (will be inserted by the editor)
+Noname manuscript No.
+(will be inserted by the editor)
 
-Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
-Ruocheng Guo � Elham Shaabani � Abhinav Bhatnagar � Paulo Shakarian
-
-Received: date / Accepted: date
+Toward Early and Order-of-Magnitude Cascade
+Prediction in Social Networks
+Ruocheng Guo · Elham Shaabani ·
+Abhinav Bhatnagar · Paulo Shakarian
 
 arXiv:1608.02646v1 [cs.SI] 8 Aug 2016
 
-Abstract When a piece of information (microblog, photograph, video, link, etc.) starts to spread in a social network, an important question arises: will it spread to "viral" proportions � where "viral" can be defined as an order-ofmagnitude increase. However, several previous studies have established that cascade size and frequency are related through a power-law - which leads to a severe imbalance in this classification problem. In this paper, we devise a suite of measurements based on "structural diversity" � the variety of social contexts (communities) in which individuals partaking in a given cascade engage. We demonstrate these measures are able to distinguish viral from non-viral cascades, despite the severe imbalance of the data for this problem. Further, we leverage these measurements as features in a classification approach, successfully predicting microblogs that grow from 50 to 500 reposts with precision of 0.69 and recall of 0.52 for the viral class - despite this class comprising under 2% of samples. This significantly outperforms our baseline approach as well as the current state-of-the-art. We also show this approach also performs well for identifying if cascades observed for 60 minutes will grow to 500 reposts as well as demonstrate how we can tradeoff between precision and recall. Keywords Cascade Prediction � Information Diffusion � Social Network Analysis � Diffusion in Social Networks
+Received: date / Accepted: date
 
-U.S. provisional patent 62/201,517. A non-provisional patent is currently being filed. Some of the authors of this paper are supported by by AFOSR Young Investigator Program (YIP) grant FA9550-15-1-0159, ARO grant W911NF-15-1-0282, and the DoD Minerva program. Ruocheng Guo, Elham Shaabani, Abhinav Bhatnagar, Paulo Shakarian Arizona State University E-mail: {rguosni, shaabani, abhatn, shak}@asu.edu
+Abstract When a piece of information (microblog, photograph, video, link,
+etc.) starts to spread in a social network, an important question arises: will it
+spread to “viral” proportions – where “viral” can be defined as an order-ofmagnitude increase. However, several previous studies have established that
+cascade size and frequency are related through a power-law - which leads to a
+severe imbalance in this classification problem. In this paper, we devise a suite
+of measurements based on “structural diversity” – the variety of social contexts (communities) in which individuals partaking in a given cascade engage.
+We demonstrate these measures are able to distinguish viral from non-viral
+cascades, despite the severe imbalance of the data for this problem. Further,
+we leverage these measurements as features in a classification approach, successfully predicting microblogs that grow from 50 to 500 reposts with precision
+of 0.69 and recall of 0.52 for the viral class - despite this class comprising under
+2% of samples. This significantly outperforms our baseline approach as well
+as the current state-of-the-art. We also show this approach also performs well
+for identifying if cascades observed for 60 minutes will grow to 500 reposts as
+well as demonstrate how we can tradeoff between precision and recall.
+Keywords Cascade Prediction · Information Diffusion · Social Network
+Analysis · Diffusion in Social Networks
+
+U.S. provisional patent 62/201,517. A non-provisional patent is currently being filed.
+Some of the authors of this paper are supported by by AFOSR Young Investigator Program
+(YIP) grant FA9550-15-1-0159, ARO grant W911NF-15-1-0282, and the DoD Minerva program.
+Ruocheng Guo, Elham Shaabani, Abhinav Bhatnagar, Paulo Shakarian
+Arizona State University
+E-mail: {rguosni, shaabani, abhatn, shak}@asu.edu
 
 2
 
 Ruocheng Guo et al.
 
-1 Introduction When a piece of information (microblog, photograph, video, link, etc.) starts to spread in a social network, an important question arises: will it spread to "viral" proportions � where "viral" is defined as a significant (i.e. order-ofmagnitude) increase in the number of individuals re-posting the information. However, several previous studies (Bakshy et al, 2011; Cheng et al, 2014) have established that cascade size and frequency are related through a power-law - which leads to a severe imbalance in this classification problem. In this paper, we devise a suite of measurements based on "structural diversity" that are associated with the growth of a viral cascade in a social network. Structural diversity refers to the variety of social contexts in which an individual engages and is typically instantiated (for social networks) as the number of distinct communities represented in an individual's local neighborhood (Ugander et al, 2012; Zhang et al, 2013; Shakarian et al, 2014; Li et al, 2015). Previously, Ugander et al. identified a correlation between structural diversity and influence (Ugander et al, 2012). We demonstrate these measures are able to distinguish viral from non-viral cascades, despite the severe imbalance of the data for this problem. Further, we leverage these measurements as features in a classification approach, successfully predicting microblogs that grow to 500 reposts from 50 (size-based experiments) or the first-hour observations (time-based experiments). The main contributions of the paper are as follows: � We develop a suite of structural diversity-based measurements that are indicative of cascade growth. � We are able to identify cascades of 50 reposts that grow to 500 reposts with a precision of 0.69 and recall of 0.52 for the viral class (200 out of 13,285 samples). � We are able to identify cascades that have advanced for 60 minutes that will reach 500 reposts with a precision of 0.65 and recall of 0.53 for the viral class (200 out of 3,444 samples). � We demonstrate how to trade-off between precision and recall for the above-mentioned problems. For instance, to predict cascades that reach 500 nodes, we can obtain precision of 0.78 or recall of 0.71 at the expense of the other. � We demonstrate that our approach is stable for alternative definitions of "viral" (i.e. microblogs that grow to sizes above or below 500 reposts). We note that our results on the prediction of cascades rely solely upon the use of our structural diversity based measures for features and limited temporal features - hence the prediction is based on network topology alone (no content information was utilized). We also achieved these results while maintaining the imbalance of the dataset - where we leave the ratio of 'viral' and 'non-viral' samples as it is. This differs from some previous studies (i.e. (Jenders et al, 2013)) which balance the data before conducting classification experiments. Further, we note that we obtained prediction of order-of-magnitude increases in the size of the cascade - which also differs from other work (i.e. (Cheng
+1 Introduction
+When a piece of information (microblog, photograph, video, link, etc.) starts
+to spread in a social network, an important question arises: will it spread to
+“viral” proportions – where “viral” is defined as a significant (i.e. order-ofmagnitude) increase in the number of individuals re-posting the information.
+However, several previous studies (Bakshy et al, 2011; Cheng et al, 2014) have
+established that cascade size and frequency are related through a power-law
+- which leads to a severe imbalance in this classification problem. In this paper, we devise a suite of measurements based on “structural diversity” that
+are associated with the growth of a viral cascade in a social network. Structural diversity refers to the variety of social contexts in which an individual
+engages and is typically instantiated (for social networks) as the number of distinct communities represented in an individual’s local neighborhood (Ugander
+et al, 2012; Zhang et al, 2013; Shakarian et al, 2014; Li et al, 2015). Previously, Ugander et al. identified a correlation between structural diversity and
+influence (Ugander et al, 2012). We demonstrate these measures are able to
+distinguish viral from non-viral cascades, despite the severe imbalance of the
+data for this problem. Further, we leverage these measurements as features
+in a classification approach, successfully predicting microblogs that grow to
+500 reposts from 50 (size-based experiments) or the first-hour observations
+(time-based experiments). The main contributions of the paper are as follows:
+– We develop a suite of structural diversity-based measurements that are
+indicative of cascade growth.
+– We are able to identify cascades of 50 reposts that grow to 500 reposts
+with a precision of 0.69 and recall of 0.52 for the viral class (200 out of
+13,285 samples).
+– We are able to identify cascades that have advanced for 60 minutes that
+will reach 500 reposts with a precision of 0.65 and recall of 0.53 for the
+viral class (200 out of 3,444 samples).
+– We demonstrate how to trade-off between precision and recall for the
+above-mentioned problems. For instance, to predict cascades that reach
+500 nodes, we can obtain precision of 0.78 or recall of 0.71 at the expense
+of the other.
+– We demonstrate that our approach is stable for alternative definitions of
+”viral” (i.e. microblogs that grow to sizes above or below 500 reposts).
+We note that our results on the prediction of cascades rely solely upon the use
+of our structural diversity based measures for features and limited temporal
+features - hence the prediction is based on network topology alone (no content
+information was utilized). We also achieved these results while maintaining the
+imbalance of the dataset - where we leave the ratio of ’viral’ and ’non-viral’
+samples as it is. This differs from some previous studies (i.e. (Jenders et al,
+2013)) which balance the data before conducting classification experiments.
+Further, we note that we obtained prediction of order-of-magnitude increases
+in the size of the cascade - which also differs from other work (i.e. (Cheng
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
 3
 
-et al, 2014)) which focus on identifying cascades that double in size. The remainder of the paper is organized as follows. In Section 2 we introduce our notation and describe the dataset used in this paper. This is followed by an introduction of our structural diversity measurements for cascades in Section 3. Then we describe our experimental results where we examined both the behavior of these measurements and the performance of classifiers built using these measurements in Section 5. Finally, we discuss related work in Section 6.
+et al, 2014)) which focus on identifying cascades that double in size. The
+remainder of the paper is organized as follows. In Section 2 we introduce
+our notation and describe the dataset used in this paper. This is followed
+by an introduction of our structural diversity measurements for cascades in
+Section 3. Then we describe our experimental results where we examined both
+the behavior of these measurements and the performance of classifiers built
+using these measurements in Section 5. Finally, we discuss related work in
+Section 6.
 
-2 Technical Preliminaries Here we introduce necessary notation and describe our social network data. We represent a social network as G = (V, E ) where V is the set of nodes and E as a set of directed edges with sizes |V |, |E | respectively. The intuition behind edge (v, v ) is that it is possible that v repost a microblog from v since v did this previously. This intuition stems from how we create the edges in our network: (v, v ) is an edge if v reposted from v once or more during a specified time period (for our experiments, May 1 to July 31, 2011). We also assume a partition over nodes that specifies a community structure. We assume that such a partition is static (based on the same time period from which the edges were derived) and that the partition C consists of k communities: {C1 , C2 , ..., Ck }, each is a set of nodes. There are many possible methods to derive the communities (if user-reported communities are not available) - for instance: the Louvain algorithm (Blondel et al, 2008), Infomap (Rosvall and Bergstrom, 2008), Smart Local Move (SLM) (Waltman and van Eck, 2013) and Label Propagation (Raghavan et al, 2007). Previous work such as (Weng et al, 2014; Grabowicz et al, 2012) showed the effectiveness of communities detected by these algorithms for different applications. In this paper, We utilize the Louvain algorithm, Infomap algorithm and SLM algorithm to identify communities in the social network G due to their scalability for large social network. For these algorithms, the number of communities is not an argument as input but rather produced as part of the output of these algorithms. Note that we require C to be a partition over nodes - hence we disallow for overlapping communities. This is consistent with the community structure derivations from previous, related work (Ugander et al, 2012; Zhang et al, 2013; Shakarian et al, 2014; Li et al, 2015) which also required a partition over nodes such as strongly connected components. As such, we leave the study of structural diversity in the case of overlapping communities to future efforts. Cascades. A cascade  = (U, R) consists of all nodes (U ) who posted or reposted a certain original microblog and the reposting relationships between them, treated as edges (R). Naturally, any cascade is a subgraph of the social network G. In order to predict the final size, snapshots of a cascade can be taken by different time since adoption of the seed adopter (denoted by t). Then a snapshot of cascade  introduces a subset t = (Ut , Rt ) of  . We refer to
+2 Technical Preliminaries
+Here we introduce necessary notation and describe our social network data.
+We represent a social network as G = (V, E) where V is the set of nodes and
+E as a set of directed edges with sizes |V |, |E| respectively. The intuition behind edge (v, v 0 ) is that it is possible that v 0 repost a microblog from v since
+v 0 did this previously. This intuition stems from how we create the edges in
+our network: (v, v 0 ) is an edge if v 0 reposted from v once or more during a
+specified time period (for our experiments, May 1 to July 31, 2011). We also
+assume a partition over nodes that specifies a community structure. We assume that such a partition is static (based on the same time period from which
+the edges were derived) and that the partition C consists of k communities:
+{C1 , C2 , ..., Ck }, each is a set of nodes. There are many possible methods to
+derive the communities (if user-reported communities are not available) - for
+instance: the Louvain algorithm (Blondel et al, 2008), Infomap (Rosvall and
+Bergstrom, 2008), Smart Local Move (SLM) (Waltman and van Eck, 2013)
+and Label Propagation (Raghavan et al, 2007). Previous work such as (Weng
+et al, 2014; Grabowicz et al, 2012) showed the effectiveness of communities
+detected by these algorithms for different applications. In this paper, We utilize the Louvain algorithm, Infomap algorithm and SLM algorithm to identify
+communities in the social network G due to their scalability for large social
+network. For these algorithms, the number of communities is not an argument
+as input but rather produced as part of the output of these algorithms. Note
+that we require C to be a partition over nodes - hence we disallow for overlapping communities. This is consistent with the community structure derivations
+from previous, related work (Ugander et al, 2012; Zhang et al, 2013; Shakarian et al, 2014; Li et al, 2015) which also required a partition over nodes such
+as strongly connected components. As such, we leave the study of structural
+diversity in the case of overlapping communities to future efforts.
+Cascades. A cascade τ = (U, R) consists of all nodes (U ) who posted or reposted a certain original microblog and the reposting relationships between
+them, treated as edges (R). Naturally, any cascade is a subgraph of the social
+network G. In order to predict the final size, snapshots of a cascade can be
+taken by different time since adoption of the seed adopter (denoted by t). Then
+a snapshot of cascade τ introduces a subset τt = (Ut , Rt ) of τ . We refer to
 
 4
 
 Ruocheng Guo et al.
 
-Ut as adopters. Moreover, we also call the out-neighbors of adopters in G but not among the adopters as exposed users and denote them as NG (Ut ). For each node v  NG (Ut ), we define the adopters who exposes the cascade to v as its exposers. For convenience, we also define function uea : v  u to return the earliest adopter u among exposers of v  NG (Ut ). For size-based experiments, the time t for taking snapshot of a cascade is decided by a given cascade size m. We use t(m) to denote the smallest t such that |Ut |= m is true for a certain cascade. Accordingly, to get the corresponding order number n of an adopter u  Ut , we define function Index : u  n where n  [1, |Ut |]. To maintain a unique order of reposts, a very small random number is added to each t(n) for all integers n  [1, |Ut (m)|]. We have not found this to be a significant issue in this dataset. For convenience and simplicity, we use t to stand for both t(m) in size-based and t in time-based experiments later. For a given snapshot t = (Ut , Rt ), then we want to divide the set NG (Ut ) into two sets, namely recently exposed users (Ft ) and past exposed users (Nt ). Intuitively, this division is done based on how long it is since v  NG (Ut ) is true (when it is possible for v to make a repost) till the snapshot t is taken. Formally, given a node v  NG (Ut ), we decide whether it is a recently or past exposed user: texpose (v ) = t - t(Index(uea (v ))) (1) As defined before, t(n) denotes the earliest time t when |Ut |= n is true. Then the value of texpose (v ) is the number of time periods since the earliest adoption among its exposers till when the snapshot of cascade is taken. A positive constant  is set as a threshold on texpose (v ) (we will discuss how this constant is set in the last paragraph of 2), the recently exposed users and past exposed users are defined as follows: Ft = {v  NG (Ut ) s.t. texpose (v )  } Nt = NG (Ut ) \ Ft (2) (3)
+Ut as adopters. Moreover, we also call the out-neighbors of adopters in G but
+not among the adopters as exposed users and denote them as NG (Ut ). For
+each node v ∈ NG (Ut ), we define the adopters who exposes the cascade to v
+as its exposers. For convenience, we also define function uea : v → u to return
+the earliest adopter u among exposers of v ∈ NG (Ut ).
+For size-based experiments, the time t for taking snapshot of a cascade
+is decided by a given cascade size m. We use t(m) to denote the smallest
+t such that |Ut |= m is true for a certain cascade. Accordingly, to get the
+corresponding order number n of an adopter u ∈ Ut , we define function Index :
+u → n where n ∈ [1, |Ut |]. To maintain a unique order of reposts, a very small
+random number is added to each t(n) for all integers n ∈ [1, |Ut (m)|]. We have
+not found this to be a significant issue in this dataset. For convenience and
+simplicity, we use t to stand for both t(m) in size-based and t in time-based
+experiments later.
+For a given snapshot τt = (Ut , Rt ), then we want to divide the set NG (Ut )
+into two sets, namely recently exposed users (Ft ) and past exposed users (Nt ).
+Intuitively, this division is done based on how long it is since v ∈ NG (Ut ) is
+true (when it is possible for v to make a repost) till the snapshot τt is taken.
+Formally, given a node v ∈ NG (Ut ), we decide whether it is a recently or past
+exposed user:
+texpose (v) = t − t(Index(uea (v)))
+(1)
+As defined before, t(n) denotes the earliest time t when |Ut |= n is true.
+Then the value of texpose (v) is the number of time periods since the earliest
+adoption among its exposers till when the snapshot of cascade is taken.
+A positive constant λ is set as a threshold on texpose (v) (we will discuss
+how this constant is set in the last paragraph of 2), the recently exposed users
+and past exposed users are defined as follows:
+Ft = {v ∈ NG (Ut ) s.t. texpose (v) ≤ λ}
 
-Sina Weibo Dataset. The dataset we used was provided by WISE 2012 Challenge1 . It included a sample of microblogs posted on Sina Weibo2 from 2009 to 2012. In this dataset, we are provided with time and user information for each microblog and subsequent repost which enabled us to derive a corpus of cascades. For every repost in this dataset, the reposting relationship is provided as uid: v tab v which indicates this message is a reposted from user v by v . From this data, we derived our social network G = (V, E ) that was created from microblogs (including original posts and reposts) published during May 1, 2011 to July 31, 2011 (the 3-month period). For this network, the number of active nodes in August (the time period we studied for cascade prediction) is 5,910,608, while 5,664,625 of them at least have one out-neighbor. During
-1 2
+(2)
 
-http://www.wise2012.cs.ucy.ac.cy/challenge.html http://weibo.com
+Nt = NG (Ut ) \ Ft
+
+(3)
+
+Sina Weibo Dataset. The dataset we used was provided by WISE 2012 Challenge1 . It included a sample of microblogs posted on Sina Weibo2 from 2009
+to 2012. In this dataset, we are provided with time and user information for
+each microblog and subsequent repost which enabled us to derive a corpus of
+cascades. For every repost in this dataset, the reposting relationship is provided as uid: v 0 tab v which indicates this message is a reposted from user v by
+v 0 . From this data, we derived our social network G = (V, E) that was created
+from microblogs (including original posts and reposts) published during May
+1, 2011 to July 31, 2011 (the 3-month period). For this network, the number
+of active nodes in August (the time period we studied for cascade prediction)
+is 5,910,608, while 5,664,625 of them at least have one out-neighbor. During
+1
+2
+
+http://www.wise2012.cs.ucy.ac.cy/challenge.html
+http://weibo.com
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
 5
 
 Table 1: Properties of the Social Network and Cascades
-Network Properties Vertices (Nodes) Edges Average degree Average clustering coefficient Connected components Number Average Number Average Number Average Number Number Number Average of communities (Louvain) size of communities (Louvain) of communities (Infomap) size of communities (Infomap) of communities (SLM) size of communities (SLM) of cascades of viral cascades of active nodes in cascades time to become viral Value 17,996,803 52,472,547 5.83 0.107 4974 379,416 47.5 39,922 450.799 380,854 47.3 Value 2,113,405 208 5,910,608 18 (h)
+Network Properties
+Vertices (Nodes)
+Edges
+Average degree
+Average clustering coefficient
+Connected components
+Number
+Average
+Number
+Average
+Number
+Average
+
+of communities (Louvain)
+size of communities (Louvain)
+of communities (Infomap)
+size of communities (Infomap)
+of communities (SLM)
+size of communities (SLM)
 
 Cascade Properties
+Number
+Number
+Number
+Average
 
-the month of August, there were 22,182,704 microblogs. Of these, 9,323,294 are reposts. 2,252,368 different of original posts succeeded to make at least one user repost, while 1,920,763 (86.6%) of them were written by authors who at least published one microblog during the 3-month period mentioned before. For this dataset, although different from a power-law noted previoulsly in (Bakshy et al, 2011; Cheng et al, 2014), the histogram of final cascade size (see Figure 1a) still shows that only quite few cascades went 'viral'. Therefore, we could demonstrate that this dataset is more representative of cascade behavior observed in real world than work like (Jenders et al, 2013) which conducted biased sampling to artificially provide balanced classes. We select the threshold constant  as 30 minutes since vast majority of all the reposts in May-July, 2011 occurred within 30 minutes since adoption of the seed adopter (see Figure 1b). To justify this selection, knowing that  is a threshold on texpose (v ) which is upper bounded by t, the proportion of exposed users became adopter with texpose (v )  30(min) should be more than that of those did the repost with t  30(min). This implies why it is necessary to distinguish recently and past exposed users due to the significant difference in probability to adopt. In Figure 1c, we show distribution of how long it takes for viral cascades to reach 500 nodes - note that the average value here is approximately 18 hours (which is significantly greater than what we study in our time-based classification problem).
+of cascades
+of viral cascades
+of active nodes in cascades
+time to become viral
 
-6
+Value
+17,996,803
+52,472,547
+5.83
+0.107
+4974
+379,416
+47.5
+39,922
+450.799
+380,854
+47.3
+Value
+2,113,405
+208
+5,910,608
+18 (h)
 
-Ruocheng Guo et al.
+the month of August, there were 22,182,704 microblogs. Of these, 9,323,294
+are reposts. 2,252,368 different of original posts succeeded to make at least
+one user repost, while 1,920,763 (86.6%) of them were written by authors who
+at least published one microblog during the 3-month period mentioned before. For this dataset, although different from a power-law noted previoulsly
+in (Bakshy et al, 2011; Cheng et al, 2014), the histogram of final cascade size
+(see Figure 1a) still shows that only quite few cascades went ’viral’. Therefore, we could demonstrate that this dataset is more representative of cascade
+behavior observed in real world than work like (Jenders et al, 2013) which
+conducted biased sampling to artificially provide balanced classes.
+We select the threshold constant λ as 30 minutes since vast majority of
+all the reposts in May-July, 2011 occurred within 30 minutes since adoption
+of the seed adopter (see Figure 1b). To justify this selection, knowing that
+λ is a threshold on texpose (v) which is upper bounded by t, the proportion
+of exposed users became adopter with texpose (v) ≤ 30(min) should be more
+than that of those did the repost with t ≤ 30(min). This implies why it is
+necessary to distinguish recently and past exposed users due to the significant
+difference in probability to adopt. In Figure 1c, we show distribution of how
+long it takes for viral cascades to reach 500 nodes - note that the average value
+here is approximately 18 hours (which is significantly greater than what we
+study in our time-based classification problem).
 
-107 106 105 104 103 102 101 100 0
+Ruocheng Guo et al.
 
 Frequency
 
-200 400 600 800 1000 1200 1400 Final Size of Cascades
+6
+
+107
+106
+105
+104
+103
+102
+101
+100 0
+
+200 400 600 800 1000 1200 1400
+Final Size of Cascades
 
 (a) The histogram of cascade size for August, 2011
 
-10 0 cumulative probability 10 -1 10 -2 10 -3
--4 1010 0 10 1 10 4 10 5 10 2 10 3 time since the adoption of the seed adopter (minutes)
+cumulative probability
+
+10 0
+10 -1
+10 -2
+10 -3
+-4
+1010
+0
+10 1
+10 4
+10 5
+10 2
+10 3
+time since the adoption of the seed adopter (minutes)
 
 (b) CDF of adoption time since adoption of the seed adopter (minutes) for May-July, 2011
 
-10 2 Frequency
+Frequency
+
+10 2
 
 10 1
 
-10 0 0 200 400 600 800 1000 1200 1400 Time taken to become viral (>500) in minutes
-(c) Histogram of time (minutes) 'viral' cascades took to reach size of 500.
+10 0 0 200 400 600 800 1000 1200 1400
+Time taken to become viral (>500) in minutes
+(c) Histogram of time (minutes) ’viral’ cascades took to reach size of 500.
 
 Fig. 1: Network Dataset Statistics
 
-3 Structural Diversity Measurements in Real Information Cascades Found by (Ugander et al, 2012), an individual is more likely to be infected by a `social contagion' if his/her `infected' in-neighbors are distributed over more connected components of social network users. For example, as shown
+3 Structural Diversity Measurements in Real Information Cascades
+Found by (Ugander et al, 2012), an individual is more likely to be infected
+by a ‘social contagion’ if his/her ‘infected’ in-neighbors are distributed over
+more connected components of social network users. For example, as shown
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
 7
 
-in Figure 2, although the man on the left has more infected in-neighbors, the woman on the right is more likely to be infected by the social contagion. As in-neighbors of her are showing higher structural diversity (from two communities). Translated into the terminologies introduced in this paper, they showed that an exposed user is more likely to become an adopter with exposers of high structural diversity. If this effect is aggregated over all the exposed users of a cascade, the significance to measure the relationship between structural diversity of adopters would be revealed. Moreover, we also extend our experiments to measure that of exposed users. Instead of connected components, we consider structural diversity described by communities. In this section we introduce a suite of various structural diversity measurements. We study these measurements as cascades progress in Section 4 and then leverage them as features for our classification problem in Section 5. We introduce these measurements as follows. Number of communities. For a given set of node S  {Ut , Ft , Nt } we can retrieve the associated communities C (S ) by the partition of the social network C (G). Formally: C (S ) = {Ci  C (V ) s.t. S  Ci = } where C (V ) is the partition of the social network G, introduced in Section 2. We measure the number of communities represented by |C (S )| for S  {Ut , Ft , Nt }. Gini impurity. For S  {Ut , Ft , Nt } in a cascade t , the gini impurity IG (S ) proposed by (Breiman et al, 1984) for splitting samples in decision tree, intuitively, is a scalar describing how much the distribution of nodes in S over communities in C (S ) differs from the uniform distribution. Here the uniS| form distribution stands for the situation where |Ci |= |C|( S )| for all Ci  C (S ). To show the extreme values, IG (S )  1 means the nodes are uniformly distributed over a large quantity of communities while IG (S )  0 implies most of the nodes in S are from the few 'dominant' communities. Formally, we define gini impurity as follows: IG (S ) = 1 - (
-Ci C (S )
+in Figure 2, although the man on the left has more infected in-neighbors, the
+woman on the right is more likely to be infected by the social contagion. As
+in-neighbors of her are showing higher structural diversity (from two communities). Translated into the terminologies introduced in this paper, they showed
+that an exposed user is more likely to become an adopter with exposers of
+high structural diversity. If this effect is aggregated over all the exposed users
+of a cascade, the significance to measure the relationship between structural
+diversity of adopters would be revealed. Moreover, we also extend our experiments to measure that of exposed users. Instead of connected components, we
+consider structural diversity described by communities. In this section we introduce a suite of various structural diversity measurements. We study these
+measurements as cascades progress in Section 4 and then leverage them as
+features for our classification problem in Section 5. We introduce these measurements as follows.
+Number of communities. For a given set of node S ∈ {Ut , Ft , Nt } we can
+retrieve the associated communities C(S) by the partition of the social network
+C(G). Formally:
+C(S) = {Ci ∈ C(V ) s.t. S ∩ Ci 6= ∅}
+where C(V ) is the partition of the social network G, introduced in Section 2. We
+measure the number of communities represented by |C(S)| for S ∈ {Ut , Ft , Nt }.
+Gini impurity. For S ∈ {Ut , Ft , Nt } in a cascade τt , the gini impurity IG (S)
+proposed by (Breiman et al, 1984) for splitting samples in decision tree, intuitively, is a scalar describing how much the distribution of nodes in S over
+communities in C(S) differs from the uniform distribution. Here the uni|S|
+for all Ci ∈ C(S).
+form distribution stands for the situation where |Ci |= |C(S)|
+To show the extreme values, IG (S) ≈ 1 means the nodes are uniformly distributed over a large quantity of communities while IG (S) ≈ 0 implies most of
+the nodes in S are from the few ’dominant’ communities. Formally, we define
+gini impurity as follows:
+IG (S) = 1 −
 
-|Ci | 2 ) |S |
+X
+
+(
+
+Ci ∈C(S)
+
+|Ci | 2
+)
+|S|
 
 (4)
 
-We study the gini impurity IG (S ) for S  {Ut , Ft , Nt } for each cascade. We note that the impurity of the adopter set IG (Ut ) behaves similar to the entropy of this set (a measurement introduced in (Weng et al, 2014)). However, as we will see in the next two sections, we found that the impurity of the recently exposed users is a more discriminating feature. Overlap. For {Sa , Sb }  {Ut , Ft , Nt }, the overlap (O(Sa , Sb )) is simply the number of shared communities between the sets of nodes Sa and Sb . Formally: O(Sa , Sb ) = |C (Sa )  C (Sb )| (5)
+We study the gini impurity IG (S) for S ∈ {Ut , Ft , Nt } for each cascade. We
+note that the impurity of the adopter set IG (Ut ) behaves similar to the entropy
+of this set (a measurement introduced in (Weng et al, 2014)). However, as we
+will see in the next two sections, we found that the impurity of the recently
+exposed users is a more discriminating feature.
+Overlap. For {Sa , Sb } ⊂ {Ut , Ft , Nt }, the overlap (O(Sa , Sb )) is simply the
+number of shared communities between the sets of nodes Sa and Sb . Formally:
+O(Sa , Sb ) = |C(Sa ) ∩ C(Sb )|
+
+(5)
 
 8
 
 Ruocheng Guo et al.
 
-Fig. 2: An example for structural diversity: Although the man on the left has more infected in-neighbors, the woman on the right is more likely to be infected by the social contagion. As in-neighbors of her are showing higher structural diversity (from two communities).
+Fig. 2: An example for structural diversity: Although the man on the left has
+more infected in-neighbors, the woman on the right is more likely to be infected
+by the social contagion. As in-neighbors of her are showing higher structural
+diversity (from two communities).
 
-The intuition behind overlap stems directly from the original structural diversity results of the related work (Ugander et al, 2012) - for instance a large overlap value O(Ut , Ft ) is likely to indicate that the local neighborhoods of many of the recently exposed users will exhibit high structural diversity hence increasing the probability to become adopters in the future. Baseline measures. In addition to the aforementioned structural diversity measurements, we also examine two baseline measurements dealing with time and size. Average time to adoption. The average time to adoption for adopters in the m 1 cascade snapshot of size m: m i=1 t(m). Number of nodes. The cardinality of adopters, recently and past exposed users |Ut |,|Ft |,|Nt |.
+The intuition behind overlap stems directly from the original structural diversity results of the related work (Ugander et al, 2012) - for instance a large
+overlap value O(Ut , Ft ) is likely to indicate that the local neighborhoods of
+many of the recently exposed users will exhibit high structural diversity hence increasing the probability to become adopters in the future.
+Baseline measures. In addition to the aforementioned structural diversity measurements, we also examine two baseline measurements dealing with time and
+size.
+Average time to adoption. ThePaverage time to adoption for adopters in the
+m
+1
+cascade snapshot of size m: m
+i=1 t(m).
+Number of nodes. The cardinality of adopters, recently and past exposed users
+|Ut |,|Ft |,|Nt |.
 
-4 Structural Diversity Measurement Study Here we examine the behavior of the various structural diversity measurements as viral and non-viral cascades progress. In this section, we define a cascade as viral if the number of reposts eventually reaches a threshold (denoted T H ) of 500 (in the next section we will explore various values for T H ). Only the distributions of feature values computed based on Louvain algorithm are exhibited in this section as it provides best results in both size-based and time-based classification tasks (See Section 5). All the measurements are computed by cascade
+4 Structural Diversity Measurement Study
+Here we examine the behavior of the various structural diversity measurements
+as viral and non-viral cascades progress. In this section, we define a cascade as
+viral if the number of reposts eventually reaches a threshold (denoted T H) of
+500 (in the next section we will explore various values for T H). Only the distributions of feature values computed based on Louvain algorithm are exhibited
+in this section as it provides best results in both size-based and time-based classification tasks (See Section 5). All the measurements are computed by cascade
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
 9
 
 Table 2: Number of samples analyzed in different stages
-m 10 30 50 100 200 t (min) 40 60 100 150 300 Samples 98,832 26,733 13,285 4,722 1,324 Samples 2,234 3,444 5,767 8,349 15,350 Viral Samples (%) 0.2% 0.7% 1.5% 4.2% 15% Viral Samples (%) 7% 5% 3% 2% 1%
+m
+10
+30
+50
+100
+200
 
-snapshots with five populations of nodes with m = {10, 30, 50, 100, 200} (or t(m) accordingly) and five values of time since adoption of the seed adopter with t = {40, 60, 100, 150, 300}. Table 2 shows the number of samples our analysis covers in both classes for each value of m and t. For each time t we perform analysis on measurements for those cascade snapshots with no less than 5 adopters at the time so that the enough information can be provided from Ut ,Ft and Nt for the prediction task. For each size m, we consider the cascades with |Ut |= m adopters at the corresponding time t(m), t(m) can vary for different cascades. Hence, cascades with final size less than m are ignored in our analysis. This leads to that the number of non-viral cascades decreases as m increases. We examined a total of 24 measurements discussed in the previous section (12 for size-based and 12 for time-based analysis, listed as Am and At respectively in Table 3). For each measurement, for each m and t describing the diffusion process, we attempted to identify statistically significant difference between viral and non-viral classes. For this, we performed KS tests for each pair of measurements. In every test, p  10-13 , so the null hypothesis is rejected for all cases, which means each pair of the distributions are significantly different. We choose KS test over T test and Chi-square test as it is sensitive to both the location and shape of the distribution as well as it does not require each distribution to cover all possible values of the other. As notations of the box plots in the following subsections, A and M denotes mean and median for each box plot respectively.
+Samples
+98,832
+26,733
+13,285
+4,722
+1,324
 
-4.1 Size Progression Average time to adoption. As a baseline measurement, we study the average time to adoption for each m of the cascade process (Figure 3). As expected, viral cascades exhibit shorter average time since adoption of the seed adopter till each later adoption. While we note that significant differences are present - especially in the early stages of the cascade, the whiskers of the non-viral class indicate a significant proportion of non-viral cascades that exhibit rapid
+Viral Samples (%)
+0.2%
+0.7%
+1.5%
+4.2%
+15%
+
+t (min)
+40
+60
+100
+150
+300
+
+Samples
+2,234
+3,444
+5,767
+8,349
+15,350
+
+Viral Samples (%)
+7%
+5%
+3%
+2%
+1%
+
+snapshots with five populations of nodes with m = {10, 30, 50, 100, 200} (or
+t(m) accordingly) and five values of time since adoption of the seed adopter
+with t = {40, 60, 100, 150, 300}. Table 2 shows the number of samples our
+analysis covers in both classes for each value of m and t. For each time t we
+perform analysis on measurements for those cascade snapshots with no less
+than 5 adopters at the time so that the enough information can be provided
+from Ut ,Ft and Nt for the prediction task. For each size m, we consider the
+cascades with |Ut |= m adopters at the corresponding time t(m), t(m) can
+vary for different cascades. Hence, cascades with final size less than m are
+ignored in our analysis. This leads to that the number of non-viral cascades
+decreases as m increases. We examined a total of 24 measurements discussed
+in the previous section (12 for size-based and 12 for time-based analysis, listed
+as Am and At respectively in Table 3). For each measurement, for each m and
+t describing the diffusion process, we attempted to identify statistically significant difference between viral and non-viral classes. For this, we performed
+KS tests for each pair of measurements. In every test, p ≤ 10−13 , so the null
+hypothesis is rejected for all cases, which means each pair of the distributions
+are significantly different. We choose KS test over T test and Chi-square test
+as it is sensitive to both the location and shape of the distribution as well as
+it does not require each distribution to cover all possible values of the other.
+As notations of the box plots in the following subsections, A and M denotes
+mean and median for each box plot respectively.
+
+4.1 Size Progression
+Average time to adoption. As a baseline measurement, we study the average
+time to adoption for each m of the cascade process (Figure 3). As expected,
+viral cascades exhibit shorter average time since adoption of the seed adopter
+till each later adoption. While we note that significant differences are present
+- especially in the early stages of the cascade, the whiskers of the non-viral
+class indicate a significant proportion of non-viral cascades that exhibit rapid
 
 10
 
 Ruocheng Guo et al.
 
-adoption. We believe this is likely due to the fact that certain cascades may have very high appeal to specialized communities. Number of communities. Figure 4 displays how the number of communities |C (S )| increases over m = {10, 30, 50, 100, 200} for the sets S = {Ut , Ft }. We note that |C (Ut )| (the communities represented in the set of adopters) was shown to be a useful feature in (Weng et al, 2014) for tasks where the target class had fewer reposts than in this study. Here, we note that while statistically significant differences exist, the average and median values at each of the examined stages are generally similar. On the other hand, the communities represented by the set of rencently exposed users (Ft ) shows viral cascades have stronger capability to keep set of rencently exposed users with many communities than non-viral ones. We also noted that the median of |C (Nt )| shows viral cascades start with smaller |C (Nt )|. However, it increases faster in viral cascades as nodes in rencently exposed users become past exposed users (not pictured) as m increases. Gini impurity. Cascades in both classes tend to accumulate diversity in the process of collecting more adopters - and we have also noted that a related entropy measure (studied in (Weng et al, 2014)) performed similarly. We also observed that viral cascades can show larger gini impurity in recently exposed users measured by IG (Ft ) in early stages (m = {10, 30, 50}). However, perhaps most striking, non-viral cascades gain more uniformly distributed nodes over communities in non-adopters, shown by IG (Nt ) (Figure 5). We believe that this is due to non-viral cascades likely have an appeal limited to a relatively small number of communities - hence those not adopting the trend may represent a distribution of nodes over communities which is more different from a uniform distribution. Overlap. We found that overlap grows with the number of adopters in the three types of overlap considered. For O(Ut , Ft ), viral cascades start with a larger initial value and keep leading non-viral ones in the diffusion process of first 200 nodes (Figure 6). We consider that viral cascades also take advantage of the densely linked communities to help them become viral. However, in the case of O(Ut , Nt ) and O(Ft , Nt ), viral cascades begin with lower value but grow much faster than non-viral cascades. 4.2 Time Progression Number of adopters. As a baseline measurement, we study the number of adopters at regular time intervals and, as expected, found a clear difference between the two classes. Figure 7 shows how |Ut | changes over 40, 60, 100, 150 and 300 minutes. Although there is an obvious difference in early stages (40-60 minutes) between the two distributions, we will see in the next section that this alone does not provide adequate performance for our prediction task (see Section 5).
+adoption. We believe this is likely due to the fact that certain cascades may
+have very high appeal to specialized communities.
+Number of communities. Figure 4 displays how the number of communities
+|C(S)| increases over m = {10, 30, 50, 100, 200} for the sets S = {Ut , Ft }. We
+note that |C(Ut )| (the communities represented in the set of adopters) was
+shown to be a useful feature in (Weng et al, 2014) for tasks where the target
+class had fewer reposts than in this study. Here, we note that while statistically
+significant differences exist, the average and median values at each of the
+examined stages are generally similar. On the other hand, the communities
+represented by the set of rencently exposed users (Ft ) shows viral cascades
+have stronger capability to keep set of rencently exposed users with many
+communities than non-viral ones. We also noted that the median of |C(Nt )|
+shows viral cascades start with smaller |C(Nt )|. However, it increases faster in
+viral cascades as nodes in rencently exposed users become past exposed users
+(not pictured) as m increases.
+Gini impurity. Cascades in both classes tend to accumulate diversity in the
+process of collecting more adopters - and we have also noted that a related
+entropy measure (studied in (Weng et al, 2014)) performed similarly. We also
+observed that viral cascades can show larger gini impurity in recently exposed
+users measured by IG (Ft ) in early stages (m = {10, 30, 50}). However, perhaps
+most striking, non-viral cascades gain more uniformly distributed nodes over
+communities in non-adopters, shown by IG (Nt ) (Figure 5). We believe that this
+is due to non-viral cascades likely have an appeal limited to a relatively small
+number of communities - hence those not adopting the trend may represent a
+distribution of nodes over communities which is more different from a uniform
+distribution.
+Overlap. We found that overlap grows with the number of adopters in the
+three types of overlap considered. For O(Ut , Ft ), viral cascades start with a
+larger initial value and keep leading non-viral ones in the diffusion process of
+first 200 nodes (Figure 6). We consider that viral cascades also take advantage
+of the densely linked communities to help them become viral. However, in the
+case of O(Ut , Nt ) and O(Ft , Nt ), viral cascades begin with lower value but
+grow much faster than non-viral cascades.
+4.2 Time Progression
+Number of adopters. As a baseline measurement, we study the number of
+adopters at regular time intervals and, as expected, found a clear difference
+between the two classes. Figure 7 shows how |Ut | changes over 40, 60, 100,
+150 and 300 minutes. Although there is an obvious difference in early stages
+(40-60 minutes) between the two distributions, we will see in the next section
+that this alone does not provide adequate performance for our prediction task
+(see Section 5).
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
+Average Time(103 )
+
+1.4
+1.2
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 10
+
+30
+
+50 100 200
+
+Number of Adopters
+
+M: 15.3 49.7 78.4 168 301
+A: 40.9 86.9 129 215 347
+
+1.4
+1.2
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 10
+
+Average Time(103 )
+
+M: 865 853 804 754 765
+A: 780 790 770 753 759
+
 11
-
-1.4 1.2 1.0 0.8 0.6 0.4 0.2 0.0 10
-
-M: 865 853 804 754 765 A: 780 790 770 753 759
-
-Number of Adopters
-
-30
-
-50 100 200
-
-1.4 1.2 1.0 0.8 0.6 0.4 0.2 0.0 10
-
-M: 15.3 49.7 78.4 168 301 A: 40.9 86.9 129 215 347
-
-Average Time(103 )
-
-Average Time(103 )
-
-Number of Adopters
-
-30
-
-50 100 200
 
 (a) Non-viral cascades
 
+30
+
+50 100 200
+
+Number of Adopters
+
 (b) Viral cascades
 
-Fig. 3: Average time (minutes in 103 ) since adoption of the seed adopter to each later adoption
-M: 8.0 18.0 25.0 35.0 48.0 A: 7.7 17.5 24.0 34.9 47.6 70 60 50 40 30 20 10 0 10 30 50 100 200 M: 8.0 17.0 23.0 34.0 46.5 A: 8.1 17.3 23.5 34.0 46.5 70 60 50 40 30 20 10 0 10 30 50 100 200
+Fig. 3: Average time (minutes in 103 ) since adoption of the seed adopter to
+each later adoption
+
+Number of Adopters
+
+M: 8.0 17.0 23.0 34.0 46.5
+A: 8.1 17.3 23.5 34.0 46.5
+70
+60
+50
+40
+30
+20
+10
+0 10
+30 50 100 200
 
 Number of Communities
 
+Number of Communities
+
+M: 8.0 18.0 25.0 35.0 48.0
+A: 7.7 17.5 24.0 34.9 47.6
+70
+60
+50
+40
+30
+20
+10
+0 10
+30 50 100 200
+
 Number of Adopters
 
-Number of Communities Number of Communities(102 )
+(a) Number of communities amongst (b) Number of communities amongst
+adopters (|C(Ut )|) for non-viral cascades
+adopters (|C(Ut )|) for viral cascades
 
 Number of Adopters
 
-(a) Number of communities amongst (b) Number of communities amongst adopters (|C (Ut )|) for non-viral cascades adopters (|C (Ut )|) for viral cascades
+M: 21.0 30.0 30.0 33.5 42.5
+A: 24.3 41.7 44.4 78.7 88.6
+1.4
+1.2
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 10
+30 50 100 200
 
 Number of Communities(102 )
 
-M: 7.0 15.0 20.0 27.0 33.0 A: 25.7 39.6 53.2 88.5 111 1.4 1.2 1.0 0.8 0.6 0.4 0.2 0.0 10 30 50 100 200
+Number of Communities(102 )
+
+M: 7.0 15.0 20.0 27.0 33.0
+A: 25.7 39.6 53.2 88.5 111
+1.4
+1.2
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 10
+30 50 100 200
 
 Number of Adopters
 
-M: 21.0 30.0 30.0 33.5 42.5 A: 24.3 41.7 44.4 78.7 88.6 1.4 1.2 1.0 0.8 0.6 0.4 0.2 0.0 10 30 50 100 200
-
-Number of Adopters
-
-(c) Number of communities amongst recently (d) Number of communities amongst recently exposed users (|C (Ft )|) for non-viral cascades exposed users (|C (Ft )|) for viral cascades
+(c) Number of communities amongst recently (d) Number of communities amongst recently
+exposed users (|C(Ft )|) for non-viral cascades exposed users (|C(Ft )|) for viral cascades
 
 Fig. 4: Number of communities for m = {10, 30, 50, 100, 200}
 
-Number of communities. Figure 8 shows how |C (S )| for S  {Ut , Ft , Nt } changes over time. The value of |C (S )| increases over time for Ut and Nt but decreases for Ft . Here, the differences are somewhat more pronounced than for the size-progression measurements (compare with Figure 4). Viral cascades are more likely to have more communities in any one of Ut , Ft , Nt than non-viral ones. For adopters and non-adopters, |C (Ut )| and |C (Nt )| value of viral cascades increases faster than that of non-viral ones over time. While for recently exposed users, |C (Ft )| of non-viral cascades decreases more than viral ones in the same amount of time.
+Number of communities. Figure 8 shows how |C(S)| for S ∈ {Ut , Ft , Nt }
+changes over time. The value of |C(S)| increases over time for Ut and Nt
+but decreases for Ft . Here, the differences are somewhat more pronounced
+than for the size-progression measurements (compare with Figure 4). Viral
+cascades are more likely to have more communities in any one of Ut , Ft , Nt
+than non-viral ones. For adopters and non-adopters, |C(Ut )| and |C(Nt )| value
+of viral cascades increases faster than that of non-viral ones over time. While
+for recently exposed users, |C(Ft )| of non-viral cascades decreases more than
+viral ones in the same amount of time.
 
 12
 
 Ruocheng Guo et al.
 
-1.0 0.8 0.6 0.4 0.2 0.0 10
+Gini
 
-M: 0.7 0.8 0.9 0.9 0.9 A: 0.7 0.8 0.8 0.8 0.9
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 10
+
+M: 0.9 0.9 0.9 0.9 0.9
+A: 0.8 0.9 0.9 0.9 0.9
+
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 10
+
+Gini
+
+M: 0.7 0.8 0.9 0.9 0.9
+A: 0.7 0.8 0.8 0.8 0.9
+
+30
+
+50 100 200
 
 Number of Adopters
 
@@ -190,45 +681,93 @@ Number of Adopters
 
 50 100 200
 
-1.0 0.8 0.6 0.4 0.2 0.0 10
+Number of Adopters
 
-M: 0.9 0.9 0.9 0.9 0.9 A: 0.8 0.9 0.9 0.9 0.9
-
-Gini
-
-Gini
+(a) Gini impurity of recently exposed users (b) Gini impurity of recently exposed users
+(IG (Ft )) for non-viral cascades
+(IG (Ft )) for viral cascades
 
 Number of Adopters
 
-30
-
-50 100 200
-
-(a) Gini impurity of recently exposed users (b) Gini impurity of recently exposed users (IG (Ft )) for non-viral cascades (IG (Ft )) for viral cascades
-
-M: 0.8 0.9 0.9 0.9 0.9 A: 0.8 0.9 0.9 0.9 0.9 1.0 0.8 0.6 0.4 0.2 0.0 10 30 50 100 200
-
-Number of Adopters
-
-M: 0.0 0.9 0.9 0.9 0.9 A: 0.4 0.8 0.9 0.9 0.9 1.0 0.8 0.6 0.4 0.2 0.0 10 30 50 100 200
+M: 0.0 0.9 0.9 0.9 0.9
+A: 0.4 0.8 0.9 0.9 0.9
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 10
+30 50 100 200
 
 Gini
 
 Gini
 
+M: 0.8 0.9 0.9 0.9 0.9
+A: 0.8 0.9 0.9 0.9 0.9
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 10
+30 50 100 200
+
 Number of Adopters
 
-(c) Gini impurity of past exposed users (d) Gini impurity of past exposed users (IG (Nt )) for non-viral cascades (IG (Nt )) for viral cascades
+(c) Gini impurity of past exposed users (d) Gini impurity of past exposed users
+(IG (Nt )) for non-viral cascades
+(IG (Nt )) for viral cascades
 
-Fig. 5: Gini impurity for m = {10, 30, 50, 100, 200} Gini impurity. It takes less than  = 30 minutes for a considerable portion of viral cascades to reach size m = 30. This explains the difference between size-based and time-based gini impurity values in initial-stage cascades (compare Figure 5 and Figure 9). In terms of size-based gini impurity of the nonadopters (IG (Nt )), the values of viral cascades are smaller than those of nonviral cascades when m is small. However, when t is small, larger gini impurity (IG (Nt )) amongst non-adopters are shown in viral cascades. Furthermore, as m increases, although no significant difference is shown by the median and average of IG (Nt ), Figure 5 shows non-viral cascades are more likely to have a value smaller than the lower whisker to become outliers. Overlap. By definition, overlap is the number of shared communities between two sets of nodes. We found that overlap O(Ut , Ft ), O(Ut , Nt ) and O(Ut , Nt ) manifest obvious difference between viral and non-viral cascades by values and trend over time. For instance, in Figure 10, we see growth of O(Ut , Ft ) for the viral cascades compared to the non-viral class. In fact, over time, this value decreases for non-viral cascades as the set of recently exposed users fades away for non-viral cascades with time.
+Fig. 5: Gini impurity for m = {10, 30, 50, 100, 200}
+Gini impurity. It takes less than λ = 30 minutes for a considerable portion
+of viral cascades to reach size m = 30. This explains the difference between
+size-based and time-based gini impurity values in initial-stage cascades (compare Figure 5 and Figure 9). In terms of size-based gini impurity of the nonadopters (IG (Nt )), the values of viral cascades are smaller than those of nonviral cascades when m is small. However, when t is small, larger gini impurity
+(IG (Nt )) amongst non-adopters are shown in viral cascades. Furthermore, as
+m increases, although no significant difference is shown by the median and
+average of IG (Nt ), Figure 5 shows non-viral cascades are more likely to have
+a value smaller than the lower whisker to become outliers.
+Overlap. By definition, overlap is the number of shared communities between
+two sets of nodes. We found that overlap O(Ut , Ft ), O(Ut , Nt ) and O(Ut , Nt )
+manifest obvious difference between viral and non-viral cascades by values and
+trend over time. For instance, in Figure 10, we see growth of O(Ut , Ft ) for the
+viral cascades compared to the non-viral class. In fact, over time, this value
+decreases for non-viral cascades as the set of recently exposed users fades away
+for non-viral cascades with time.
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
+M: 3.0 9.0 12.0 19.0 26.0
+A: 3.7 8.7 12.3 18.5 25.2
+
+M: 7.0 13.0 17.0 22.5 31.0
+A: 6.7 12.7 16.5 22.2 29.5
+
+60
+50
+40
+30
+20
+10
+0 10
+
+Overlap
+
+Overlap
+
+60
+50
+40
+30
+20
+10
+0 10
+
 13
 
-60 50 40 30 20 10 0 10
+30
 
-M: 3.0 9.0 12.0 19.0 26.0 A: 3.7 8.7 12.3 18.5 25.2
+50 100 200
 
 Number of Adopters
 
@@ -236,231 +775,402 @@ Number of Adopters
 
 50 100 200
 
-60 50 40 30 20 10 0 10
-
-M: 7.0 13.0 17.0 22.5 31.0 A: 6.7 12.7 16.5 22.2 29.5
-
-Overlap
-
-Overlap
-
 Number of Adopters
 
+(a) Overlap of adopters and recently exposed (b) Overlap of adopters and recently exposed
+users (O(Ut , Ft )) for non-viral cascades
+users (O(Ut , Ft )) for viral cascades
+
+M: 0.0 14.0 22.0 32.0 45.0
+A: 2.4 13.3 21.1 32.2 45.0
+70
+60
+50
+40
 30
-
-50 100 200
-
-(a) Overlap of adopters and recently exposed (b) Overlap of adopters and recently exposed users (O(Ut , Ft )) for non-viral cascades users (O(Ut , Ft )) for viral cascades
-
-M: 6.0 16.0 23.0 34.0 46.0 A: 5.9 15.6 22.3 33.3 46.1 70 60 50 40 30 20 10 0 10 30 50 100 200
-
-Number of Adopters
-
-M: 0.0 14.0 22.0 32.0 45.0 A: 2.4 13.3 21.1 32.2 45.0 70 60 50 40 30 20 10 0 10 30 50 100 200
+20
+10
+0 10
+30 50 100 200
 
 Overlap
 
-Overlap Overlap
+Overlap
+
+M: 6.0 16.0 23.0 34.0 46.0
+A: 5.9 15.6 22.3 33.3 46.1
+70
+60
+50
+40
+30
+20
+10
+0 10
+30 50 100 200
 
 Number of Adopters
 
-(c) Overlap of adopters and past exposed (d) Overlap of adopters and past exposed users (O(Ut , Nt )) for non-viral cascades users (O(Ut , Nt )) for viral cascades
-
-M: 3.0 11.0 16.0 23.0 30.0 A: 4.5 12.1 17.1 24.8 31.9 70 60 50 40 30 20 10 0 10 30 50 100 200
-
 Number of Adopters
 
-M: 0.0 14.5 21.5 28.0 38.0 A: 2.5 16.0 23.5 30.0 38.1 70 60 50 40 30 20 10 0 10 30 50 100 200
+(c) Overlap of adopters and past exposed (d) Overlap of adopters and past exposed
+users (O(Ut , Nt )) for non-viral cascades
+users (O(Ut , Nt )) for viral cascades
+
+M: 0.0 14.5 21.5 28.0 38.0
+A: 2.5 16.0 23.5 30.0 38.1
+70
+60
+50
+40
+30
+20
+10
+0 10
+30 50 100 200
 
 Overlap
 
+Overlap
+
+M: 3.0 11.0 16.0 23.0 30.0
+A: 4.5 12.1 17.1 24.8 31.9
+70
+60
+50
+40
+30
+20
+10
+0 10
+30 50 100 200
+
 Number of Adopters
 
-(e) Overlap of recently and past exposed (f) Overlap of recently and past exposed users (O(Ft , Nt )) for non-viral cascades users (O(Ft , Nt )) for viral cascades
+Number of Adopters
+
+(e) Overlap of recently and past exposed (f) Overlap of recently and past exposed
+users (O(Ft , Nt )) for non-viral cascades
+users (O(Ft , Nt )) for viral cascades
 
 Fig. 6: Overlap for m = {10, 30, 50, 100, 200}
-M: 7.0 7.0 8.0 9.0 A: 9.5 10.4 11.8 13.1 3.0 2.5 2.0 1.5 1.0 0.5 0.0 40 60 100 150 9.0 15.3 M: 16.0 22.0 34.0 50.0 A: 22.2 31.4 49.7 71.9 3.0 2.5 2.0 1.5 1.0 0.5 0.0 40 60 100 150 109 139
-
-Number of Nodes(102 )
-
-Time Since the Original Post
+9.0
+15.3
 
 300
 
+Time Since the Original Post
+
+M: 16.0 22.0 34.0 50.0
+A: 22.2 31.4 49.7 71.9
+3.0
+2.5
+2.0
+1.5
+1.0
+0.5
+0.0 40 60 100 150
+
 Number of Nodes(102 )
 
-Time Since the Original Post
+Number of Nodes(102 )
+
+M: 7.0 7.0 8.0 9.0
+A: 9.5 10.4 11.8 13.1
+3.0
+2.5
+2.0
+1.5
+1.0
+0.5
+0.0 40 60 100 150
+
+109
+139
 
 300
 
-(a) Number of adopters (|Ut |) for non-viral (b) Number of adopters (|Ut |) for viral cascascades cades
-
-Fig. 7: Number of adopters for t  {40, 60, 100, 150, 300} (min)
-
-14
-
-Ruocheng Guo et al.
-
-Number of Communities
-
-80 70 60 50 40 30 20 10 0 40
-
 Time Since the Original Post
+
+(a) Number of adopters (|Ut |) for non-viral (b) Number of adopters (|Ut |) for viral cascascades
+cades
+
+Fig. 7: Number of adopters for t ∈ {40, 60, 100, 150, 300} (min)
+
+Ruocheng Guo et al.
+
+M: 6.0 6.0 6.0 7.0
+A: 7.0 7.4 8.0 8.6
+
+7.0
+9.3
 
 60 100 150
 
 300
 
-Number of Communities
-
-M: 6.0 6.0 6.0 7.0 A: 7.0 7.4 8.0 8.6
-
-7.0 9.3
-
-M: 12.0 14.0 19.0 24.0 A: 12.7 15.7 20.3 24.9 80 70 60 50 40 30 20 10 0 40 60 100 150
-
-34.0 35.2
-
-Time Since the Original Post
-
-300
-
-(a) Number of communities amongst (b) Number of communities amongst adopters (|C (Ut )|) for non-viral cascades adopters (|C (Ut )|) for viral cascades
-
-Number of Communities
+80
+70
+60
+50
+40
+30
+20
+10
+0 40
 
 Time Since the Original Post
 
-300
+M: 12.0 14.0 19.0 24.0
+A: 12.7 15.7 20.3 24.9
+80
+70
+60
+50
+40
+30
+20
+10
+0 40 60 100 150
 
 Number of Communities
 
-M: 15.0 11.0 7.0 3.0 A: 79.8 61.0 49.3 35.8 100 80 60 40 20 0 40 60 100 150
+Number of Communities
 
-0.0 15.2
+14
 
-M: 29.5 28.5 27.0 26.0 A: 66.7 44.5 57.4 46.3 100 80 60 40 20 0 40 60 100 150
-
-25.0 38.2
-
-Time Since the Original Post
+34.0
+35.2
 
 300
 
-(c) Number of communities amongst recently (d) Number of communities amongst recently exposed users (|C (Ft )|), non-viral cascades exposed users (|C (Ft )|) for viral cascades
+Time Since the Original Post
 
-Number of Communities(102 )
+(a) Number of communities amongst (b) Number of communities amongst
+adopters (|C(Ut )|) for non-viral cascades
+adopters (|C(Ut )|) for viral cascades
 
-2.0 1.5 1.0
+0.0
+15.2
 
-Number of Communities(102 )
+300
 
-M: 4.0 11.0 17.0 20.0 A: 22.1 43.5 73.4 105
+Time Since the Original Post
 
-23.0 140
+M: 29.5 28.5 27.0 26.0
+A: 66.7 44.5 57.4 46.3
+100
+80
+60
+40
+20
+0 40 60 100 150
 
-M: 14.0 27.0 48.0 61.5 A: 22.1 63.1 95.1 146 2.0
+Number of Communities
 
-92.5 261
+Number of Communities
 
-1.5 1.0
+M: 15.0 11.0 7.0 3.0
+A: 79.8 61.0 49.3 35.8
+100
+80
+60
+40
+20
+0 40 60 100 150
+
+25.0
+38.2
+
+300
+
+Time Since the Original Post
+
+2.0
+
+M: 4.0 11.0 17.0 20.0
+A: 22.1 43.5 73.4 105
+
+23.0
+140
+
+1.5
+1.0
 
 0.5
+
+M: 14.0 27.0 48.0 61.5
+A: 22.1 63.1 95.1 146
+2.0
+
+Number of Communities(102 )
+
+Number of Communities(102 )
+
+(c) Number of communities amongst recently (d) Number of communities amongst recently
+exposed users (|C(Ft )|), non-viral cascades
+exposed users (|C(Ft )|) for viral cascades
+
+92.5
+261
+
+1.5
+1.0
 
 0.5
 
 0.0 40
 
-Time Since the Original Post
-
 60 100 150
 
 300
+
+Time Since the Original Post
 
 0.0 40
 
-Time Since the Original Post
-
 60 100 150
 
 300
 
-(e) Number of communities amongst past ex- (f) Number of communities amongst past exposed users (|C (Nt )|) for non-viral cascades posed users (|C (Nt )|) for viral cascades
+Time Since the Original Post
+
+(e) Number of communities amongst past ex- (f) Number of communities amongst past exposed users (|C(Nt )|) for non-viral cascades posed users (|C(Nt )|) for viral cascades
 
 Fig. 8: Number of communities for t = {40, 60, 100, 150, 300} (min)
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
+0.0
+0.3
+
+60 100 150
+
+300
+
+Gini
+
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 40
+
+M: 0.9 0.9 0.9 0.9
+A: 0.9 0.8 0.8 0.8
+
+0.9
+0.8
+
+60 100 150
+
+300
+
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 40
+
+Gini
+
+M: 0.8 0.8 0.7 0.5
+A: 0.8 0.7 0.6 0.4
+
 15
 
-1.0 0.8 0.6 0.4 0.2 0.0 40
-
-M: 0.8 0.8 0.7 0.5 A: 0.8 0.7 0.6 0.4
-
-0.0 0.3
+Time Since the Original Post
 
 Time Since the Original Post
 
-60 100 150
+(a) Gini impurity of recently exposed users (b) Gini impurity of recently exposed users
+(IG (Ft )) for non-viral cascades
+(IG (Ft )) for viral cascades
+
+M: 0.8 0.9 0.9 0.9
+A: 0.7 0.8 0.9 0.9
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 40 60 100 150
+
+0.9
+0.9
+
+Gini
+
+0.9
+0.8
+
+Gini
+
+M: 0.6 0.8 0.8 0.9
+A: 0.5 0.7 0.8 0.8
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0 40 60 100 150
 
 300
-
-1.0 0.8 0.6 0.4 0.2 0.0 40
-
-M: 0.9 0.9 0.9 0.9 A: 0.9 0.8 0.8 0.8
-
-0.9 0.8
-
-Gini
-
-Gini
-
-Time Since the Original Post
-
-60 100 150
-
-300
-
-(a) Gini impurity of recently exposed users (b) Gini impurity of recently exposed users (IG (Ft )) for non-viral cascades (IG (Ft )) for viral cascades
-
-M: 0.6 0.8 0.8 0.9 A: 0.5 0.7 0.8 0.8 1.0 0.8 0.6 0.4 0.2 0.0 40 60 100 150
-
-0.9 0.8
-
-Time Since the Original Post
-
-300
-
-M: 0.8 0.9 0.9 0.9 A: 0.7 0.8 0.9 0.9 1.0 0.8 0.6 0.4 0.2 0.0 40 60 100 150
-
-0.9 0.9
-
-Gini
-
-Gini
 
 Time Since the Original Post
 
 300
 
-(c) Gini impurity of past exposed users (d) Gini impurity of past exposed users (IG (Nt )) for non-viral cascades (IG (Nt )) for viral cascades
+Time Since the Original Post
+
+(c) Gini impurity of past exposed users (d) Gini impurity of past exposed users
+(IG (Nt )) for non-viral cascades
+(IG (Nt )) for viral cascades
 
 Fig. 9: Gini impurity for t = {40, 60, 100, 150, 300} (min)
-M: 5.0 4.0 3.0 2.0 A: 5.7 4.8 3.8 2.9 60 50 40 30 20 10 0 40 60 100 150 0.0 1.9 M: 10.0 11.0 13.0 14.0 A: 11.5 12.6 14.4 15.8 60 50 40 30 20 10 0 40 60 100 150 18.0 19.2
+M: 10.0 11.0 13.0 14.0
+A: 11.5 12.6 14.4 15.8
+60
+50
+40
+30
+20
+10
+0 40 60 100 150
+
+18.0
+19.2
 
 Overlap
+
+0.0
+1.9
+
+Overlap
+
+M: 5.0 4.0 3.0 2.0
+A: 5.7 4.8 3.8 2.9
+60
+50
+40
+30
+20
+10
+0 40 60 100 150
+
+300
 
 Time Since the Original Post
 
 300
 
-Overlap
-
 Time Since the Original Post
 
-300
-
-(a) Overlap of adopters and recently exposed (b) Overlap of adopters and recently exposed users (O(Ut , Ft )) for non-viral cascades users (O(Ut , Ft )) for viral cascades
+(a) Overlap of adopters and recently exposed (b) Overlap of adopters and recently exposed
+users (O(Ut , Ft )) for non-viral cascades
+users (O(Ut , Ft )) for viral cascades
 
 Fig. 10: Overlap for t = {40, 60, 100, 150, 300} (min)
 
@@ -468,250 +1178,763 @@ Fig. 10: Overlap for t = {40, 60, 100, 150, 300} (min)
 
 Ruocheng Guo et al.
 
-5 Classification Experiments Here we examine our experiments for predicting whether a cascade becomes viral - when the number of adopters exceeds a size threshold (T H = 500) given that either the cascade has 50 adopters (m = 50) or has progressed for an hour (t = 60). We shall refer to these as size-based and time-based prediction problems. Based on the distribution of final size of cascades in this dataset (see Figure 1a), as shown in Table 2, this binary classification task deals with two heavily imbalanced classes. Hence, we report performance measurements (precision, recall and F1 score) for only the minority (viral) class. Throughout the course of our experiments, we found that varying threshold (slightly modifying the definition of "viral") for only the training set allows for a trade-off between precision and recall. We study the trend of performance metrics in two cases: � The threshold for test set is maintained as T Hts = 500 while the training threshold is varied T Htr  {300, 400, 500, 600, 700}. � The two thresholds are kept as the same T H while we modify this value T H  {300, 400, 500, 600, 700}. Table 3 shows the groups of features used in our prediction tasks. The features introduced in this paper are groups Am (size-based) and At (timebased). We compare our features (Group Am , At ) with the community features extracted in (Weng et al, 2014) (Group Bm ,Bt ) and nodal features of the seed adopter (Group Cm and Ct ). Here nodal measures of the seed adopter refer to k-shell number, out-degree, in-degree, pagerank and eigenvector, which are computed based on the social network G. In previous work (Pei et al, 2014), kshell number of the seed adopter node is shown to be correlated to the average size of cascades. However, cascades from the seed adopter nodes with the same k-shell number can end up with quite different size (Shakarian et al, 2015). As baseline methods, average time to adoption (group Dm ) is applied to the sizebased experiment while cascade size at time t (group Dt ) is evaluated for timebased prediction. We extracted each group of community-based features (Am , At , Bm , Bt ) with all the three community detection algorithms mentioned in Section 2: Louvain, Infomap and SLM. Therefore, for both size-based and time-based prediction, there are 8 groups of features. Among them, Bm and Bt were the best performing feature set in the paper (Weng et al, 2014) for a comparable task.3 Additionally, we study the average size of correctly classified viral cascades and the other viral samples using features in groups Am and At . We also investigate the significance and performance of individual and certain combinations of features introduced in this paper.
-3 This was their highest-performing set of features for predicting cascades that grew from 50 to 367 and 100 to 417 reposts. We also included the baseline feature in this set as we found it improved the effectiveness of this approach.
+5 Classification Experiments
+Here we examine our experiments for predicting whether a cascade becomes
+viral - when the number of adopters exceeds a size threshold (T H = 500)
+given that either the cascade has 50 adopters (m = 50) or has progressed for
+an hour (t = 60). We shall refer to these as size-based and time-based prediction problems. Based on the distribution of final size of cascades in this dataset
+(see Figure 1a), as shown in Table 2, this binary classification task deals with
+two heavily imbalanced classes. Hence, we report performance measurements
+(precision, recall and F1 score) for only the minority (viral) class. Throughout
+the course of our experiments, we found that varying threshold (slightly modifying the definition of “viral”) for only the training set allows for a trade-off
+between precision and recall. We study the trend of performance metrics in
+two cases:
+– The threshold for test set is maintained as T Hts = 500 while the training
+threshold is varied T Htr ∈ {300, 400, 500, 600, 700}.
+– The two thresholds are kept as the same T H while we modify this value
+T H ∈ {300, 400, 500, 600, 700}.
+Table 3 shows the groups of features used in our prediction tasks. The
+features introduced in this paper are groups Am (size-based) and At (timebased). We compare our features (Group Am , At ) with the community features
+extracted in (Weng et al, 2014) (Group Bm ,Bt ) and nodal features of the seed
+adopter (Group Cm and Ct ). Here nodal measures of the seed adopter refer
+to k-shell number, out-degree, in-degree, pagerank and eigenvector, which are
+computed based on the social network G. In previous work (Pei et al, 2014), kshell number of the seed adopter node is shown to be correlated to the average
+size of cascades. However, cascades from the seed adopter nodes with the same
+k-shell number can end up with quite different size (Shakarian et al, 2015). As
+baseline methods, average time to adoption (group Dm ) is applied to the sizebased experiment while cascade size at time t (group Dt ) is evaluated for timebased prediction. We extracted each group of community-based features (Am ,
+At , Bm , Bt ) with all the three community detection algorithms mentioned
+in Section 2: Louvain, Infomap and SLM. Therefore, for both size-based and
+time-based prediction, there are 8 groups of features. Among them, Bm and
+Bt were the best performing feature set in the paper (Weng et al, 2014) for a
+comparable task.3
+Additionally, we study the average size of correctly classified viral cascades
+and the other viral samples using features in groups Am and At . We also investigate the significance and performance of individual and certain combinations
+of features introduced in this paper.
+3 This was their highest-performing set of features for predicting cascades that grew from
+50 to 367 and 100 to 417 reposts. We also included the baseline feature in this set as we
+found it improved the effectiveness of this approach.
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
 17
 
-Table 3: Features for prediction tasks (size-based and time-based): Am , Bm , At and Bt are computed based on three community detection algorithms (Louvain, Infomap and SLM)
-Name Am Feature(s) over size |C (Ft )|,|C (Nt )|, IG (Ut ),IG (Ft ),IG (Nt ), O(Ut , Ft ),O(Ut , Nt ),O(Ft , Nt ), m 1 |Ft |,|Nt |, m i=1 t(i) where t stands for t(m) with m  {30, 50} Community Features Mentioned in (Weng et al, 2014) m 1 and m i=1 t(i), m = 50 Nodal
-1 m 1 m m i=1 m i=1
+Table 3: Features for prediction tasks (size-based and time-based): Am , Bm ,
+At and Bt are computed based on three community detection algorithms (Louvain, Infomap and SLM)
+Name
 
-Name At
+Feature(s) over size
 
-Feature(s) over time |C (Ft )|,|C (Nt )|, IG (Ut ),IG (Ft ),IG (Nt ), O(Ut , Ft ),O(Ut , Nt ),O(Ft , Nt ), |Ut |,|Ft |,|Nt | for time t  {40, 60}(min) Community Features Mentioned in (Weng et al, 2014) and |Ut |, t = 60(min) Nodal Features and |Ut |, t = 60(min) |Ut |, t = 60(min)
+Name
+
+Feature(s) over time
+
+Am
+
+|C(Ft )|,|C(Nt )|,
+IG (Ut ),IG (Ft ),IG (Nt ),
+O(Ut , Ft ),O(U
+t , Nt ),O(Ft , Nt ),
+1 Pm
+|Ft |,|Nt |, m
+i=1 t(i)
+where t stands for t(m) with
+m ∈ {30, 50}
+
+At
+
+|C(Ft )|,|C(Nt )|,
+IG (Ut ),IG (Ft ),IG (Nt ),
+O(Ut , Ft ),O(Ut , Nt ),O(Ft , Nt ),
+|Ut |,|Ft |,|Nt |
+for time t ∈ {40, 60}(min)
 
 Bm
 
+Community Features Mentioned P
+in (Weng et al, 2014)
+m
+1
+and m
+i=1 t(i), m = 50
+
 Bt
 
-Cm Dm
+Community Features Mentioned in (Weng et al, 2014)
+and |Ut |, t = 60(min)
 
-Features t(i), m = 50 t(i), m = 50
+Cm
+
+Nodal
+1 Pm
+
+Ct
+
+Nodal Features and |Ut |, t =
+60(min)
+
+Dt
+
+|Ut |, t = 60(min)
+
+Dm
+
+m
+1
+m
+
+i=1
+
+Pm
+
+i=1
+
+Features
+t(i), m = 50
+t(i), m = 50
 
 and
 
-Ct Dt
-
-5.1 Cascade Prediction Results We split cascades into training set and testing set using ten-fold cross-validation. All classification experiments are repeated for 10 times to ensure the results do not take any advantage of randomness in picking training and testing sets. First we carried out the prediction tasks with fixed thresholds for both training and testing T Htr = 500, T Hts = 500. Then we modify the training threshold T Htr  {300, 400, 500, 600, 700} to show how this achieves a tradeoff between precision and recall. The difference in average final size between correctly classified viral cascades and incorrectly classified ones is also monitored over T Htr  {300, 400, 500, 600, 700} to show the potential to predict exact number of adopters by features in Am and At . Furthermore, we modify threshold of both training and testing sets T H  {300, 400, 500, 600, 700} to show the robustness of our features on related classification problems. We used the oversampling method SMOTE (Chawla et al, 2002) with random forest classifier to generate synthetic samples for the viral class. Other, lesser-performing classifiers were also examined (including SVM, MLP, and other ensemble methods) and are not reported here. All results shown in this section is a sample mean produced by repeated experiments (10 times) under each combination of variables. Error bars represent one standard deviation. Size-based prediction. We studied cascades of size 50 that reached 500 for this task. There are 13,285 cascades that can reach the size m = 50 while only 200 out of them reached the size of 500. Maintaining the threshold T H = 500, Figure 11 shows random forest classifier trained with features in group Am can outperform the other groups with any of the three community detection algorithms. The tradeoff between precision and recall can be achieved by changing the training threshold T Htr while maintaining the testing thresh-
+5.1 Cascade Prediction Results
+We split cascades into training set and testing set using ten-fold cross-validation.
+All classification experiments are repeated for 10 times to ensure the results
+do not take any advantage of randomness in picking training and testing sets.
+First we carried out the prediction tasks with fixed thresholds for both training
+and testing T Htr = 500, T Hts = 500. Then we modify the training threshold
+T Htr ∈ {300, 400, 500, 600, 700} to show how this achieves a tradeoff between
+precision and recall. The difference in average final size between correctly
+classified viral cascades and incorrectly classified ones is also monitored over
+T Htr ∈ {300, 400, 500, 600, 700} to show the potential to predict exact number of adopters by features in Am and At . Furthermore, we modify threshold
+of both training and testing sets T H ∈ {300, 400, 500, 600, 700} to show the
+robustness of our features on related classification problems. We used the oversampling method SMOTE (Chawla et al, 2002) with random forest classifier to
+generate synthetic samples for the viral class. Other, lesser-performing classifiers were also examined (including SVM, MLP, and other ensemble methods)
+and are not reported here. All results shown in this section is a sample mean
+produced by repeated experiments (10 times) under each combination of variables. Error bars represent one standard deviation.
+Size-based prediction. We studied cascades of size 50 that reached 500 for this
+task. There are 13,285 cascades that can reach the size m = 50 while only 200
+out of them reached the size of 500. Maintaining the threshold T H = 500,
+Figure 11 shows random forest classifier trained with features in group Am
+can outperform the other groups with any of the three community detection algorithms. The tradeoff between precision and recall can be achieved by
+changing the training threshold T Htr while maintaining the testing thresh-
 
 18
 
 Ruocheng Guo et al.
 
-0.7 0.6 0.5 0.4 0.3 0.2 0.1 0.0 Precision
-
 Classification Results: TH = 500
 
-Louvain Am Infomap Am SLM Am Louvain Bm Infomap Bm SLM Bm Cm Dm
+0.7
+0.6
+0.5
+0.4
+
+Louvain Am
+Infomap Am
+SLM Am
+Louvain Bm
+Infomap Bm
+SLM Bm
+Cm
+Dm
+
+0.3
+0.2
+0.1
+0.0
+
+Precision
 
 Recall
 
 F1 Score
 
-Fig. 11: Classification results based on groups of features (Am ,Bm ,Cm ,Dm ) extracted with three community detection algorithms (Louvain, Infomap and SLM) when m = 50 for fixed T Htr = 500, T Hts = 500. Error bars represent one standard deviation.
+Fig. 11: Classification results based on groups of features (Am ,Bm ,Cm ,Dm )
+extracted with three community detection algorithms (Louvain, Infomap and
+SLM) when m = 50 for fixed T Htr = 500, T Hts = 500. Error bars represent
+one standard deviation.
 
-old T Hts = 500 (see Figure 12). We also note that the average final size of viral cascades correctly classified by the classifier increases with the training threshold. With threshold T H  {300, 400, 500, 600, 700} on both training and testing samples, the features introduced in this paper (Am ) consistently outperform those previously introduced (Bm ) � see Figure 13. The fact that features in Bm are not able to maintain their predictability over different T H can be explained as that they only count the number of users on recently exposed users instead of taking the community structure of them or the decay of probability to repost over time into consideration. As shown in Figure 12a, 12c and 12e, while the trends relating to this tradeoff are similar among the various community detection algorithms, the Louvain algorithm led to superior performance for precision and F1. Infomap and SLM generally outperformed Louvain in terms of recall for both feature sets. We also note that our features outperform those of Weng et al. regardless of the testing/training thresholds and the selected community finding algorithm. Time-based prediction. As shown in Table 2, there are 3,444 cascades in our dataset reached the size of m = 5 within 60 (min) with only 5% from the minority class. When the threshold is kept as T H = 500 for both training set and testing set, we obtain the results shown in Figure 14 again showing that the features introduced in this paper (At ) outperform the other feature sets in terms of recall, precision and F1 score, no matter which community detection algorithm is used. By modifying threshold for training samples only, two phenomenon are discovered. First, a tradeoff between precision and recall can be manipulated by controlling the training threshold (T Htr ). This is shown in Figure 15a, 15c, 15e. Second, as shown in Figure 15b, 15d, 15f, with T Htr increasing, the average final size of correctly classified viral cascades also grows. Furthermore, we modify the threshold for training and testing sets together
+old T Hts = 500 (see Figure 12). We also note that the average final size of
+viral cascades correctly classified by the classifier increases with the training threshold. With threshold T H ∈ {300, 400, 500, 600, 700} on both training
+and testing samples, the features introduced in this paper (Am ) consistently
+outperform those previously introduced (Bm ) – see Figure 13. The fact that
+features in Bm are not able to maintain their predictability over different T H
+can be explained as that they only count the number of users on recently exposed users instead of taking the community structure of them or the decay of
+probability to repost over time into consideration. As shown in Figure 12a, 12c
+and 12e, while the trends relating to this tradeoff are similar among the various community detection algorithms, the Louvain algorithm led to superior
+performance for precision and F1. Infomap and SLM generally outperformed
+Louvain in terms of recall for both feature sets. We also note that our features
+outperform those of Weng et al. regardless of the testing/training thresholds
+and the selected community finding algorithm.
+Time-based prediction. As shown in Table 2, there are 3,444 cascades in our
+dataset reached the size of m = 5 within 60 (min) with only 5% from the
+minority class. When the threshold is kept as T H = 500 for both training
+set and testing set, we obtain the results shown in Figure 14 again showing
+that the features introduced in this paper (At ) outperform the other feature
+sets in terms of recall, precision and F1 score, no matter which community
+detection algorithm is used. By modifying threshold for training samples only,
+two phenomenon are discovered. First, a tradeoff between precision and recall
+can be manipulated by controlling the training threshold (T Htr ). This is shown
+in Figure 15a, 15c, 15e. Second, as shown in Figure 15b, 15d, 15f, with T Htr
+increasing, the average final size of correctly classified viral cascades also grows.
+Furthermore, we modify the threshold for training and testing sets together
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
-19
+1.0
 
-1.2 1.0 0.8 0.6 0.4 0.2
-
-precision recall
+precision
+recall
 
 f1 score
 
-1.4 1.3 1.2 1.1 1.0 0.9 0.8 0.7
-
-correct incorrect mean
-
 Size (103 )
-300 400 500 600 700 Training Threshold
 
-300 400 500 600 700 Training Threshold
+1.2
+0.8
+0.6
+0.4
+0.2
+
+1.4
+1.3
+1.2
+1.1
+1.0
+0.9
+0.8
+0.7
+
+300 400 500 600 700
+Training Threshold
+
+19
+
+correct
+incorrect
+mean
+
+300 400 500 600 700
+Training Threshold
 
 (b) Average final size of viral cascades (cor(a) Precision, recall, and F1 score for different rectly classified, mean and incorrectly classitraining thresholds, using Louvain algorithm. fied), using Louvain algorithm.
 
-1.2 1.0 0.8 0.6 0.4 0.2
+1.0
 
 1.2
-precision recall f1 score
+precision
+recall
 
-1.1 Size (103 ) 1.0 0.9 0.8 0.7
+1.1
 
-correct incorrect mean
+f1 score
 
-300 400 500 600 700 Training Threshold
+Size (103 )
 
-300 400 500 600 700 Training Threshold
+1.2
+0.8
+0.6
+0.4
+
+1.0
+
+correct
+incorrect
+mean
+
+0.9
+0.8
+0.7
+
+0.2
+
+300 400 500 600 700
+Training Threshold
+
+300 400 500 600 700
+Training Threshold
 
 (d) Average final size of viral cascades (cor(c) Precision, recall, and F1 score for different rectly classified, mean and incorrectly classitraining thresholds, using Infomap algorithm. fied), using Infomap algorithm.
 
-1.2 1.0 0.8 0.6 0.4 0.2
+1.0
 
 1.2
-precision recall f1 score
+precision
+recall
 
-1.1 Size (103 ) 1.0 0.9 0.8 0.7
+1.1
 
-correct incorrect mean
+f1 score
 
-300 400 500 600 700 Training Threshold
+Size (103 )
 
-300 400 500 600 700 Training Threshold
+1.2
+0.8
+0.6
+0.4
 
-(f) Average final size of viral cascades (cor(e) Precision, recall, and F1 score for different rectly classified, mean and incorrectly classitraining thresholds, using SLM algorithm. fied), using SLM algorithm.
+1.0
 
-Fig. 12: Prediction results when T Htr = {300, 400, 500, 600, 700} for Am (Louvain, Infomap and SLM). Error bars represent one standard deviation.
+correct
+incorrect
+mean
+
+0.9
+0.8
+0.7
+
+0.2
+300 400 500 600 700
+Training Threshold
+
+300 400 500 600 700
+Training Threshold
+
+(f) Average final size of viral cascades (cor(e) Precision, recall, and F1 score for different rectly classified, mean and incorrectly classitraining thresholds, using SLM algorithm.
+fied), using SLM algorithm.
+
+Fig. 12: Prediction results when T Htr = {300, 400, 500, 600, 700} for
+Am (Louvain, Infomap and SLM). Error bars represent one standard deviation.
 
 20
 
 Ruocheng Guo et al.
 
-0.8 0.7 0.6 0.5 0.4 0.3 precision f1 score 0.2 recall 0.1 300 400 500 600 700 Training/Testing Threshold
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+precision
+f1 score
+0.2
+recall
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-0.8 precision f1 score recall 0.7 0.6 0.5 0.4 0.3 0.2 0.1 300 400 500 600 700 Training/Testing Threshold
+0.8
+precision
+f1 score
+recall
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-(a) Classification results for features in group (b) Classification results for features in group Am (Louvain) Bm (Louvain)
+(a) Classification results for features in group (b) Classification results for features in group
+Am (Louvain)
+Bm (Louvain)
 
-0.8 precision f1 score recall 0.7 0.6 0.5 0.4 0.3 0.2 0.1 300 400 500 600 700 Training/Testing Threshold
+0.8
+precision
+f1 score
+recall
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-0.8 precision f1 score recall 0.7 0.6 0.5 0.4 0.3 0.2 0.1 300 400 500 600 700 Training/Testing Threshold
+0.8
+precision
+f1 score
+recall
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-(c) Classification results for features in group (d) Classification results for features in group Am (Infomap) Bm (Infomap)
+(c) Classification results for features in group (d) Classification results for features in group
+Am (Infomap)
+Bm (Infomap)
 
-0.8 precision f1 score recall 0.7 0.6 0.5 0.4 0.3 0.2 0.1 300 400 500 600 700 Training/Testing Threshold
+0.8
+precision
+f1 score
+recall
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-0.8 precision f1 score recall 0.7 0.6 0.5 0.4 0.3 0.2 0.1 300 400 500 600 700 Training/Testing Threshold
+0.8
+precision
+f1 score
+recall
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-(e) Classification results for features in group (f) Classification results for features in group Am (SLM) Bm (SLM)
+(e) Classification results for features in group (f) Classification results for features in group
+Am (SLM)
+Bm (SLM)
 
-Fig. 13: Prediction results based on groups of features extracted for m = 50 when T H = {300, 400, 500, 600, 700}. Error bars represent one standard deviation.
+Fig. 13: Prediction results based on groups of features extracted for m =
+50 when T H = {300, 400, 500, 600, 700}. Error bars represent one standard
+deviation.
 
-to show the reliability of features in group At is better than ones in Bt (See Figure 16). Here, we noted similar trends with regard to both feature sets and community finding algorithms as found in the size-based tests.
+to show the reliability of features in group At is better than ones in Bt (See
+Figure 16). Here, we noted similar trends with regard to both feature sets and
+community finding algorithms as found in the size-based tests.
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
-21
-
-0.7 0.6 0.5 0.4 0.3 0.2 0.1 0.0 Precision
-
 Classification Results: TH = 500
 
-Louvain At Infomap At SLM At Louvain Bt Infomap Bt SLM Bt Ct Dt
+0.7
+0.6
+0.5
+0.4
+
+21
+
+Louvain At
+Infomap At
+SLM At
+Louvain Bt
+Infomap Bt
+SLM Bt
+Ct
+Dt
+
+0.3
+0.2
+0.1
+0.0
+
+Precision
 
 Recall
 
 F1 Score
 
-Fig. 14: Classification results based on groups of features (At ,Bt ,Ct ,Dt ) extracted with three community detection algorithms (Louvain, Infomap and SLM) when t = 60 for fixed T Htr = 500, T Hts = 500. Error bars represent one standard deviation.
+Fig. 14: Classification results based on groups of features (At ,Bt ,Ct ,Dt ) extracted with three community detection algorithms (Louvain, Infomap and
+SLM) when t = 60 for fixed T Htr = 500, T Hts = 500. Error bars represent
+one standard deviation.
 
 5.2 Feature Investigation
 
-Here we investigate the importance of each feature in Am (Louvain) and Am (Louvain) as communities detected by Louvain algorithm achieves the best classification results out of the three. With T Htr = 500 and T Hts = 500, we trained 200 randomized logistic regressions models (100 for Am and 100 for At ) - with each assigning weights to the features in those sets. We then categorized the features with weight larger than 0.01 (on average) into groups such as overlap, gini impurity, etc. Then, we performed classification on the basis of single feature group or combination of such groups. The average weights assigned are shown in Table 4 while classification results (by random forest with SMOTE) are depicted in Figure 17 for groups and combinations of them. As shown, overlaps can make significant contribution to the prediction tasks. Intuitively, communication between two sets of nodes is more likely to happen in their shared communities - which is consistent with the results of (Ugander et al, 2012). This implies that the larger overlap value, the more likely one set would repost from the otherFor example, we can infer that viral cascades tend to have larger O(Ut , Ft ) value therefore adopters in them have larger chance to motivate the recently exposed users to repost than non-viral cascades. Figure 6 and Figure 10 provide evidence of this phenomenon.
+Here we investigate the importance of each feature in Am (Louvain) and Am
+(Louvain) as communities detected by Louvain algorithm achieves the best
+classification results out of the three. With T Htr = 500 and T Hts = 500, we
+trained 200 randomized logistic regressions models (100 for Am and 100 for
+At ) - with each assigning weights to the features in those sets. We then categorized the features with weight larger than 0.01 (on average) into groups such
+as overlap, gini impurity, etc. Then, we performed classification on the basis
+of single feature group or combination of such groups. The average weights
+assigned are shown in Table 4 while classification results (by random forest
+with SMOTE) are depicted in Figure 17 for groups and combinations of them.
+As shown, overlaps can make significant contribution to the prediction tasks.
+Intuitively, communication between two sets of nodes is more likely to happen
+in their shared communities - which is consistent with the results of (Ugander
+et al, 2012). This implies that the larger overlap value, the more likely one set
+would repost from the otherFor example, we can infer that viral cascades tend
+to have larger O(Ut , Ft ) value therefore adopters in them have larger chance to
+motivate the recently exposed users to repost than non-viral cascades. Figure 6
+and Figure 10 provide evidence of this phenomenon.
 
 22
 
 Ruocheng Guo et al.
 
-1.2 1.0 0.8 0.6 0.4 0.2
+1.2
+1.0
 
-precision recall
+precision
+recall
 
 f1 score
 
-1.4 1.3 1.2 1.1 1.0 0.9 0.8 0.7
+Size (103 )
 
-correct incorrect mean
+0.8
+0.6
+0.4
+0.2
+
+1.4
+1.3
+1.2
+1.1
+1.0
+0.9
+0.8
+0.7
+
+300 400 500 600 700
+Training Threshold
+
+correct
+incorrect
+mean
+
+300 400 500 600 700
+Training Threshold
+
+(b) Average final size of viral cascades (cor(a) Precision, recall, and F1 score for different
+rectly classified, mean and incorrectly classitraining thresholds, using Louvain algorithm.
+fied), using Louvain algorithm.
+
+1.2
+1.0
+
+1.2
+precision
+recall
+
+f1 score
 
 Size (103 )
-300 400 500 600 700 Training Threshold
 
-300 400 500 600 700 Training Threshold
+0.8
 
-(b) Average final size of viral cascades (cor(a) Precision, recall, and F1 score for different rectly classified, mean and incorrectly classitraining thresholds, using Louvain algorithm. fied), using Louvain algorithm.
+1.1
 
-1.2 1.0 0.8 0.6 0.4 0.2
+0.6
+0.4
+
+1.0
+
+correct
+incorrect
+mean
+
+0.9
+0.8
+0.7
+
+0.2
+
+300 400 500 600 700
+Training Threshold
+
+300 400 500 600 700
+Training Threshold
+
+(d) Average final size of viral cascades (cor(c) Precision, recall, and F1 score for different
+rectly classified, mean and incorrectly classitraining thresholds, using Infomap algorithm.
+fied), using Infomap algorithm.
 
 1.2
-precision recall f1 score
-
-1.1 Size (103 ) 1.0 0.9 0.8 0.7
-
-correct incorrect mean
-
-300 400 500 600 700 Training Threshold
-
-300 400 500 600 700 Training Threshold
-
-(d) Average final size of viral cascades (cor(c) Precision, recall, and F1 score for different rectly classified, mean and incorrectly classitraining thresholds, using Infomap algorithm. fied), using Infomap algorithm.
-
-1.2 1.0 0.8 0.6 0.4 0.2
+1.0
 
 1.2
-precision recall f1 score
+precision
+recall
 
-1.1 Size (103 ) 1.0 0.9 0.8 0.7
+f1 score
 
-correct incorrect mean
+Size (103 )
 
-300 400 500 600 700 Training Threshold
+0.8
 
-300 400 500 600 700 Training Threshold
+1.1
 
-(f) Average final size of viral cascades (cor(e) Precision, recall, and F1 score for different rectly classified, mean and incorrectly classitraining thresholds, using SLM algorithm. fied), using SLM algorithm.
+0.6
+0.4
 
-Fig. 15: Prediction results when T Htr  {300, 400, 500, 600, 700} for At (Louvain, Infomap and SLM). Error bars represent one standard deviation.
+1.0
+
+correct
+incorrect
+mean
+
+0.9
+0.8
+0.7
+
+0.2
+300 400 500 600 700
+Training Threshold
+
+300 400 500 600 700
+Training Threshold
+
+(f) Average final size of viral cascades (cor(e) Precision, recall, and F1 score for different
+rectly classified, mean and incorrectly classitraining thresholds, using SLM algorithm.
+fied), using SLM algorithm.
+
+Fig. 15: Prediction results when T Htr ∈ {300, 400, 500, 600, 700} for At (Louvain, Infomap and SLM). Error bars represent one standard deviation.
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+precision
+f1 score
+0.2
+recall
+0.1 300 400 500 600 700
+Training/Testing Threshold
+
 23
 
-0.8 0.7 0.6 0.5 0.4 0.3 precision f1 score 0.2 recall 0.1 300 400 500 600 700 Training/Testing Threshold
+0.8
+precision
+f1 score
+recall
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-0.8 precision f1 score recall 0.7 0.6 0.5 0.4 0.3 0.2 0.1 300 400 500 600 700 Training/Testing Threshold
+(a) Classification results for features in group (b) Classification results for features in group
+At (Louvain)
+Bt (Louvain)
 
-(a) Classification results for features in group (b) Classification results for features in group At (Louvain) Bt (Louvain)
+0.8
+precision
+f1 score
+recall
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-0.8 precision f1 score recall 0.7 0.6 0.5 0.4 0.3 0.2 0.1 300 400 500 600 700 Training/Testing Threshold
+0.8
+precision
+f1 score
+recall
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-0.8 precision f1 score recall 0.7 0.6 0.5 0.4 0.3 0.2 0.1 300 400 500 600 700 Training/Testing Threshold
+(c) Classification results for features in group (d) Classification results for features in group
+At (Infomap)
+Bt (Infomap)
 
-(c) Classification results for features in group (d) Classification results for features in group At (Infomap) Bt (Infomap)
+0.8
+precision
+f1 score
+recall
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-0.8 precision f1 score recall 0.7 0.6 0.5 0.4 0.3 0.2 0.1 300 400 500 600 700 Training/Testing Threshold
+0.8
+precision
+f1 score
+recall
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1 300 400 500 600 700
+Training/Testing Threshold
 
-0.8 precision f1 score recall 0.7 0.6 0.5 0.4 0.3 0.2 0.1 300 400 500 600 700 Training/Testing Threshold
+(e) Classification results for features in group (f) Classification results for features in group
+At (SLM)
+Bt (SLM)
 
-(e) Classification results for features in group (f) Classification results for features in group At (SLM) Bt (SLM)
+Fig. 16: Prediction results based on groups of features extracted for t =
+60(min) for T H ∈ {300, 400, 500, 600, 700}. Error bars represent one standard
+deviation.
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0.0 Precision
 
-Fig. 16: Prediction results based on groups of features extracted for t = 60(min) for T H  {300, 400, 500, 600, 700}. Error bars represent one standard deviation.
-0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 0.0 Precision
-ol at gini ol+at gini+at ol+gini ol+at+gini
+ol
+at
+gini
+ol+at
 
 Recall
 
+gini+at
+ol+gini
+ol+at+gini
+
 F1 Score
 
-0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 0.0 Precision
+(a) Classification results for subsets of
+Am (Louvain): ol means overlap, gini means
+gini impurity,P
+at represents average time to
+50
+1
+adoption ( 50
+i=1 t(i)).
 
-ol cs gini ol+cs
+0.9
+0.8
+0.7
+0.6
+0.5
+0.4
+0.3
+0.2
+0.1
+0.0 Precision
 
-gini+cs ol+gini ol+cs+gini
+ol
+cs
+gini
+ol+cs
 
 Recall
 
+gini+cs
+ol+gini
+ol+cs+gini
+
 F1 Score
 
-(a) Classification results for subsets of Am (Louvain): ol means overlap, gini means gini impurity, at represents average time to 50 1 adoption ( 50 i=1 t(i)).
+(b) Classification results for subsets of
+At (Louvain): ol means overlap, gini means
+gini impurity, cs represents number of
+adopters (|U60 |).
 
-(b) Classification results for subsets of At (Louvain): ol means overlap, gini means gini impurity, cs represents number of adopters (|U60 |).
-
-Fig. 17: Classification results (random forest with SMOTE) based on subsets of features from Am and At (by Louvain algorithm)
+Fig. 17: Classification results (random forest with SMOTE) based on subsets
+of features from Am and At (by Louvain algorithm)
 
 24
 
@@ -719,57 +1942,243 @@ Ruocheng Guo et al.
 
 Group Name
 
-Features(Am (Louvain)) IG (Ft(50) )
+Features(Am (Louvain))
 
-Weights 0.020 0.021 0.521 0.503 0.037 0.227 0.500 0.257
+Weights
 
-Features(At (Louvain)) IG (U60 ) IG (U40 ) IG (F40 ) O(U60 , F60 ) O(U60 , N60 ) O(F60 , N60 ) O(U40 , F40 ) O(U40 , N40 ) O(F40 , N40 )
+Features(At (Louvain))
 
-Weights 0.039 0.049 0.331 0.500 0.538 0.409 0.628 0.509 0.288 0.072
+Weights
+
+IG (Ft(50) )
+
+0.020
+
+IG (U60 )
+
+0.039
+
+IG (Nt(50) )
+
+0.021
+
+IG (U40 )
+
+0.049
+
+IG (Nt(30) )
+
+0.521
+
+IG (F40 )
+
+0.331
+
+O(Ut(30) , Ft(30) )
+
+0.503
+
+O(U60 , F60 )
+
+0.500
+
+O(Ut(30) , Nt(30) )
+
+0.037
+
+O(U60 , N60 )
+
+0.538
+
+O(Ft(30) , Nt(30) )
+
+0.227
+
+O(F60 , N60 )
+
+0.409
+
+O(Ut(50) , Ft(50) )
+
+0.500
+
+O(U40 , F40 )
+
+0.628
+
+O(Ft(50) , Nt(50) )
+
+0.257
+
+O(U40 , N40 )
+
+0.509
+
+O(F40 , N40 )
+
+0.288
+
+|U60 |
+
+0.072
 
 Gini Impurity
 
-IG (Nt(50) ) IG (Nt(30) ) O(Ut(30) , Ft(30) ) O(Ut(30) , Nt(30) )
-
 Overlap
 
-O(Ft(30) , Nt(30) ) O(Ut(50) , Ft(50) ) O(Ft(50) , Nt(50) )
-1 50 50 i=1
-
 Baseline
+
+1
+50
+
+P50
+
+i=1
 
 t(i)
 
 1.0
 
-|U60 |
-
 Table 4: Weights of features assigned by randomized logistic regression models
 
-6 Related Work Early works about popularity prediction with data driven approach simplified the problem of cascade prediction as modeling one step information propagation Galuba et al (2010); Bian et al (2014); Zhang et al (2013) or as predicting the near term popularity Gupta et al (2012). As the real pioneer of cascade prediction, the work (Bakshy et al, 2011) devised a regression model for this task and was one of the first attempts to explore this problem. They noted that the severe imbalance of the data due to a power-law relationship between cascade size and frequency (which we also observed) hindered the creation of useful model - they obtained an R2 value of only 0.3 for their regression model. The later work of (Jenders et al, 2013) also studies the problem, again taking a machine learning approach and identify several useful features to obtain relatively high precision and recall. However, in their evaluation, they artificially balance the dataset - they ensure that each fold had equal amounts of viral and non-viral tweets. The work of (Cheng et al, 2014) predicts "viral" cascades with high precision and recall, but defines "viral" as cascades that can double in size (which also has the effect of balancing the classes in the dataset). The very recent work of (Weng et al, 2014) also looks at predicting viral cascades and does leverage some community-based features, some of which are also inspired by structural diversity - though their structural diversity features are more limited than in this study - we perform a comparison with their structural diversity method (see previous section). In a nutshell, there are two main points differing our work from the ones mentioned in this section: (1). the method proposed by this paper does not need the content of microblogs or the underlying topology based on friendship relationships (2). this method is able to provide a reliable performance in prediction of order-of-
+6 Related Work
+Early works about popularity prediction with data driven approach simplified
+the problem of cascade prediction as modeling one step information propagation Galuba et al (2010); Bian et al (2014); Zhang et al (2013) or as predicting
+the near term popularity Gupta et al (2012). As the real pioneer of cascade
+prediction, the work (Bakshy et al, 2011) devised a regression model for this
+task and was one of the first attempts to explore this problem. They noted
+that the severe imbalance of the data due to a power-law relationship between
+cascade size and frequency (which we also observed) hindered the creation of
+useful model - they obtained an R2 value of only 0.3 for their regression model.
+The later work of (Jenders et al, 2013) also studies the problem, again taking a machine learning approach and identify several useful features to obtain
+relatively high precision and recall. However, in their evaluation, they artificially balance the dataset - they ensure that each fold had equal amounts of
+viral and non-viral tweets. The work of (Cheng et al, 2014) predicts “viral”
+cascades with high precision and recall, but defines “viral” as cascades that
+can double in size (which also has the effect of balancing the classes in the
+dataset). The very recent work of (Weng et al, 2014) also looks at predicting viral cascades and does leverage some community-based features, some of
+which are also inspired by structural diversity - though their structural diversity features are more limited than in this study - we perform a comparison
+with their structural diversity method (see previous section). In a nutshell,
+there are two main points differing our work from the ones mentioned in this
+section: (1). the method proposed by this paper does not need the content of
+microblogs or the underlying topology based on friendship relationships (2).
+this method is able to provide a reliable performance in prediction of order-of-
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
 25
 
-magnitude increase of cascade size. In a conference version of this paper (Guo et al, 2015) we described the basics of tis approach. However that work did not include time-based results, examination of various underlying community finding algorithms and how each sub-group of features performs in independent classification experiments. In addition to the work on cascades, there is much related work on structural diversity. This concept was first studied in (Ugander et al, 2012) and later explored in the work of (Zhang et al, 2013; Shakarian et al, 2014; Li et al, 2015; Bao et al, 2013a,b; Huang et al, 2013). However, these papers leverage structural diversity for a variety of other social network applications including the creation of new diffusion models, the study of peer influence, identifying influential nodes, and ranking communities. Finally, we note that the popular work on diffusion in the areas of computer science (Kempe et al, 2003), physics (Gallos et al, 2010), and biology (Lieberman et al, 2005) have led to a ground swell of research on this topic over the past decade, please see (Shakarian et al, 2015) for a review of major results.
+magnitude increase of cascade size. In a conference version of this paper (Guo
+et al, 2015) we described the basics of tis approach. However that work did not
+include time-based results, examination of various underlying community finding algorithms and how each sub-group of features performs in independent
+classification experiments.
+In addition to the work on cascades, there is much related work on structural diversity. This concept was first studied in (Ugander et al, 2012) and
+later explored in the work of (Zhang et al, 2013; Shakarian et al, 2014; Li
+et al, 2015; Bao et al, 2013a,b; Huang et al, 2013). However, these papers
+leverage structural diversity for a variety of other social network applications
+including the creation of new diffusion models, the study of peer influence,
+identifying influential nodes, and ranking communities. Finally, we note that
+the popular work on diffusion in the areas of computer science (Kempe et al,
+2003), physics (Gallos et al, 2010), and biology (Lieberman et al, 2005) have
+led to a ground swell of research on this topic over the past decade, please see
+(Shakarian et al, 2015) for a review of major results.
 
-7 Conclusion In this paper, we explored the effect of structural diversity on a diffusion process which allowed us to predict viral cascades. Moving forward, we look to integrate our structural-diversity approach with content information (which we believe will further increase performance) as well as study how to best operationalize this method in a system to detect viral cascades in near-real time.
+7 Conclusion
+In this paper, we explored the effect of structural diversity on a diffusion
+process which allowed us to predict viral cascades. Moving forward, we look to
+integrate our structural-diversity approach with content information (which
+we believe will further increase performance) as well as study how to best
+operationalize this method in a system to detect viral cascades in near-real
+time.
 
-8 Acknowledgment Some of the authors of this paper are supported by by AFOSR Young Investigator Program (YIP) grant FA9550-15-1-0159, ARO grant W911NF-15-10282, and the DoD Minerva program. Portions this work were also disclosed in U.S. provisional patent 62/201,517. A non-provisional patent is currently being filed.
+8 Acknowledgment
+Some of the authors of this paper are supported by by AFOSR Young Investigator Program (YIP) grant FA9550-15-1-0159, ARO grant W911NF-15-10282, and the DoD Minerva program. Portions this work were also disclosed
+in U.S. provisional patent 62/201,517. A non-provisional patent is currently
+being filed.
 
-References Alstott J, Bullmore E, Plenz D (2014) powerlaw: a python package for analysis of heavy-tailed distributions Bakshy E, Hofman JM, Mason WA, Watts DJ (2011) Everyone's an Influencer: Quantifying Influence on Twitter. In: Proceedings of the Fourth ACM International Conference on Web Search and Data Mining, ACM, New York, NY, USA, WSDM '11, pp 65�74, DOI 10.1145/1935826.1935845, URL http://dx.doi.org/10.1145/1935826.1935845
+References
+Alstott J, Bullmore E, Plenz D (2014) powerlaw: a python package for analysis
+of heavy-tailed distributions
+Bakshy E, Hofman JM, Mason WA, Watts DJ (2011) Everyone’s an Influencer: Quantifying Influence on Twitter. In: Proceedings of the Fourth
+ACM International Conference on Web Search and Data Mining, ACM, New
+York, NY, USA, WSDM ’11, pp 65–74, DOI 10.1145/1935826.1935845, URL
+http://dx.doi.org/10.1145/1935826.1935845
 
 26
 
 Ruocheng Guo et al.
 
-Bao P, Shen HW, Chen W, Cheng XQ (2013a) Cumulative effect in information diffusion: empirical study on a microblogging network. PloS one 8(10):e76,027 Bao Q, Cheung WK, Zhang Y (2013b) Incorporating structural diversity of neighbors in a diffusion model for social networks. In: Web Intelligence (WI) and Intelligent Agent Technologies (IAT), 2013 IEEE/WIC/ACM International Joint Conferences on, IEEE, vol 1, pp 431�438 Bian J, Yang Y, Chua TS (2014) Predicting trending messages and diffusion participants in microblogging network. In: Proceedings of the 37th international ACM SIGIR conference on Research & development in information retrieval, ACM, pp 537�546 Blondel VD, Guillaume JL, Lambiotte R, Lefebvre E (2008) Fast unfolding of communities in large networks. Journal of Statistical Mechanics: Theory and Experiment 2008(10):P10,008 Breiman L, Friedman J, Stone CJ, Olshen RA (1984) Classification and regression trees. CRC press Chawla NV, Bowyer KW, Hall LO, Kegelmeyer WP (2002) Smote: synthetic minority over-sampling technique. Journal of artificial intelligence research 16(1):321�357 Cheng J, Adamic L, Dow PA, Kleinberg JM, Leskovec J (2014) Can cascades be predicted? In: Proceedings of the 23rd international conference on World wide web, International World Wide Web Conferences Steering Committee, pp 925�936 Gallos L, Havlin S, Kitsak M, Liljeros F, Makse H, Muchnik L, Stanley H (2010) Identification of influential spreaders in complex networks. Nature Physics 6(11):888�893 Galuba W, Aberer K, Chakraborty D, Despotovic Z, Kellerer W (2010) Outtweeting the twitterers-predicting information cascades in microblogs. In: Proceedings of the 3rd conference on Online social networks, vol 39, p 3^ aAS3 Grabowicz PA, Ramasco JJ, Moro E, Pujol JM, Eguiluz VM, et al (2012) Social features of online networks: The strength of intermediary ties in online social media. PloS one 7(1):e29,358 Guo R, Shaabani E, Bhatnagar A, Shakarian P (2015) Toward order-ofmagnitude cascade prediction. In: Proceedings of the 2015 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining 2015, ACM, pp 1610�1613 Gupta M, Gao J, Zhai C, Han J (2012) Predicting future popularity trend of events in microblogging platforms. Proceedings of the American Society for Information Science and Technology 49(1):1�10 Huang X, Cheng H, Li RH, Qin L, Yu JX (2013) Top-k structural diversity search in large networks. Proceedings of the VLDB Endowment 6(13):1618� 1629 Jenders M, Kasneci G, Naumann F (2013) Analyzing and predicting viral tweets. In: Proceedings of the 22Nd International Conference on World Wide Web Companion, International World Wide Web Conferences Steering Committee, Republic and Canton of Geneva, Switzerland, WWW '13 Compan-
+Bao P, Shen HW, Chen W, Cheng XQ (2013a) Cumulative effect in information diffusion: empirical study on a microblogging network. PloS one
+8(10):e76,027
+Bao Q, Cheung WK, Zhang Y (2013b) Incorporating structural diversity of
+neighbors in a diffusion model for social networks. In: Web Intelligence (WI)
+and Intelligent Agent Technologies (IAT), 2013 IEEE/WIC/ACM International Joint Conferences on, IEEE, vol 1, pp 431–438
+Bian J, Yang Y, Chua TS (2014) Predicting trending messages and diffusion
+participants in microblogging network. In: Proceedings of the 37th international ACM SIGIR conference on Research & development in information
+retrieval, ACM, pp 537–546
+Blondel VD, Guillaume JL, Lambiotte R, Lefebvre E (2008) Fast unfolding
+of communities in large networks. Journal of Statistical Mechanics: Theory
+and Experiment 2008(10):P10,008
+Breiman L, Friedman J, Stone CJ, Olshen RA (1984) Classification and regression trees. CRC press
+Chawla NV, Bowyer KW, Hall LO, Kegelmeyer WP (2002) Smote: synthetic
+minority over-sampling technique. Journal of artificial intelligence research
+16(1):321–357
+Cheng J, Adamic L, Dow PA, Kleinberg JM, Leskovec J (2014) Can cascades
+be predicted? In: Proceedings of the 23rd international conference on World
+wide web, International World Wide Web Conferences Steering Committee,
+pp 925–936
+Gallos L, Havlin S, Kitsak M, Liljeros F, Makse H, Muchnik L, Stanley H
+(2010) Identification of influential spreaders in complex networks. Nature
+Physics 6(11):888–893
+Galuba W, Aberer K, Chakraborty D, Despotovic Z, Kellerer W (2010) Outtweeting the twitterers-predicting information cascades in microblogs. In:
+Proceedings of the 3rd conference on Online social networks, vol 39, p 3âAS3
+Grabowicz PA, Ramasco JJ, Moro E, Pujol JM, Eguiluz VM, et al (2012)
+Social features of online networks: The strength of intermediary ties in online
+social media. PloS one 7(1):e29,358
+Guo R, Shaabani E, Bhatnagar A, Shakarian P (2015) Toward order-ofmagnitude cascade prediction. In: Proceedings of the 2015 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining
+2015, ACM, pp 1610–1613
+Gupta M, Gao J, Zhai C, Han J (2012) Predicting future popularity trend of
+events in microblogging platforms. Proceedings of the American Society for
+Information Science and Technology 49(1):1–10
+Huang X, Cheng H, Li RH, Qin L, Yu JX (2013) Top-k structural diversity
+search in large networks. Proceedings of the VLDB Endowment 6(13):1618–
+1629
+Jenders M, Kasneci G, Naumann F (2013) Analyzing and predicting viral
+tweets. In: Proceedings of the 22Nd International Conference on World Wide
+Web Companion, International World Wide Web Conferences Steering Committee, Republic and Canton of Geneva, Switzerland, WWW ’13 Compan-
 
 Toward Early and Order-of-Magnitude Cascade Prediction in Social Networks
 
 27
 
-ion, pp 657�664, URL http://dl.acm.org/citation.cfm?id=2487788.2488017 Kempe D, Kleinberg J, Tardos E (2003) Maximizing the spread of influence through a social network. In: Proceedings of the Ninth ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, ACM, New York, NY, USA, KDD '03, pp 137�146, DOI 10.1145/956750.956769, URL http://doi.acm.org/10.1145/956750.956769 Li RH, Qin L, Yu JX, Mao R (2015) Influential community search in large networks. Proceedings of the VLDB Endowment 8(5) Lieberman E, Hauert C, Nowak MA (2005) Evolutionary dynamics on graphs. Nature 433(7023):312�316, DOI 10.1038/nature03204 Pei S, Muchnik L, Andrade Jr JS, Zheng Z, Makse HA (2014) Searching for superspreaders of information in real-world social media. Scientific reports 4 Raghavan UN, Albert R, Kumara S (2007) Near linear time algorithm to detect community structures in large-scale networks. Physical Review E 76(3):036,106 Rosvall M, Bergstrom CT (2008) Maps of random walks on complex networks reveal community structure. Proceedings of the National Academy of Sciences 105(4):1118�1123 Shakarian P, Gerdes L, Lei H (2014) Circle-based tipping cascades in social networks. In: WSDM Workshop on Diffusion Networks and Cascade Analytics Shakarian P, Bhatnagar A, Aleali A, Guo R, Shaabani E (2015) Diffusion in Social Networks. Springer (in press) Ugander J, Backstrom L, Marlow C, Kleinberg J (2012) Structural diversity in social contagion. Proceedings of the National Academy of Sciences 109(16):5962�5966 Waltman L, van Eck NJ (2013) A smart local moving algorithm for large-scale modularity-based community detection. The European Physical Journal B 86(11):1�14 Weng L, Menczer F, Ahn YY (2014) Predicting successful memes using network and community structure. In: Eighth International AAAI Conference on Weblogs and Social Media Zhang J, Liu B, Tang J, Chen T, Li J (2013) Social influence locality for modeling retweeting behaviors. In: Proceedings of the Twenty-Third international joint conference on Artificial Intelligence, AAAI Press, pp 2761�2767
+ion, pp 657–664, URL http://dl.acm.org/citation.cfm?id=2487788.2488017
+Kempe D, Kleinberg J, Tardos E (2003) Maximizing the spread of influence
+through a social network. In: Proceedings of the Ninth ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, ACM,
+New York, NY, USA, KDD ’03, pp 137–146, DOI 10.1145/956750.956769,
+URL http://doi.acm.org/10.1145/956750.956769
+Li RH, Qin L, Yu JX, Mao R (2015) Influential community search in large
+networks. Proceedings of the VLDB Endowment 8(5)
+Lieberman E, Hauert C, Nowak MA (2005) Evolutionary dynamics on graphs.
+Nature 433(7023):312–316, DOI 10.1038/nature03204
+Pei S, Muchnik L, Andrade Jr JS, Zheng Z, Makse HA (2014) Searching for
+superspreaders of information in real-world social media. Scientific reports
+4
+Raghavan UN, Albert R, Kumara S (2007) Near linear time algorithm to
+detect community structures in large-scale networks. Physical Review E
+76(3):036,106
+Rosvall M, Bergstrom CT (2008) Maps of random walks on complex networks
+reveal community structure. Proceedings of the National Academy of Sciences 105(4):1118–1123
+Shakarian P, Gerdes L, Lei H (2014) Circle-based tipping cascades in social
+networks. In: WSDM Workshop on Diffusion Networks and Cascade Analytics
+Shakarian P, Bhatnagar A, Aleali A, Guo R, Shaabani E (2015) Diffusion in
+Social Networks. Springer (in press)
+Ugander J, Backstrom L, Marlow C, Kleinberg J (2012) Structural diversity in social contagion. Proceedings of the National Academy of Sciences
+109(16):5962–5966
+Waltman L, van Eck NJ (2013) A smart local moving algorithm for large-scale
+modularity-based community detection. The European Physical Journal B
+86(11):1–14
+Weng L, Menczer F, Ahn YY (2014) Predicting successful memes using network and community structure. In: Eighth International AAAI Conference
+on Weblogs and Social Media
+Zhang J, Liu B, Tang J, Chen T, Li J (2013) Social influence locality for modeling retweeting behaviors. In: Proceedings of the Twenty-Third international
+joint conference on Artificial Intelligence, AAAI Press, pp 2761–2767
 
 

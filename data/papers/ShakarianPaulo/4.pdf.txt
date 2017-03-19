@@ -1,217 +1,1039 @@
-Belief Revision in Structured Probabilistic Argumentation
+Belief Revision in
+Structured Probabilistic Argumentation
 Paulo Shakarian1 , Gerardo I. Simari2 , and Marcelo A. Falappa3
 
 arXiv:1401.1475v1 [cs.LO] 7 Jan 2014
 
-2
-
-Department of Electrical Engineering and Computer Science U.S. Military Academy, West Point, NY, USA paulo@shakarian.net Department of Computer Science, University of Oxford, United Kingdom gerardo.simari@cs.ox.ac.uk 3 Departamento de Ciencias e Ingenier� ia de la Computaci� on Universidad Nacional del Sur, Bah� ia Blanca, Argentina mfalappa@cs.uns.edu.ar
-
 1
 
-Abstract. In real-world applications, knowledge bases consisting of all the information at hand for a specific domain, along with the current state of affairs, are bound to contain contradictory data coming from different sources, as well as data with varying degrees of uncertainty attached. Likewise, an important aspect of the effort associated with maintaining knowledge bases is deciding what information is no longer useful; pieces of information (such as intelligence reports) may be outdated, may come from sources that have recently been discovered to be of low quality, or abundant evidence may be available that contradicts them. In this paper, we propose a probabilistic structured argumentation framework that arises from the extension of Presumptive Defeasible Logic Programming (PreDeLP) with probabilistic models, and argue that this formalism is capable of addressing the basic issues of handling contradictory and uncertain data. Then, to address the last issue, we focus on the study of non-prioritized belief revision operations over probabilistic PreDeLP programs. We propose a set of rationality postulates � based on well-known ones developed for classical knowledge bases � that characterize how such operations should behave, and study a class of operators along with theoretical relationships with the proposed postulates, including a representation theorem stating the equivalence between this class and the class of operators characterized by the postulates.
+2
+
+Department of Electrical Engineering and Computer Science
+U.S. Military Academy, West Point, NY, USA
+paulo@shakarian.net
+Department of Computer Science, University of Oxford, United Kingdom
+gerardo.simari@cs.ox.ac.uk
+3
+Departamento de Ciencias e Ingenierı́a de la Computación
+Universidad Nacional del Sur, Bahı́a Blanca, Argentina
+mfalappa@cs.uns.edu.ar
+
+Abstract. In real-world applications, knowledge bases consisting of all
+the information at hand for a specific domain, along with the current
+state of affairs, are bound to contain contradictory data coming from
+different sources, as well as data with varying degrees of uncertainty
+attached. Likewise, an important aspect of the effort associated with
+maintaining knowledge bases is deciding what information is no longer
+useful; pieces of information (such as intelligence reports) may be outdated, may come from sources that have recently been discovered to be
+of low quality, or abundant evidence may be available that contradicts
+them. In this paper, we propose a probabilistic structured argumentation
+framework that arises from the extension of Presumptive Defeasible Logic
+Programming (PreDeLP) with probabilistic models, and argue that this
+formalism is capable of addressing the basic issues of handling contradictory and uncertain data. Then, to address the last issue, we focus on the
+study of non-prioritized belief revision operations over probabilistic PreDeLP programs. We propose a set of rationality postulates – based on
+well-known ones developed for classical knowledge bases – that characterize how such operations should behave, and study a class of operators
+along with theoretical relationships with the proposed postulates, including a representation theorem stating the equivalence between this class
+and the class of operators characterized by the postulates.
 
 1
 
 Introduction and Related Work
 
-Decision-support systems that are part of virtually any kind of real-world application must be part of a framework that is rich enough to deal with several basic problems: (i) handling contradictory information; (ii) answering abductive queries; (iii) managing uncertainty; and (iv) updating beliefs. Presumptions come into play as key components of answers to abductive queries, and must be maintained as elements of the knowledge base; therefore, whenever candidate answers to these queries are evaluated, the (in)consistency of the knowledge base
+Decision-support systems that are part of virtually any kind of real-world application must be part of a framework that is rich enough to deal with several
+basic problems: (i) handling contradictory information; (ii) answering abductive queries; (iii) managing uncertainty; and (iv) updating beliefs. Presumptions
+come into play as key components of answers to abductive queries, and must be
+maintained as elements of the knowledge base; therefore, whenever candidate answers to these queries are evaluated, the (in)consistency of the knowledge base
 
-together with the presumptions being made needs to be addressed via belief revision operations. In this paper, we begin by proposing a framework that addresses items (i)� (iii) by extending Presumptive DeLP [1] (PreDeLP, for short) with probabilistic models in order to model uncertainty in the application domain; the resulting framework is a general-purpose probabilistic argumentation language that we will refer to as Probabilistic PreDeLP(P-PreDeLP, for short). In the second part of this paper, we address the problem of updating beliefs � item (iv) above � in P-PreDeLP knowledge bases, focusing on the study of nonprioritized belief revision operations. We propose a set of rationality postulates characterizing how such operations should behave � these postulates are based on the well-known postulates proposed in [2] for non-prioritized belief revision in classical knowledge bases. We then study a class of operators and their theoretical relationships with the proposed postulates, concluding with a representation theorem.
+together with the presumptions being made needs to be addressed via belief
+revision operations.
+In this paper, we begin by proposing a framework that addresses items (i)–
+(iii) by extending Presumptive DeLP [1] (PreDeLP, for short) with probabilistic
+models in order to model uncertainty in the application domain; the resulting
+framework is a general-purpose probabilistic argumentation language that we
+will refer to as Probabilistic PreDeLP(P-PreDeLP, for short).
+In the second part of this paper, we address the problem of updating beliefs –
+item (iv) above – in P-PreDeLP knowledge bases, focusing on the study of nonprioritized belief revision operations. We propose a set of rationality postulates
+characterizing how such operations should behave – these postulates are based
+on the well-known postulates proposed in [2] for non-prioritized belief revision in
+classical knowledge bases. We then study a class of operators and their theoretical
+relationships with the proposed postulates, concluding with a representation
+theorem.
 
-Related Work. Belief revision studies changes to knowledge bases as a response to epistemic inputs. Traditionally, such knowledge bases can be either belief sets (sets of formulas closed under consequence) [3, 4] or belief bases [5, 2] (which are not closed); since our end goal is to apply the results we obtain to real-world domains, here we focus on belief bases. In particular, as motivated by requirements (i)�(iv) above, our knowledge bases consist of logical formulas over which we apply argumentation-based reasoning and to which we couple a probabilistic model. The connection between belief revision and argumentation was first studied in [6]; since then, the work that is most closely related to our approach is the development of the explanation-based operators of [7]. The study of argumentation systems together with probabilistic reasoning has recently received a lot attention, though a significant part has been in the combination between the two has been in the form of probabilistic abstract argumentation [8�11]. There have, however, been several approaches that combine structured argumentation with models for reasoning under uncertainty; the first of such approaches to be proposed was [12], and several others followed, such as the possibilistic approach of [13], and the probabilistic logic-based approach of [14]. The main difference between these works and our own is that here we adopt a bipartite knowledge base, where one part models the knowledge that is not inherently probabilistic � uncertain knowledge is modeled separately, thus allowing a clear separation of interests between the two kinds of models. This approach is based on a similar one developed for ontological languages in the Semantic Web (see [15], and references within). Finally, to the best of our knowledge, this is the first paper in which the combination of structured argumentation, probabilistic models, and belief revision has been addressed in conjunction.
+Related Work. Belief revision studies changes to knowledge bases as a response
+to epistemic inputs. Traditionally, such knowledge bases can be either belief sets
+(sets of formulas closed under consequence) [3, 4] or belief bases [5, 2] (which are
+not closed); since our end goal is to apply the results we obtain to real-world
+domains, here we focus on belief bases. In particular, as motivated by requirements (i)–(iv) above, our knowledge bases consist of logical formulas over which
+we apply argumentation-based reasoning and to which we couple a probabilistic model. The connection between belief revision and argumentation was first
+studied in [6]; since then, the work that is most closely related to our approach
+is the development of the explanation-based operators of [7].
+The study of argumentation systems together with probabilistic reasoning
+has recently received a lot attention, though a significant part has been in the
+combination between the two has been in the form of probabilistic abstract argumentation [8–11]. There have, however, been several approaches that combine
+structured argumentation with models for reasoning under uncertainty; the first
+of such approaches to be proposed was [12], and several others followed, such
+as the possibilistic approach of [13], and the probabilistic logic-based approach
+of [14]. The main difference between these works and our own is that here we
+adopt a bipartite knowledge base, where one part models the knowledge that is
+not inherently probabilistic – uncertain knowledge is modeled separately, thus
+allowing a clear separation of interests between the two kinds of models. This
+approach is based on a similar one developed for ontological languages in the
+Semantic Web (see [15], and references within).
+Finally, to the best of our knowledge, this is the first paper in which the combination of structured argumentation, probabilistic models, and belief revision
+has been addressed in conjunction.
 
-Probabilistic Model (EM) Analytical Model (AM) "Malware X was compiled on a system "Malware X was compiled on a system in using the English language." English-speaking country Y." "County Y and country Z are "Country Y has a motive to launch a currently at war." cyber-attack against country Z "Malware W and malware X were created "Malware W and malware X are related. in a similar coding style." Table 1. Examples of the kind of information that could be represented in the two different models in a cyber-security application domain.
+Probabilistic Model (EM)
+Analytical Model (AM)
+“Malware X was compiled on a system
+“Malware X was compiled on a system in
+using the English language.”
+English-speaking country Y.”
+“County Y and country Z are
+“Country Y has a motive to launch a
+currently at war.”
+cyber-attack against country Z
+“Malware W and malware X were created “Malware W and malware X are related.
+in a similar coding style.”
+Table 1. Examples of the kind of information that could be represented in the two
+different models in a cyber-security application domain.
 
 2
 
 Preliminaries
 
-The Probabilistic PreDeLP (P-PreDeLP, for short) framework is composed of two separate models of the world. The first is called the environmental model (referred to as "EM"), and is used to describe the probabilistic knowledge that we have about the domain. The second one is called the analytical model (referred to as "AM"), and is used to analyze competing hypotheses that can account for a given phenomenon � what we will generally call queries. The AM is composed of a classical (that is, non-probabilistic) PreDeLP program in order to allow for contradictory information, giving the system the capability to model competing explanations for a given query. Two Kinds of Uncertainty. In general, the EM contains knowledge such as evidence, uncertain facts, or knowledge about agents and systems. The AM, on the other hand, contains ideas that a user may conclude based on the information in the EM. Table 1 gives some examples of the types of information that could appear in each of the two models in a cyber-security application. Note that a knowledge engineer (or automated system) could assign a probability to statements in the EM column, whereas statements in the AM column can be either true or false depending on a certain combination (or several possible combinations) of statements from the EM. There are thus two kinds of uncertainty that need to be modeled: probabilistic uncertainty and uncertainty arising from defeasible knowledge. As we will see, our model allows both kinds of uncertainty to coexist, and also allows for the combination of the two since defeasible rules and presumptions (that is, defeasible facts) can also be annotated with probabilistic events. In the rest of this section, we formally describe these two models, as well as how knowledge in the AM can be annotated with information from the EM � these annotations specify the conditions under which the various statements in the AM can potentially be true. Basic Language. We assume sets of variable and constant symbols, denoted with V and C, respectively. In the rest of this paper, we will use capital letters to represent variables (e.g., X, Y, Z ), while lowercase letters represent constants. The next component of the language is a set of n-ary predicate symbols; the EM and AM use separate sets of predicate symbols, denoted with PEM , PAM ,
+The Probabilistic PreDeLP (P-PreDeLP, for short) framework is composed of
+two separate models of the world. The first is called the environmental model
+(referred to as “EM”), and is used to describe the probabilistic knowledge that
+we have about the domain. The second one is called the analytical model (referred
+to as “AM”), and is used to analyze competing hypotheses that can account for
+a given phenomenon – what we will generally call queries. The AM is composed
+of a classical (that is, non-probabilistic) PreDeLP program in order to allow for
+contradictory information, giving the system the capability to model competing
+explanations for a given query.
+Two Kinds of Uncertainty. In general, the EM contains knowledge such as
+evidence, uncertain facts, or knowledge about agents and systems. The AM, on
+the other hand, contains ideas that a user may conclude based on the information in the EM. Table 1 gives some examples of the types of information that
+could appear in each of the two models in a cyber-security application. Note that
+a knowledge engineer (or automated system) could assign a probability to statements in the EM column, whereas statements in the AM column can be either
+true or false depending on a certain combination (or several possible combinations) of statements from the EM. There are thus two kinds of uncertainty that
+need to be modeled: probabilistic uncertainty and uncertainty arising from defeasible knowledge. As we will see, our model allows both kinds of uncertainty to
+coexist, and also allows for the combination of the two since defeasible rules and
+presumptions (that is, defeasible facts) can also be annotated with probabilistic
+events.
+In the rest of this section, we formally describe these two models, as well as
+how knowledge in the AM can be annotated with information from the EM –
+these annotations specify the conditions under which the various statements in
+the AM can potentially be true.
+Basic Language. We assume sets of variable and constant symbols, denoted
+with V and C, respectively. In the rest of this paper, we will use capital letters
+to represent variables (e.g., X, Y, Z), while lowercase letters represent constants.
+The next component of the language is a set of n-ary predicate symbols; the
+EM and AM use separate sets of predicate symbols, denoted with PEM , PAM ,
 
-respectively � the two models can, however, share variables and constants. As usual, a term is composed of either a variable or constant. Given terms t1 , ..., tn and n-ary predicate symbol p, p(t1 , ..., tn ) is called an atom; if t1 , ..., tn are constants, then the atom is said to be ground. The sets of all ground atoms for EM and AM are denoted with GEM and GAM , respectively. Given set of ground atoms, a world is any subset of atoms � those that belong to the set are said to be true in the world, while those that do not are false. Therefore, there are 2|GEM | possible worlds in the EM and 2|GAM | worlds in the AM. These sets are denoted with WEM and WAM , respectively. In order to avoid worlds that do not model possible situations given a particular domain, we include integrity constraints of the form oneOf(A ), where A is a subset of ground atoms. Intuitively, such a constraint states that any world where more than one of the atoms from set A appears is invalid. We use ICEM and ICAM to denote the sets of integrity constraints for the EM and AM, respectively, and the sets of worlds that conform to these constraints is denoted with WEM (ICEM ), WAM (ICAM ), respectively. Finally, logical formulas arise from the combination of atoms using the traditional connectives (, , and �). As usual, we say a world w satisfies formula (f ), written w |= f , iff: (i) If f is an atom, then w |= f iff f  w; (ii) if f = �f  then w |= f iff w |= f  ; (iii) if f = f   f  then w |= f iff w |= f  and w |= f  ; and (iv) if f = f   f  then w |= f iff w |= f  or w |= f  . We use the notation formEM , formAM to denote the set of all possible (ground) formulas in the EM and AM, respectively. 2.1 Probabilistic Model
+respectively – the two models can, however, share variables and constants. As
+usual, a term is composed of either a variable or constant. Given terms t1 , ..., tn
+and n-ary predicate symbol p, p(t1 , ..., tn ) is called an atom; if t1 , ..., tn are constants, then the atom is said to be ground. The sets of all ground atoms for EM
+and AM are denoted with GEM and GAM , respectively.
+Given set of ground atoms, a world is any subset of atoms – those that belong to the set are said to be true in the world, while those that do not are
+false. Therefore, there are 2|GEM | possible worlds in the EM and 2|GAM | worlds
+in the AM. These sets are denoted with WEM and WAM , respectively. In order to avoid worlds that do not model possible situations given a particular
+domain, we include integrity constraints of the form oneOf(A′ ), where A′ is a
+subset of ground atoms. Intuitively, such a constraint states that any world where
+more than one of the atoms from set A′ appears is invalid. We use ICEM and
+ICAM to denote the sets of integrity constraints for the EM and AM, respectively, and the sets of worlds that conform to these constraints is denoted with
+WEM (ICEM ), WAM (ICAM ), respectively.
+Finally, logical formulas arise from the combination of atoms using the traditional connectives (∧, ∨, and ¬). As usual, we say a world w satisfies formula
+(f ), written w |= f , iff: (i) If f is an atom, then w |= f iff f ∈ w; (ii) if f = ¬f ′
+then w |= f iff w 6|= f ′ ; (iii) if f = f ′ ∧ f ′′ then w |= f iff w |= f ′ and w |= f ′′ ;
+and (iv) if f = f ′ ∨ f ′′ then w |= f iff w |= f ′ or w |= f ′′ . We use the notation
+formEM , formAM to denote the set of all possible (ground) formulas in the EM
+and AM, respectively.
+2.1
 
-The EM or environmental model is largely based on the probabilistic logic of [16], which we now briefly review. Definition 1. Let f be a formula over PEM , V, and C, p  [0, 1], and   [0, min(p, 1 - p)]. A probabilistic formula is of the form f : p � . A set KEM of probabilistic formulas is called a probabilistic knowledge base. In the above definition, the number  is referred to as an error tolerance. Intuitively, probabilistic formulas are interpreted as "formula f is true with probability between p -  and p + " � note that there are no further constraints over this interval apart from those imposed by other probabilistic formulas in the knowledge base. The uncertainty regarding the probability values stems from the fact that certain assumptions (such as probabilistic independence) may not be suitable in the environment being modeled. Example 1. Consider the following set KEM : f 1 = a : 0 .8 � 0 .1 f 2 = b : 0 .2 � 0 .1 f 3 = c : 0 .8 � 0 .1 f4 = d  e : 0 .7 � 0 .2 f 5 = f  g  h : 0 .6 � 0 .1 f6 = i  �j : 0 .9 � 0 .1 f7 = k : 1 � 0
+Probabilistic Model
 
- Throughout the paper, we also use KEM = {f1 , f2 , f3 }
+The EM or environmental model is largely based on the probabilistic logic of [16],
+which we now briefly review.
+Definition 1. Let f be a formula over PEM , V, and C, p ∈ [0, 1], and ǫ ∈
+[0, min(p, 1 − p)]. A probabilistic formula is of the form f : p ± ǫ. A set KEM of
+probabilistic formulas is called a probabilistic knowledge base.
+In the above definition, the number ǫ is referred to as an error tolerance. Intuitively, probabilistic formulas are interpreted as “formula f is true with probability between p − ǫ and p + ǫ” – note that there are no further constraints over
+this interval apart from those imposed by other probabilistic formulas in the
+knowledge base. The uncertainty regarding the probability values stems from
+the fact that certain assumptions (such as probabilistic independence) may not
+be suitable in the environment being modeled.
+Example 1. Consider the following set KEM :
+f1 = a : 0.8 ± 0.1
+f2 = b : 0.2 ± 0.1
+f3 = c : 0.8 ± 0.1
 
-A set of probabilistic formulas describes a set of possible probability distributions Pr over the set WEM (ICEM ). We say that probability distribution Pr satisfies probabilistic formula f : p �  iff: p -   wWEM (ICEM ) Pr (w)  p + . We say that a probability distribution over WEM (ICEM ) satisfies KEM iff it satisfies all probabilistic formulas in KEM . Given a probabilistic knowledge base and a (non-probabilistic) formula q , the maximum entailment problem seeks to identify real numbers p,  such that all valid probability distributions Pr that satisfy KEM also satisfy q : p � , and there does not exist p ,  s.t. [p - , p + ]  [p -  , p +  ], where all probability distributions Pr that satisfy KEM also satisfy q : p �  . In order to solve this problem we must solve the linear program defined below. Definition 2. Given a knowledge base KEM and a formula q , we have a variable xi for each wi  WEM (ICEM ). � For each fj : pj � j  KEM , there is a constraint of the form: pj -  j 
-wi WEM (ICEM ) s.t. wi |=fj
+f4 = d ∧ e
+: 0.7 ± 0.2
+f5 = f ∧ g ∧ h : 0.6 ± 0.1
+f6 = i ∨ ¬j
+: 0.9 ± 0.1
 
-xi  pj + j . xi = 1.
-wi WEM (ICEM ) s.t. wi |=q
+′
+Throughout the paper, we also use KEM
+= {f1 , f2 , f3 }
 
-� We also have the constraint:
+f7 = k : 1 ± 0
 
-wi WEM (ICEM )
+
 
-� The objective is to minimize the function:
+A set of probabilistic formulas describes a set of possible probability distributions Pr over the set WEM (ICEM ). We say that
+Pprobability distribution Pr
+satisfies probabilistic formula f : p ± ǫ iff: p − ǫ ≤ w∈WEM (ICEM ) Pr (w) ≤ p + ǫ.
+We say that a probability distribution over WEM (ICEM ) satisfies KEM iff it
+satisfies all probabilistic formulas in KEM .
+Given a probabilistic knowledge base and a (non-probabilistic) formula q,
+the maximum entailment problem seeks to identify real numbers p, ǫ such that
+all valid probability distributions Pr that satisfy KEM also satisfy q : p ± ǫ, and
+there does not exist p′ , ǫ′ s.t. [p − ǫ, p + ǫ] ⊃ [p′ − ǫ′ , p′ + ǫ′ ], where all probability
+distributions Pr that satisfy KEM also satisfy q : p′ ± ǫ′ . In order to solve this
+problem we must solve the linear program defined below.
+Definition 2. Given a knowledge base KEM and a formula q, we have a variable
+xi for each wi ∈ WEM (ICEM ).
+– For each fj : pj ± ǫj ∈ KEM , there is a constraint of the form:
+P
+pj − ǫj ≤ wi ∈WEM (ICEM ) s.t. wi |=fj xi ≤ pj + ǫj .
+P
+– We also have the constraint: wi ∈WEM (ICEM ) xi = 1.
+P
+– The objective is to minimize the function: wi ∈WEM (ICEM ) s.t. wi |=q xi .
+We use the notation EP-LP-MIN(KEM , q) to refer to the value of the objective
+function in the solution to the EM-LP-MIN constraints.
+The next step is to solve the linear program a second time, but instead
+maximizing the objective function (we shall refer to this as EM-LP-MAX) – let
+ℓ and u be the results of these operations, respectively. In [16], it is shown that
+ǫ = u−ℓ
+and p = ℓ + ǫ is the solution to the maximum entailment problem.
+2
+We note that although the above linear program has an exponential number
+of variables in the worst case (i.e., no integrity constraints), the presence of
+constraints has the potential to greatly reduce this space. Further, there are also
+good heuristics (cf. [17, 18]) that have been shown to provide highly accurate
+approximations with a reduced-size linear program.
+′
+Example 2. Consider KB KEM
+from Example 1 and a set of ground atoms restricted to those that appear in that program; we have the following worlds:
 
-xi .
+w1 = {a, b, c}
+w5 = {b}
 
-We use the notation EP-LP-MIN(KEM , q ) to refer to the value of the objective function in the solution to the EM-LP-MIN constraints. The next step is to solve the linear program a second time, but instead maximizing the objective function (we shall refer to this as EM-LP-MAX) � let  and u be the results of these operations, respectively. In [16], it is shown that   = u- and p =  +  is the solution to the maximum entailment problem. 2 We note that although the above linear program has an exponential number of variables in the worst case (i.e., no integrity constraints), the presence of constraints has the potential to greatly reduce this space. Further, there are also good heuristics (cf. [17, 18]) that have been shown to provide highly accurate approximations with a reduced-size linear program.
- Example 2. Consider KB KEM from Example 1 and a set of ground atoms restricted to those that appear in that program; we have the following worlds:
+w2 = {a, b}
+w6 = {a}
 
-w1 = {a, b, c} w5 = {b}
+w3 = {a, c}
+w7 = {c}
 
-w2 = {a, b} w6 = {a}
+w4 = {b, c}
+w8 = ∅
 
-w3 = {a, c} w7 = {c}
-
-w4 = {b, c} w8 = 
-
-and suppose we wish to compute the probability for formula q = a  c. For each formula in KEM we have a constraint, and for each world above we have a variable. An objective function is created based on the worlds that satisfy the query  formula (in this case, worlds w1 , w2 , w3 , w4 , w6 , w7 ). Solving EP-LP-MAX(KEM , q)  and EP-LP-MIN(KEM , q ), we obtain the solution 0.9 � 0.1.
+and suppose we wish to compute the probability for formula q = a ∨ c. For each
+formula in KEM we have a constraint, and for each world above we have a variable. An objective function is created based on the worlds that satisfy the query
+′
+formula (in this case, worlds w1 , w2 , w3 , w4 , w6 , w7 ). Solving EP-LP-MAX(KEM
+, q)
+′
+and EP-LP-MIN(KEM , q), we obtain the solution 0.9 ± 0.1.
+
 
 3
 
 Argumentation Model
 
-For the analytical model (AM), we choose a structured argumentation framework [19] due to several characteristics that make such frameworks highly applicable to many domains. Unlike the EM, which describes probabilistic information about the state of the real world, the AM must allow for competing ideas. Therefore, it must be able to represent contradictory information. The algorithmic approach we shall later describe allows for the creation of arguments based on the AM that may "compete" with each other to answer a given query. In this competition � known as a dialectical process � one argument may defeat another based on a comparison criterion that determines the prevailing argument. Resulting from this process, certain arguments are warranted (those that are not defeated by other arguments) thereby providing a suitable explanation for the answer to a given query. The transparency provided by the system can allow knowledge engineers to identify potentially incorrect input information and fine-tune the models or, alternatively, collect more information. In short, argumentation-based reasoning has been studied as a natural way to manage a set of inconsistent information � it is the way humans settle disputes. As we will see, another desirable characteristic of (structured) argumentation frameworks is that, once a conclusion is reached, we are left with an explanation of how we arrived at it and information about why a given argument is warranted; this is very important information for users to have. In the following, we first recall the basics of the underlying argumentation framework used, and then go on to introduce the analytical model (AM). 3.1 Defeasible Logic Programming with Presumptions (PreDeLP)
+For the analytical model (AM), we choose a structured argumentation framework [19] due to several characteristics that make such frameworks highly applicable to many domains. Unlike the EM, which describes probabilistic information about the state of the real world, the AM must allow for competing ideas.
+Therefore, it must be able to represent contradictory information. The algorithmic approach we shall later describe allows for the creation of arguments based
+on the AM that may “compete” with each other to answer a given query. In this
+competition – known as a dialectical process – one argument may defeat another
+based on a comparison criterion that determines the prevailing argument. Resulting from this process, certain arguments are warranted (those that are not
+defeated by other arguments) thereby providing a suitable explanation for the
+answer to a given query.
+The transparency provided by the system can allow knowledge engineers
+to identify potentially incorrect input information and fine-tune the models or,
+alternatively, collect more information. In short, argumentation-based reasoning
+has been studied as a natural way to manage a set of inconsistent information – it
+is the way humans settle disputes. As we will see, another desirable characteristic
+of (structured) argumentation frameworks is that, once a conclusion is reached,
+we are left with an explanation of how we arrived at it and information about why
+a given argument is warranted; this is very important information for users to
+have. In the following, we first recall the basics of the underlying argumentation
+framework used, and then go on to introduce the analytical model (AM).
+3.1
 
-Defeasible Logic Programming with Presumptions (PreDeLP) [1] is a formalism combining logic programming with defeasible argumentation; it arises as an extension of classical DeLP [20] with the possibility of having presumptions, as described below � since this capability is useful in many applications, we adopt this extended version in this paper. In this section, we briefly recall the basics of PreDeLP; we refer the reader to [20, 1] for the complete presentation. The formalism contains several different constructs: facts, presumptions, strict rules, and defeasible rules. Facts are statements about the analysis that can always be considered to be true, while presumptions are statements that may or may not be true. Strict rules specify logical consequences of a set of facts or presumptions (similar to an implication, though not the same) that must always occur, while defeasible rules specify logical consequences that may be assumed to be true when no contradicting information is present. These building blocks are used in the construction of arguments, and are part of a PreDeLP program, which is a set of facts, strict rules, presumptions, and defeasible rules. Formally, we use the notation AM = (, , , ) to denote a PreDeLP program, where  is the set of strict rules,  is the set of facts,  is the set of defeasible rules, and  is the set of presumptions. In Figure 1, we provide an example AM . We now define these constructs formally.
+Defeasible Logic Programming with Presumptions (PreDeLP)
 
- : 1a = p  : 1a = �s  t  : 1 = y
- �
+Defeasible Logic Programming with Presumptions (PreDeLP) [1] is a formalism
+combining logic programming with defeasible argumentation; it arises as an extension of classical DeLP [20] with the possibility of having presumptions, as
+described below – since this capability is useful in many applications, we adopt
+this extended version in this paper. In this section, we briefly recall the basics
+of PreDeLP; we refer the reader to [20, 1] for the complete presentation.
+The formalism contains several different constructs: facts, presumptions, strict
+rules, and defeasible rules. Facts are statements about the analysis that can always be considered to be true, while presumptions are statements that may or
+may not be true. Strict rules specify logical consequences of a set of facts or
+presumptions (similar to an implication, though not the same) that must always
+occur, while defeasible rules specify logical consequences that may be assumed
+to be true when no contradicting information is present. These building blocks
+are used in the construction of arguments, and are part of a PreDeLP program,
+which is a set of facts, strict rules, presumptions, and defeasible rules. Formally,
+we use the notation ΠAM = (Θ, Ω, Φ, ∆) to denote a PreDeLP program, where
+Ω is the set of strict rules, Θ is the set of facts, ∆ is the set of defeasible rules,
+and Φ is the set of presumptions. In Figure 1, we provide an example ΠAM . We
+now define these constructs formally.
 
-1b = q 1b = �t  s 2 = v
- �
+Θ : θ1a = p
 
-2 = r 2a = s  p, u, r, v 3 = �z
- �
+θ1b = q
 
-2b = t  q, w, x, v
+θ2 = r
 
- : 1a = s � p 4 = u � y
+Ω : ω1a = ¬s ← t
 
-1b = t � q 5a = �u � �z
+ω1b = ¬t ← s
 
-2 = s � u 5b = �w � �n
+ω2a = s ← p, u, r, v
 
-3 = s � r, v
+Φ : φ1 = y
+
+φ2 = v
+
+φ3 = ¬z
+
+–≺
+
+∆ : δ1a = s –≺ p
+δ4 = u –≺ y
+
+–≺
+
+δ1b = t –≺ q
+δ5a = ¬u –≺ ¬z
+
+ω2b = t ← q, w, x, v
+
+–≺
+
+δ2 = s –≺ u
+δ5b = ¬w –≺ ¬n
+
+δ3 = s –≺ r, v
 
 Fig. 1. An example (propositional) argumentation framework.
 
-Facts ( ) are ground literals representing atomic information or its negation, using strong negation "�". Note that all of the literals in our framework must be formed with a predicate from the set PAM . Note that information in the form of facts cannot be contradicted. We will use the notation [ ] to denote the set of all possible facts. Strict Rules ( ) represent non-defeasible cause-and-effect information that resembles an implication (though the semantics is different since the contrapositive does not hold) and are of the form L0  L1 , . . . , Ln , where L0 is a ground literal and {Li }i>0 is a set of ground literals. We will use the notation [ ] to denote the set of all possible strict rules. Presumptions () are ground literals of the same form as facts, except that they are not taken as being true but rather defeasible, which means that they can be contradicted. Presumptions are denoted in the same manner as facts, except that the symbol � is added. Defeasible Rules () represent tentative knowledge that can be used if nothing can be posed against it. Just as presumptions are the defeasible counterpart of facts, defeasible rules are the defeasible counterpart of strict rules. They are of the form L0 � L1 , . . . , Ln , where L0 is a ground literal and {Li }i>0 is a set of ground literals. In both strict and defeasible rules, strong negation is allowed in the head of rules, and hence may be used to represent contradictory knowledge. Even though the above constructs are ground, we allow for schematic versions with variables that are used to represent sets of ground rules. We denote variables with strings starting with an uppercase letter. Arguments. Given a query in the form of a ground atom, the goal is to derive arguments for and against it's validity � derivation follows the same mechanism of logic programming [21]. Since rule heads can contain strong negation, it is possible to defeasibly derive contradictory literals from a program. For the treatment of contradictory knowledge, PreDeLP incorporates a defeasible argumentation formalism that allows the identification of the pieces of knowledge that are in conflict and, through the previously mentioned dialectical process, decides which information prevails as warranted. This dialectical process involves
+Facts (Θ) are ground literals representing atomic information or its negation,
+using strong negation “¬”. Note that all of the literals in our framework must
+be formed with a predicate from the set PAM . Note that information in the form
+of facts cannot be contradicted. We will use the notation [Θ] to denote the set
+of all possible facts.
+Strict Rules (Ω) represent non-defeasible cause-and-effect information that resembles an implication (though the semantics is different since the contrapositive
+does not hold) and are of the form L0 ← L1 , . . . , Ln , where L0 is a ground literal
+and {Li }i>0 is a set of ground literals. We will use the notation [Ω] to denote
+the set of all possible strict rules.
+Presumptions (Φ) are ground literals of the same form as facts, except that
+they are not taken as being true but rather defeasible, which means that they
+can be contradicted. Presumptions are denoted in the same manner as facts,
+except that the symbol –≺ is added.
+Defeasible Rules (∆) represent tentative knowledge that can be used if nothing
+can be posed against it. Just as presumptions are the defeasible counterpart of
+facts, defeasible rules are the defeasible counterpart of strict rules. They are of
+the form L0 –≺ L1 , . . . , Ln , where L0 is a ground literal and {Li }i>0 is a set of
+ground literals. In both strict and defeasible rules, strong negation is allowed in
+the head of rules, and hence may be used to represent contradictory knowledge.
+Even though the above constructs are ground, we allow for schematic versions
+with variables that are used to represent sets of ground rules. We denote variables
+with strings starting with an uppercase letter.
+Arguments. Given a query in the form of a ground atom, the goal is to derive
+arguments for and against it’s validity – derivation follows the same mechanism of logic programming [21]. Since rule heads can contain strong negation,
+it is possible to defeasibly derive contradictory literals from a program. For the
+treatment of contradictory knowledge, PreDeLP incorporates a defeasible argumentation formalism that allows the identification of the pieces of knowledge
+that are in conflict and, through the previously mentioned dialectical process,
+decides which information prevails as warranted. This dialectical process involves
 
-A1 , s A3 , s A5 , u A7 , �u
+hA1 , si
+hA3 , si
+hA5 , ui
+hA7 , ¬ui
 
-A1 A3 A5 A7
+A1
+A3
+A5
+A7
 
-= {1a , 1a } = {1 , 2 , 4 } = {1 , 4 } = {3 , 5a }
+= {θ1a , δ1a }
+= {φ1 , δ2 , δ4 }
+= {φ1 , δ4 }
+= {φ3 , δ5a }
 
-A2 , s A2 = {1 , 2 , 4 , 2a , 1a , 2 } A4 , s A4 = {2 , 3 , 2 } A6 , �s A6 = {1b , 1b , 1a }
+hA2 , si A2 = {φ1 , φ2 , δ4 , ω2a , θ1a , θ2 }
+hA4 , si A4 = {φ2 , δ3 , θ2 }
+hA6 , ¬si A6 = {δ1b , θ1b , ω1a }
 
 Fig. 2. Example ground arguments from the framework of Figure 1.
 
-the construction and evaluation of arguments, building a dialectical tree in the process. Arguments are formally defined next. Definition 3. An argument A, L for a literal L is a pair of the literal and a (possibly empty) set of the EM (A  AM ) that provides a minimal proof for L meeting the following requirements: (i) L is defeasibly derived from A; (ii)     A is not contradictory; and (iii) A is a minimal subset of    satisfying 1 and 2, denoted A, L . Literal L is called the conclusion supported by the argument, and A is the support of the argument. An argument B , L is a subargument of A, L iff B  A. An argument A, L is presumptive iff A   is not empty. We will also use  (A) = A   ,  (A) = A   , (A) = A  , and (A) = A  . Our definition differs slightly from that of [22], where DeLP is introduced, as we include strict rules and facts as part of arguments � the reason for this will become clear in Section 4. Arguments for our scenario are shown next. Example 3. Figure 2 shows example arguments based on the knowledge base from Figure 1. Note that A5 , u is a sub-argument of A2 , s and A3 , s . Given an argument A1 , L1 , counter-arguments are arguments that contradict it. Argument A2 , L2 is said to counterargue or attack A1 , L1 at a literal L iff there exists a subargument A, L of A1 , L1 such that the set  (A1 )   (A2 )   (A1 )   (A2 )  {L2 , L } is contradictory. Example 4. Consider the arguments from Example 3. The following are some of the attack relationships between them: A1 , A2 , A3 , and A4 all attack A6 ; A5 attacks A7 ; and A7 attacks A2 . A proper defeater of an argument A, L is a counter-argument that � by some criterion � is considered to be better than A, L ; if the two are incomparable according to this criterion, the counterargument is said to be a blocking defeater. An important characteristic of PreDeLP is that the argument comparison criterion is modular, and thus the most appropriate criterion for the domain that is being represented can be selected; the default criterion used in classical defeasible logic programming (from which PreDeLP is derived) is generalized specificity [23], though an extension of this criterion is required for arguments using presumptions [1]. We briefly recall this criterion next � the first definition is for generalized specificity, which is subsequently used in the definition of presumption-enabled specificity.
+the construction and evaluation of arguments, building a dialectical tree in the
+process. Arguments are formally defined next.
+Definition 3. An argument hA, Li for a literal L is a pair of the literal and
+a (possibly empty) set of the EM (A ⊆ ΠAM ) that provides a minimal proof
+for L meeting the following requirements: (i) L is defeasibly derived from A;
+(ii) Ω ∪ Θ ∪ A is not contradictory; and (iii) A is a minimal subset of ∆ ∪ Φ
+satisfying 1 and 2, denoted hA, Li.
+Literal L is called the conclusion supported by the argument, and A is the
+support of the argument. An argument hB, Li is a subargument of hA, L′ i iff
+B ⊆ A. An argument hA, Li is presumptive iff A ∩ Φ is not empty. We will also
+use Ω(A) = A ∩ Ω, Θ(A) = A ∩ Θ, ∆(A) = A ∩ ∆, and Φ(A) = A ∩ Φ.
+Our definition differs slightly from that of [22], where DeLP is introduced, as
+we include strict rules and facts as part of arguments – the reason for this will
+become clear in Section 4. Arguments for our scenario are shown next.
+Example 3. Figure 2 shows example arguments based on the knowledge base
+from Figure 1. Note that hA5 , ui is a sub-argument of hA2 , si and hA3 , si.
+
+Given an argument hA1 , L1 i, counter-arguments are arguments that contradict it. Argument hA2 , L2 i is said to counterargue or attack hA1 , L1 i at a
+literal L′ iff there exists a subargument hA, L′′ i of hA1 , L1 i such that the set
+Ω(A1 ) ∪ Ω(A2 ) ∪ Θ(A1 ) ∪ Θ(A2 ) ∪ {L2 , L′′ } is contradictory.
+Example 4. Consider the arguments from Example 3. The following are some of
+the attack relationships between them: A1 , A2 , A3 , and A4 all attack A6 ; A5
+attacks A7 ; and A7 attacks A2 .
+
+A proper defeater of an argument hA, Li is a counter-argument that – by
+some criterion – is considered to be better than hA, Li; if the two are incomparable according to this criterion, the counterargument is said to be a blocking
+defeater. An important characteristic of PreDeLP is that the argument comparison criterion is modular, and thus the most appropriate criterion for the domain
+that is being represented can be selected; the default criterion used in classical
+defeasible logic programming (from which PreDeLP is derived) is generalized
+specificity [23], though an extension of this criterion is required for arguments
+using presumptions [1]. We briefly recall this criterion next – the first definition is for generalized specificity, which is subsequently used in the definition of
+presumption-enabled specificity.
 
-Definition 4. Let AM = (, , , ) be a PreDeLP program and let F be the set of all literals that have a defeasible derivation from AM . An argument A1 , L1 is preferred to A2 , L2 , denoted with A1 P S A2 iff: (1) For all H  F ,  (A1 )   (A2 )  H is non-contradictory: if there is a derivation for L1 from  (A2 )   (A1 )  (A1 )  H , and there is no derivation for L1 from  (A1 )   (A2 )  H , then there is a derivation for L2 from  (A1 )   (A2 )  (A2 )  H ; and (2) there is at least one set H   F ,  (A1 )   (A2 )  H  is non-contradictory, such that there is a derivation for L2 from  (A1 )   (A2 )  H   (A2 ), there is no derivation for L2 from  (A1 )   (A2 )  H  , and there is no derivation for L1 from  (A1 )   (A2 )  H   (A1 ). Intuitively, the principle of specificity says that, in the presence of two conflicting lines of argument about a proposition, the one that uses more of the available information is more convincing. A classic example involves a bird, Tweety, and arguments stating that it both flies (because it is a bird) and doesn't fly (because it is a penguin). The latter argument uses more information about Tweety � it is more specific � and is thus the stronger of the two. Definition 5 ([1]). Let AM = (, , , ) be a PreDeLP program. An argument A1 , L1 is preferred to A2 , L2 , denoted with A1  A2 iff any of the following conditions hold: (1) A1 , L1 and A2 , L2 are both factual arguments and A1 , L1 P S A2 , L2 . (2) A1 , L1 is a factual argument and A2 , L2 is a presumptive argument. (3) A1 , L1 and A2 , L2 are presumptive arguments, and (a) (A1 ) (A2 ) or, (b) (A1 ) = (A2 ) and A1 , L1 P S A2 , L2 . Generally, if A, B are arguments with rules X and Y , resp., and X  Y , then A is stronger than B . This also holds when A and B use presumptions P1 and P2 , resp., and P1  P2 . Example 5. The following are some relationships between arguments from Example 3, based on Definitions 4 and 5. A1 and A6 are incomparable (blocking defeaters); A6  A2 , and thus A6 defeats A2 ; A5 and A7 are incomparable (blocking defeaters). A sequence of arguments called an argumentation line thus arises from this attack relation, where each argument defeats its predecessor. To avoid undesirable sequences, which may represent circular argumentation lines, in DeLP an argumentation line is acceptable if it satisfies certain constraints (see [20]). A literal L is warranted if there exists a non-defeated argument A supporting L. Clearly, there can be more than one defeater for a particular argument A, L . Therefore, many acceptable argumentation lines could arise from A, L , leading to a tree structure. The tree is built from the set of all argumentation lines
+Definition 4. Let ΠAM = (Θ, Ω, Φ, ∆) be a PreDeLP program and let F be
+the set of all literals that have a defeasible derivation from ΠAM . An argument
+hA1 , L1 i is preferred to hA2 , L2 i, denoted with A1 ≻P S A2 iff:
+(1) For all H ⊆ F , Ω(A1 ) ∪ Ω(A2 ) ∪ H is non-contradictory: if there is a
+derivation for L1 from Ω(A2 ) ∪ Ω(A1 ) ∪ ∆(A1 ) ∪ H, and there is no derivation
+for L1 from Ω(A1 ) ∪ Ω(A2 ) ∪ H, then there is a derivation for L2 from Ω(A1 ) ∪
+Ω(A2 ) ∪ ∆(A2 ) ∪ H; and
+(2) there is at least one set H ′ ⊆ F , Ω(A1 ) ∪ Ω(A2 ) ∪ H ′ is non-contradictory,
+such that there is a derivation for L2 from Ω(A1 ) ∪ Ω(A2 ) ∪ H ′ ∪ ∆(A2 ), there
+is no derivation for L2 from Ω(A1 ) ∪ Ω(A2 ) ∪ H ′ , and there is no derivation for
+L1 from Ω(A1 ) ∪ Ω(A2 ) ∪ H ′ ∪ ∆(A1 ).
+Intuitively, the principle of specificity says that, in the presence of two conflicting lines of argument about a proposition, the one that uses more of the available information is more convincing. A classic example involves a bird, Tweety,
+and arguments stating that it both flies (because it is a bird) and doesn’t fly (because it is a penguin). The latter argument uses more information about Tweety
+– it is more specific – and is thus the stronger of the two.
+Definition 5 ([1]). Let ΠAM = (Θ, Ω, Φ, ∆) be a PreDeLP program. An argument hA1 , L1 i is preferred to hA2 , L2 i, denoted with A1 ≻ A2 iff any of the
+following conditions hold:
+(1) hA1 , L1 i and hA2 , L2 i are both factual arguments and hA1 , L1 i ≻P S hA2 , L2 i.
+(2) hA1 , L1 i is a factual argument and hA2 , L2 i is a presumptive argument.
+(3) hA1 , L1 i and hA2 , L2 i are presumptive arguments, and
+(a) Φ(A1 ) ( Φ(A2 ) or,
+(b) Φ(A1 ) = Φ(A2 ) and hA1 , L1 i ≻P S hA2 , L2 i.
+Generally, if A, B are arguments with rules X and Y , resp., and X ⊂ Y , then A
+is stronger than B. This also holds when A and B use presumptions P1 and P2 ,
+resp., and P1 ⊂ P2 .
+Example 5. The following are some relationships between arguments from Example 3, based on Definitions 4 and 5.
+A1 and A6 are incomparable (blocking defeaters);
+A6 ≻ A2 , and thus A6 defeats A2 ;
+A5 and A7 are incomparable (blocking defeaters).
 
-rooted in the initial argument. In a dialectical tree, every node (except the root) represents a defeater of its parent, and leaves correspond to undefeated arguments. Each path from the root to a leaf corresponds to a different acceptable argumentation line. A dialectical tree provides a structure for considering all the possible acceptable argumentation lines that can be generated for deciding whether an argument is defeated. We call this tree dialectical because it represents an exhaustive dialectical4 analysis for the argument in its root. For a given argument A, L , we denote the corresponding dialectical tree as T ( A, L ). Given a literal L and an argument A, L , in order to decide whether or not a literal L is warranted, every node in the dialectical tree T ( A, L ) is recursively marked as "D" (defeated ) or "U" (undefeated ), obtaining a marked dialectical tree T  ( A, L ) as follows: 1. All leaves in T  ( A, L ) are marked as "U"s, and 2. Let B , q be an inner node of T  ( A, L ). Then B , q will be marked as "U" iff every child of B , q is marked as "D". The node B , q will be marked as "D" iff it has at least a child marked as "U". Given an argument A, L obtained from AM , if the root of T  ( A, L ) is marked as "U", then we will say that T  ( A, h ) warrants L and that L is warranted from AM . (Warranted arguments correspond to those in the grounded extension of a Dung argumentation system [24].) There is a further requirement when the arguments in the dialectical tree contains presumptions � the conjunction of all presumptions used in even (respectively, odd) levels of the tree must be consistent. This can give rise to multiple trees for a given literal, as there can potentially be different arguments that make contradictory assumptions. We can then extend the idea of a dialectical tree to a dialectical forest. For a given literal L, a dialectical forest F (L) consists of the set of dialectical trees for all arguments for L. We shall denote a marked dialectical forest, the set of all marked dialectical trees for arguments for L, as F  (L). Hence, for a literal L, we say it is warranted if there is at least one argument for that literal in the dialectical forest F  (L) that is labeled as "U", not warranted if there is at least one argument for the literal �L in the dialectical forest F  (�L) that is labeled as "U", and undecided otherwise.
+
+
+A sequence of arguments called an argumentation line thus arises from this
+attack relation, where each argument defeats its predecessor. To avoid undesirable sequences, which may represent circular argumentation lines, in DeLP an
+argumentation line is acceptable if it satisfies certain constraints (see [20]). A
+literal L is warranted if there exists a non-defeated argument A supporting L.
+Clearly, there can be more than one defeater for a particular argument hA, Li.
+Therefore, many acceptable argumentation lines could arise from hA, Li, leading to a tree structure. The tree is built from the set of all argumentation lines
+
+rooted in the initial argument. In a dialectical tree, every node (except the root)
+represents a defeater of its parent, and leaves correspond to undefeated arguments. Each path from the root to a leaf corresponds to a different acceptable
+argumentation line. A dialectical tree provides a structure for considering all
+the possible acceptable argumentation lines that can be generated for deciding
+whether an argument is defeated. We call this tree dialectical because it represents an exhaustive dialectical4 analysis for the argument in its root. For a given
+argument hA, Li, we denote the corresponding dialectical tree as T (hA, Li).
+Given a literal L and an argument hA, Li, in order to decide whether or not a
+literal L is warranted, every node in the dialectical tree T (hA, Li) is recursively
+marked as “D” (defeated ) or “U” (undefeated ), obtaining a marked dialectical
+tree T ∗ (hA, Li) as follows:
+1. All leaves in T ∗ (hA, Li) are marked as “U”s, and
+2. Let hB, qi be an inner node of T ∗ (hA, Li). Then hB, qi will be marked as “U”
+iff every child of hB, qi is marked as “D”. The node hB, qi will be marked as
+“D” iff it has at least a child marked as “U”.
+Given an argument hA, Li obtained from ΠAM , if the root of T ∗ (hA, Li) is
+marked as “U”, then we will say that T ∗ (hA, hi) warrants L and that L is warranted from ΠAM . (Warranted arguments correspond to those in the grounded
+extension of a Dung argumentation system [24].) There is a further requirement
+when the arguments in the dialectical tree contains presumptions – the conjunction of all presumptions used in even (respectively, odd) levels of the tree must
+be consistent. This can give rise to multiple trees for a given literal, as there can
+potentially be different arguments that make contradictory assumptions.
+We can then extend the idea of a dialectical tree to a dialectical forest. For
+a given literal L, a dialectical forest F (L) consists of the set of dialectical trees
+for all arguments for L. We shall denote a marked dialectical forest, the set of
+all marked dialectical trees for arguments for L, as F ∗ (L). Hence, for a literal
+L, we say it is warranted if there is at least one argument for that literal in the
+dialectical forest F ∗ (L) that is labeled as “U”, not warranted if there is at least
+one argument for the literal ¬L in the dialectical forest F ∗ (¬L) that is labeled
+as “U”, and undecided otherwise.
 
 4
 
 Probabilistic PreDeLP
 
-Probabilistic PreDeLP arises from the combination of the environmental and analytical models (EM and AM , respectively). Intuitively, given AM , every element of        might only hold in certain worlds in the set WEM � that is, they are subject to probabilistic events. Therefore, we associate elements of        with a formula from formEM . For instance, we could associate formula rainy to fact umbrella to state that the latter only holds when the probabilistic event rainy holds; since weather is uncertain in nature, it has been modeled as part of the EM.
+Probabilistic PreDeLP arises from the combination of the environmental and
+analytical models (ΠEM and ΠAM , respectively). Intuitively, given ΠAM , every
+element of Ω ∪ Θ ∪ ∆ ∪ Φ might only hold in certain worlds in the set WEM –
+that is, they are subject to probabilistic events. Therefore, we associate elements
+of Ω ∪ Θ ∪ ∆ ∪ Φ with a formula from formEM . For instance, we could associate
+formula rainy to fact umbrella to state that the latter only holds when the
+probabilistic event rainy holds; since weather is uncertain in nature, it has been
+modeled as part of the EM.
 4
 
 In the sense of providing reasons for and against a position.
 
-af(1a ) = af(1b ) af(2 ) af(1a ) = af(1b ) af(2a ) = af(2b ) af(1 ) af(2 )
+af(θ1a ) = af(θ1b )
+af(θ2 )
+af(ω1a ) = af(ω1b )
+af(ω2a ) = af(ω2b )
+af(φ1 )
+af(φ2 )
 
-= k  f  h  (e  l ) =i = True = True =ca =f m
+= k ∨ f ∧ h ∨ (e ∧ l)
+=i
+= True
+= True
+=c∨a
+=f ∧m
 
-af(3 ) af(1a ) = af(1b ) af(2 ) af(3 ) af(4 ) af(5a ) = af(5b )
+
 
-=b = True = True = True = True = True
+af(φ3 )
+af(δ1a ) = af(δ1b )
+af(δ2 )
+af(δ3 )
+af(δ4 )
+af(δ5a ) = af(δ5b )
+
+=b
+= True
+= True
+= True
+= True
+= True
 
 Fig. 3. Example annotation function.
 
-We can then compute the probabilities of subsets of        using the information contained in EM , as we describe shortly. The notion of an annotation function associates elements of        with elements of formEM . Definition 6. An annotation function is any function af :         formEM . We shall use [af ] to denote the set of all annotation functions. We will sometimes denote annotation functions as sets of pairs (f, af(f )) in order to simplify the presentation. Figure 3 shows an example of an annotation function for our running example. We now have all the components to formally define Probabilistic PreDeLP programs (P-PreDeLP for short). Definition 7. Given environmental model EM , analytical model AM , and annotation function af , a probabilistic PreDeLP program is of the form I = (EM , AM , af ). We use notation [I ] to denote the set of all possible programs. Given this setup, we can consider a world-based approach; that is, the defeat relationship among arguments depends on the current state of the (EM) world. Definition 8. Let I = (EM , AM , af ) be a P-PreDeLP program, argument A, L is valid w.r.t. world w  WEM iff c  A, w |= af(c). We extend the notion of validity to argumentation lines, dialectical trees, and dialectical forests in the expected way (for instance, an argumentation line is valid w.r.t. w iff all arguments that comprise that line are valid w.r.t. w). We also extend the idea of a dialectical tree w.r.t. worlds; so, for a given world w  WEM , the dialectical (resp., marked dialectical) tree induced by w is denoted  A, L ). We require that all arguments and defeaters in with Tw A, L (resp., Tw these trees to be valid with respect to w. Likewise, we extend the notion of  dialectical forests in the same manner (denoted with Fw (L) and Fw (L), resp.). Based on these concepts we introduce the notion of warranting scenario. Definition 9. Let I = (EM , AM , af ) be a P-PreDeLP program and L be a literal formed with a ground atom from GAM ; a world w  WEM is said to be a warranting scenario for L (denoted w war L) iff there is a dialectical forest   Fw (L) in which L is warranted and Fw (L) is valid w.r.t. w.
+We can then compute the probabilities of subsets of Ω ∪ Θ ∪ ∆ ∪ Φ using the
+information contained in ΠEM , as we describe shortly. The notion of an annotation function associates elements of Ω ∪ Θ ∪ ∆ ∪ Φ with elements of formEM .
+Definition 6. An annotation function is any function af : Ω ∪ Θ ∪ ∆ ∪ Φ →
+formEM . We shall use [af ] to denote the set of all annotation functions.
+We will sometimes denote annotation functions as sets of pairs (f, af(f )) in
+order to simplify the presentation. Figure 3 shows an example of an annotation
+function for our running example.
+We now have all the components to formally define Probabilistic PreDeLP
+programs (P-PreDeLP for short).
+Definition 7. Given environmental model ΠEM , analytical model ΠAM , and
+annotation function af , a probabilistic PreDeLP program is of the form I =
+(ΠEM , ΠAM , af ). We use notation [I] to denote the set of all possible programs.
+Given this setup, we can consider a world-based approach; that is, the defeat
+relationship among arguments depends on the current state of the (EM) world.
+Definition 8. Let I = (ΠEM , ΠAM , af ) be a P-PreDeLP program, argument
+hA, Li is valid w.r.t. world w ∈ WEM iff ∀c ∈ A, w |= af(c).
+We extend the notion of validity to argumentation lines, dialectical trees,
+and dialectical forests in the expected way (for instance, an argumentation line
+is valid w.r.t. w iff all arguments that comprise that line are valid w.r.t. w).
+We also extend the idea of a dialectical tree w.r.t. worlds; so, for a given world
+w ∈ WEM , the dialectical (resp., marked dialectical) tree induced by w is denoted
+with Tw hA, Li (resp., Tw∗ hA, Li). We require that all arguments and defeaters in
+these trees to be valid with respect to w. Likewise, we extend the notion of
+dialectical forests in the same manner (denoted with Fw (L) and Fw∗ (L), resp.).
+Based on these concepts we introduce the notion of warranting scenario.
+Definition 9. Let I = (ΠEM , ΠAM , af ) be a P-PreDeLP program and L be a
+literal formed with a ground atom from GAM ; a world w ∈ WEM is said to be
+a warranting scenario for L (denoted w ⊢war L) iff there is a dialectical forest
+Fw∗ (L) in which L is warranted and Fw∗ (L) is valid w.r.t. w.
 
-Hence, the set of worlds in the EM where a literal L in the AM must be true is exactly the set of warranting scenarios � these are the "necessary" worlds: nec(L) = {w  WEM | (w war L)}. Now, the set of worlds in the EM where AM literal L can be true is the following � these are the "possible" worlds: poss(L) = {w  WEM | w war �L}. The probability distribution Pr defined over the worlds in the EM induces an upper and lower bound on the probability of literal L (denoted PL,Pr ,I ) as follows: L,Pr ,I =
-w nec(L)
+Hence, the set of worlds in the EM where a literal L in the AM must be true
+is exactly the set of warranting scenarios – these are the “necessary” worlds:
+nec(L) = {w ∈ WEM | (w ⊢war L)}. Now, the set of worlds in the EM where
+AM literal L can be true is the following – these are the “possible” worlds:
+poss(L) = {w ∈ WEM | w 6⊢war ¬L}. The probability distribution Pr defined
+over the worlds in the EM induces an upper and lower bound on the probability
+of literal L (denoted PL,Pr ,I ) as follows:
+ℓL,Pr ,I =
+
+X
 
 Pr (w),
 
 uL,Pr ,I =
-w poss(L)
+
+w∈nec(L)
+
+X
 
 Pr (w)
 
-L,Pr ,I  PL,Pr ,I  uL,Pr ,I Since the EM in general does not define a single probability distribution, the above computations should be done using linear programs EP-LP-MIN and EPLP-MAX, as described above. 4.1 Sources of Inconsistency
+w∈poss(L)
 
-We use the following notion of (classical) consistency of PreDeLP programs:  is said to be consistent if there does not exist ground literal a s.t.   a and   �a. For P-PreDeLP programs, there are two main kinds of inconsistency that can be present; the first is what we refer to as EM, or Type I, (in)consistency. Definition 10. Environmental model EM is Type I consistent iff there exists a probability distribution Pr over the set of worlds WEM that satisfies EM . We illustrate this type of consistency in the following example. Example 6. The following formula is a simple example of an EM for which there is no satisfying probability distribution: rain  hail : 0.3 � 0; rain  hail : 0.5 � 0.1. A P-PreDeLP program using such an EM gives rise to an example of Type I inconsistency, as it arises from the fact that there is no satisfying interpretation for the EM knowledge base. Assuming a consistent EM, inconsistencies can still arise through the interaction between the annotation function and facts and strict rules. We will refer to this as combined, or Type II, (in)consistency. Definition 11. A P-PreDeLP program I = (EM , AM , af ), with AM = , , ,  , is Type II consistent iff: given any probability distribution Pr that satisfies EM , if there exists a world w  WEM such that x | w|=af(x) {x} is inconsistent, then we have Pr(w) = 0.
+ℓL,Pr ,I ≤ PL,Pr ,I ≤ uL,Pr ,I
+Since the EM in general does not define a single probability distribution, the
+above computations should be done using linear programs EP-LP-MIN and EPLP-MAX, as described above.
+4.1
 
-Thus, any EM world in which the set of associated facts and strict rules are inconsistent (we refer to this as "classical consistency") must always be assigned a zero probability. The following is an example of this other type of inconsistency. Example 7. Consider the EM knowledge base from Example 1, the AM presented in Figure 1 and the annotation function from Figure 3. Suppose the following fact is added to the argumentation model: 3 = �p, and that the annotation function is expanded as follows: af (3 ) = �k. Clearly, fact 3 is in direct conflict with fact 1a � this does not necessarily mean that there is an inconsistency. For instance, by the annotation function, 1a holds in the world {k } while 3 does not. However, if we consider the world: w = {f, h) Note that w |= af (3 ) and w |= af (2 ), which means that, in this world, two contradictory facts can occur. Since the environmental model indicates that this world can be assigned a non-zero probability, we have a Type II inconsist program. Another example (perhaps easier to visualize) in the rain/hail scenario discussed above, is as follows: suppose we have facts f = umbrella and g = �umbrella, and annotation function af (f ) = rain  hail and af (g ) = wind. Intuitively, the first fact states that an umbrella should be carried if it either rains or hails, while the second states that an umbrella should not be carried if it is windy. If the EM assigns a non-zero probability to formula (rain  hail)  wind, then we have Type II inconsistency. In the following, we say that a P-PreDeLP program is consistent if and only if it is both Type I and Type II consistent. However, in this paper, we focus on Type II consistency and assume that the program is Type I consistent. 4.2 Basic Operations for Restoring Consistency
+Sources of Inconsistency
 
-Given a P-PreDeLP program that is Type II inconsistent, there are two basic strategies that can be used to restore consistency: Revise the EM: the probabilistic model can be changed in order to force the worlds that induce contradicting strict knowledge to have probability zero. Revise the annotation function: The annotations involved in the inconsistency can be changed so that the conflicting information in the AM does not become induced under any possible world. It may also appear that a third option would be to adjust the AM � this is, however, equivalent to modifying the annotation function. Consider the presence
+We use the following notion of (classical) consistency of PreDeLP programs: Π
+is said to be consistent if there does not exist ground literal a s.t. Π ⊢ a and
+Π ⊢ ¬a. For P-PreDeLP programs, there are two main kinds of inconsistency
+that can be present; the first is what we refer to as EM, or Type I, (in)consistency.
+Definition 10. Environmental model ΠEM is Type I consistent iff there exists
+a probability distribution Pr over the set of worlds WEM that satisfies ΠEM .
+We illustrate this type of consistency in the following example.
+Example 6. The following formula is a simple example of an EM for which there
+is no satisfying probability distribution:
+rain ∨ hail : 0.3 ± 0;
+rain ∧ hail : 0.5 ± 0.1.
+A P-PreDeLP program using such an EM gives rise to an example of Type I
+inconsistency, as it arises from the fact that there is no satisfying interpretation
+for the EM knowledge base.
+
+Assuming a consistent EM, inconsistencies can still arise through the interaction between the annotation function and facts and strict rules. We will refer
+to this as combined, or Type II, (in)consistency.
+Definition 11. A P-PreDeLP program I = (ΠEM , ΠAM , af ), with ΠAM =
+hΘ, Ω, Φ, ∆i, is Type II consistent iff: given any probabilitySdistribution Pr that
+satisfies ΠEM , if there exists a world w ∈ WEM such that x∈Θ∪Ω | w|=af(x) {x}
+is inconsistent, then we have Pr(w) = 0.
 
-of two facts in the AM: a, �a. Assuming that this causes an inconsistency (that is, there is at least one world in which they both hold), one way to resolve it would be to remove one of these two literals. Suppose �a is removed; this would be equivalent to setting af(�a) =  (where  represents a contradiction in the language of the EM). In this paper, we often refer to "removing elements of AM " to refer to changes to the annotation function that cause certain elements of the AM to not have their annotations satisfied in certain EM worlds. Now, suppose that EM is consistent, but that the overall program is Type II inconsistent. Then, there must exist a set of worlds in the EM where there is a probability distribution that assigns each of them a non-zero probability. This gives rise to the following result. Proposition 1. If there exists a probability distribution Pr that satisfies EM s.t. there exists a world w  WEM where Pr(w) > 0 and x | w|=af(x) {x} is inconsistent (Type II inconsistency), then any change made in order to re solve this inconsistency by modifying only EM yields a new EM EM such that  a / w �a : 0 � 0 is entailed by EM . a w a  Proposition 1 seems to imply an easy strategy of adding formulas to EM causing certain worlds to have a zero probability. However, this may lead to  Type I inconsistencies in the resulting model EM . If we are applying an EM-only strategy to resolve inconsistencies, this would then lead to further adjustments  to EM in order to restore Type I consistency. However, such changes could potentially lead to Type II inconsistency in the overall P-PreDeLP program  (by either removing elements of EM or loosening probability bounds of the  sentences in EM ), which would lead to setting more EM worlds to a probability of zero. It is easy to devise an example of a situation in which the probability mass cannot be accommodated given the constraints imposed by the AM and EM together � in such cases, it would be impossible to restore consistency by only modifying EM . We thus arrive at the following observation: Observation 1 Given a Type II inconsistent P-PreDeLP program, consistency cannot always be restored via modifications to EM alone. Therefore, due to this line of reasoning, in this paper we focus our efforts on modifications to the annotation function only. However, in the future, we intend to explore belief revision operators that consider both the annotation function (which, as we saw, captures changes to the AM) along with changes to the EM, as well as combinations of the two.
+Thus, any EM world in which the set of associated facts and strict rules are
+inconsistent (we refer to this as “classical consistency”) must always be assigned
+a zero probability. The following is an example of this other type of inconsistency.
+Example 7. Consider the EM knowledge base from Example 1, the AM presented
+in Figure 1 and the annotation function from Figure 3. Suppose the following
+fact is added to the argumentation model:
+θ3 = ¬p,
+and that the annotation function is expanded as follows:
+af (θ3 ) = ¬k.
+Clearly, fact θ3 is in direct conflict with fact θ1a – this does not necessarily mean
+that there is an inconsistency. For instance, by the annotation function, θ1a holds
+in the world {k} while θ3 does not. However, if we consider the world:
+w = {f, h)
+Note that w |= af (θ3 ) and w |= af (θ2 ), which means that, in this world, two
+contradictory facts can occur. Since the environmental model indicates that this
+world can be assigned a non-zero probability, we have a Type II inconsist program.
+
+Another example (perhaps easier to visualize) in the rain/hail scenario discussed
+above, is as follows: suppose we have facts f = umbrella and g = ¬umbrella,
+and annotation function af (f ) = rain ∨ hail and af (g) = wind. Intuitively, the
+first fact states that an umbrella should be carried if it either rains or hails,
+while the second states that an umbrella should not be carried if it is windy. If
+the EM assigns a non-zero probability to formula (rain ∨ hail) ∧ wind, then we
+have Type II inconsistency.
+In the following, we say that a P-PreDeLP program is consistent if and only
+if it is both Type I and Type II consistent. However, in this paper, we focus on
+Type II consistency and assume that the program is Type I consistent.
+4.2
+
+Basic Operations for Restoring Consistency
+
+Given a P-PreDeLP program that is Type II inconsistent, there are two basic
+strategies that can be used to restore consistency:
+Revise the EM: the probabilistic model can be changed in order to force the
+worlds that induce contradicting strict knowledge to have probability zero.
+Revise the annotation function: The annotations involved in the inconsistency
+can be changed so that the conflicting information in the AM does not become
+induced under any possible world.
+It may also appear that a third option would be to adjust the AM – this is,
+however, equivalent to modifying the annotation function. Consider the presence
+
+of two facts in the AM: a, ¬a. Assuming that this causes an inconsistency (that
+is, there is at least one world in which they both hold), one way to resolve it
+would be to remove one of these two literals. Suppose ¬a is removed; this would
+be equivalent to setting af(¬a) = ⊥ (where ⊥ represents a contradiction in the
+language of the EM). In this paper, we often refer to “removing elements of
+ΠAM ” to refer to changes to the annotation function that cause certain elements
+of the ΠAM to not have their annotations satisfied in certain EM worlds.
+Now, suppose that ΠEM is consistent, but that the overall program is Type
+II inconsistent. Then, there must exist a set of worlds in the EM where there is
+a probability distribution that assigns each of them a non-zero probability. This
+gives rise to the following result.
+Proposition 1. If there exists a probability distribution PrSthat satisfies ΠEM
+s.t. there exists a world w ∈ WEM where Pr(w) > 0 and x∈Θ∪Ω | w|=af(x) {x}
+is inconsistent (Type II inconsistency), then any change made in order to re′
+solve
+yields a new EM ΠEM
+such that
+ by modifying only ΠEM
+V
+V this inconsistency
+′
+a∈w
+/ ¬a : 0 ± 0 is entailed by ΠEM .
+a∈w a ∧
+Proposition 1 seems to imply an easy strategy of adding formulas to ΠEM
+causing certain worlds to have a zero probability. However, this may lead to
+′
+Type I inconsistencies in the resulting model ΠEM
+. If we are applying an EM-only
+strategy to resolve inconsistencies, this would then lead to further adjustments
+′
+to ΠEM
+in order to restore Type I consistency. However, such changes could
+potentially lead to Type II inconsistency in the overall P-PreDeLP program
+′
+(by either removing elements of ΠEM
+or loosening probability bounds of the
+′
+sentences in ΠEM ), which would lead to setting more EM worlds to a probability
+of zero. It is easy to devise an example of a situation in which the probability
+mass cannot be accommodated given the constraints imposed by the AM and
+EM together – in such cases, it would be impossible to restore consistency by
+only modifying ΠEM . We thus arrive at the following observation:
+Observation 1 Given a Type II inconsistent P-PreDeLP program, consistency
+cannot always be restored via modifications to ΠEM alone.
+Therefore, due to this line of reasoning, in this paper we focus our efforts on
+modifications to the annotation function only. However, in the future, we intend
+to explore belief revision operators that consider both the annotation function
+(which, as we saw, captures changes to the AM) along with changes to the EM,
+as well as combinations of the two.
 
 5
 
 Revising Probabilistic PreDeLP Programs
 
-Given a P-PreDeLP program I = (EM , AM , af ), with AM =       , we are interested in solving the problem of incorporating an epistemic input (f, af  ) into I , where f is either an atom or a rule and af  is equivalent to af , except for its expansion to include f . For ease of presentation, we assume
+Given a P-PreDeLP program I = (ΠEM , ΠAM , af ), with ΠAM = Ω ∪ Θ ∪ ∆ ∪ Φ,
+we are interested in solving the problem of incorporating an epistemic input
+(f, af ′ ) into I, where f is either an atom or a rule and af ′ is equivalent to
+af , except for its expansion to include f . For ease of presentation, we assume
 
-that f is to be incorporated as a fact or strict rule, since incorporating defeasible knowledge can never lead to inconsistency. As we are only conducting annotation function revisions, for I = (EM , AM , af ) and input (f, af  ) we denote the   revision as follows: I � (f, af  ) = (EM , AM , af  ) where AM = AM  {f }  and af is the revised annotation function. Notation. We use the symbol "�" to denote the revision operator. We also slightly abuse notation for the sake of presentation, as well as introduce notation to convert sets of worlds to/from formulas. � I  (f, af  ) to denote I  = (EM , AM  {f }, af  ). � (f, af  )  I = (AM , EM , af ) to denote f  AM and af = af  . � wld(f ) = {w | w |= f } � the set of worlds that satisfy formula f ; and � f or(w) =
-a w
+that f is to be incorporated as a fact or strict rule, since incorporating defeasible
+knowledge can never lead to inconsistency. As we are only conducting annotation
+function revisions, for I = (ΠEM , ΠAM , af ) and input (f, af ′ ) we denote the
+′
+′
+revision as follows: I • (f, af ′ ) = (ΠEM , ΠAM
+, af ′′ ) where ΠAM
+= ΠAM ∪ {f }
+′′
+and af is the revised annotation function.
+Notation. We use the symbol “•” to denote the revision operator. We also
+slightly abuse notation for the sake of presentation, as well as introduce notation
+to convert sets of worlds to/from formulas.
+– I ∪ (f, af ′ ) to denote I ′ = (ΠEM , ΠAM ∪ {f }, af ′ ).
+– (f, af ′ ) ∈ I = (ΠAM , ΠEM , af ) to denote f ∈ ΠAM and af = af ′ .
+– wld(f ) = {w | w |= f } – the set of worlds that satisfy formula f ; and
+V
+V
+– f or(w) = a∈w a ∧ a∈w
+/ ¬a – the formula that has w as its only model.
 
-a
+I
+– ΠAM
+(w) = {f ∈ Θ ∪ Ω | w |= af(f )}
 
-a /w
-
-�a � the formula that has w as its only model.
-
-I � AM (w) = {f     | w |= af(f )} 0 I � WEM (I ) = {w  WEM | AM (w) is inconsistent} I 0 � WEM (I ) = {w  WEM | Pr s.t. Pr |= EM  Pr (w) > 0} I Intuitively, AM (w) is the subset of facts and strict rules in AM whose annota0 tions are true in EM world w. The set WEM (I ) contains all the EM worlds for a given program where the corresponding knowledge base in the AM is classically I inconsistent and WEM (I ) is a subset of these that can be assigned a non-zero probability � the latter are the worlds where inconsistency in the AM can arise.
+0
+I
+– WEM
+(I) = {w ∈ WEM | ΠAM
+(w) is inconsistent}
+I
+0
+– WEM
+(I) = {w ∈ WEM
+| ∃Pr s.t. Pr |= ΠEM ∧ Pr (w) > 0}
+I
+Intuitively, ΠAM
+(w) is the subset of facts and strict rules in ΠAM whose annota0
+tions are true in EM world w. The set WEM
+(I) contains all the EM worlds for a
+given program where the corresponding knowledge base in the AM is classically
+I
+inconsistent and WEM
+(I) is a subset of these that can be assigned a non-zero
+probability – the latter are the worlds where inconsistency in the AM can arise.
 
 5.1
 
 Postulates for Revising the Annotation Function
 
-We now analyze the rationality postulates for non-prioritized revision of belief bases first introduced in [2] and later generalized in [25], in the context of PPreDeLP programs. These postulates are chosen due to the fact that they are well studied in the literature for non-prioritized belief revision. Inclusion: For I � (f, af  ) = (EM , AM  {f }, af  ), g  AM , wld af  (g )  wld(af  (g )). This postulate states that, for any element in the AM, the worlds that satisfy its annotation after the revision are a subset of the original set of worlds satisfying the annotation for that element. Vacuity: If I  (f, af  ) is consistent, then I � (f, af  ) = I  (f, af  ) Consistency Preservation: If I is consistent, then I � (f, af  ) is also consistent. Weak Success: If I  (f, af  ) is consistent, then (f, af  )  I � (f, af  ). Whenever the simple addition of the input doesn't cause inconsistencies to arise, the result will contain the input. Core Retainment: For I � (f, af  ) = (EM , AM  {f }, af  ), for each w  I WEM (I  (f, af  )), we have Xw = {h     | w |= af  (h)}; for each g 
+We now analyze the rationality postulates for non-prioritized revision of belief
+bases first introduced in [2] and later generalized in [25], in the context of PPreDeLP programs. These postulates are chosen due to the fact that they are
+well studied in the literature for non-prioritized belief revision.
+
+Inclusion: For I • (f, af ′ ) = (ΠEM , ΠAM ∪ {f }, af ′′ ), ∀g ∈ ΠAM , wld af ′′ (g) ⊆
+wld(af ′ (g)).
+This postulate states that, for any element in the AM, the worlds that satisfy its
+annotation after the revision are a subset of the original set of worlds satisfying
+the annotation for that element.
+Vacuity: If I ∪ (f, af ′ ) is consistent, then I • (f, af ′ ) = I ∪ (f, af ′ )
+Consistency Preservation: If I is consistent, then I •(f, af ′ ) is also consistent.
+Weak Success: If I ∪ (f, af ′ ) is consistent, then (f, af ′ ) ∈ I • (f, af ′ ).
+Whenever the simple addition of the input doesn’t cause inconsistencies to arise,
+the result will contain the input.
+Core Retainment: For I • (f, af ′ ) = (ΠEM , ΠAM ∪ {f }, af ′′ ), for each w ∈
+I
+WEM
+(I ∪ (f, af ′ )), we have Xw = {h ∈ Θ ∪ Ω | w |= af ′′ (h)}; for each g ∈
 
-AM (w) \ Xw there exists Yw  Xw  {f } s.t. Yw is consistent and Yw  {g } is inconsistent. For a given EM world, if a portion of the associated AM knowledge base is removed by the operator, then there exists a subset of the remaining knowledge base that is not consistent with the removed element and f .
-I Relevance: For I � (f, af  ) = (EM , AM  {f }, af  ), for each w  WEM (I    (f, af )), we have Xw = {h     | w |= af (h)}; for each g  AM (w) \ Xw there exists Yw  Xw  {f } s.t. Yw is consistent and Yw  {g } is inconsistent. For a given EM world, if a portion of the associated AM knowledge base is removed by the operator, then there exists a superset of the remaining knowledge base that is not consistent with the removed element and f .   I Uniformity 1: Let (f, af  1 ), (g, af 2 ) be two inputs where WEM (I  (f, af 1 )) =   I I WEM (I  (g, af 2 )); for all w  WEM (I  (f, af )) and for all X  AM (w); if {x | x  X  {f }, w |= af  = af  1 (x)} is inconsistent iff {x | x  X  {g }, w | 2 (x)} is inconsistent, then for each h  AM , we have that:  I {w  WEM (I  (f, af  = af  1 )) | w | 1 (h)  �af 1 (h)} =  I = af  {w  WEM (I  (g, af  2 (h)  �af 2 (h)}. 2 )) | w |
+ΠAM (w) \ Xw there exists Yw ⊆ Xw ∪ {f } s.t. Yw is consistent and Yw ∪ {g} is
+inconsistent.
+For a given EM world, if a portion of the associated AM knowledge base is
+removed by the operator, then there exists a subset of the remaining knowledge
+base that is not consistent with the removed element and f .
+I
+Relevance: For I • (f, af ′ ) = (ΠEM , ΠAM ∪ {f }, af ′′ ), for each w ∈ WEM
+(I ∪
+′
+′′
+(f, af )), we have Xw = {h ∈ Θ ∪ Ω | w |= af (h)}; for each g ∈ ΠAM (w) \ Xw
+there exists Yw ⊇ Xw ∪ {f } s.t. Yw is consistent and Yw ∪ {g} is inconsistent.
+For a given EM world, if a portion of the associated AM knowledge base is
+removed by the operator, then there exists a superset of the remaining knowledge
+base that is not consistent with the removed element and f .
+I
+Uniformity 1: Let (f, af ′1 ), (g, af ′2 ) be two inputs where WEM
+(I ∪ (f, af ′1 )) =
+′
+′
+I
+I
+WEM (I ∪ (g, af 2 )); for all w ∈ WEM (I ∪ (f, af )) and for all X ⊆ ΠAM (w); if
+{x | x ∈ X ∪ {f }, w |= af ′1 (x)} is inconsistent iff {x | x ∈ X ∪ {g}, w |= af ′2 (x)}
+is inconsistent, then for each h ∈ ΠAM , we have that:
+I
+{w ∈ WEM
+(I ∪ (f, af ′1 )) | w |= af ′1 (h) ∧ ¬af ′′1 (h)} =
+I
+{w ∈ WEM
+(I ∪ (g, af ′2 )) | w |= af ′2 (h) ∧ ¬af ′′2 (h)}.
 
-If two inputs result in the same set of EM worlds leading to inconsistencies in an AM knowledge base, and the consistency between analogous subsets (when joined with the respective input) are the same, then the models removed from the annotation of a given strict rule or fact are the same for both inputs.
-  I Uniformity 2: Let (f, af  1 ), (g, af 2 ) be two inputs where WEM (I  (f, af 1 )) =   I I WEM (I  (g, af 2 )); for all w  WEM (I  (f, af ))and for all X  AM (w); if {x | x  X  {f }, w |= af  = af  1 (x)} is inconsistent iff {x | x  X  {g }, w | 2 (x)} is inconsistent, then  I {w  WEM (I  (f, af  = af  1 )) | w | 1 (h)  af 1 (h)} =  I {w  WEM (I  (g, af  = af  2 )) | w | 2 (h)  af 2 (h)}.
+If two inputs result in the same set of EM worlds leading to inconsistencies in
+an AM knowledge base, and the consistency between analogous subsets (when
+joined with the respective input) are the same, then the models removed from
+the annotation of a given strict rule or fact are the same for both inputs.
+I
+Uniformity 2: Let (f, af ′1 ), (g, af ′2 ) be two inputs where WEM
+(I ∪ (f, af ′1 )) =
+′
+′
+I
+I
+WEM (I ∪ (g, af 2 )); for all w ∈ WEM (I ∪ (f, af ))and for all X ⊆ ΠAM (w); if
+{x | x ∈ X ∪ {f }, w |= af ′1 (x)} is inconsistent iff {x | x ∈ X ∪ {g}, w |= af ′2 (x)}
+is inconsistent, then
+I
+{w ∈ WEM
+(I ∪ (f, af ′1 )) | w |= af ′1 (h) ∧ af ′′1 (h)} =
+I
+{w ∈ WEM
+(I ∪ (g, af ′2 )) | w |= af ′2 (h) ∧ af ′′2 (h)}.
 
-If two inputs result in the same set of EM worlds leading to inconsistencies in an AM knowledge base, and the consistency between analogous subsets (when joined with the respective input) are the same, then the models retained in the the annotation of a given strict rule or fact are the same for both inputs. Relationships between Postulates. There are a couple of interesting relationships among the postulates. The first is a sufficient condition for Core Retainment to be implied by Relevance. Proposition 2. Let � be an operator such that I � (f, af  ) = (EM , AM  I�(f,af  ) I (w) is a maximal consis{f }, af  ), where w  WEM (I  (f, af  )), AM  I(f,af ) (w). If � satisfies Relevance then it also satisfies Core tent subset of AM Retainment.
+If two inputs result in the same set of EM worlds leading to inconsistencies in
+an AM knowledge base, and the consistency between analogous subsets (when
+joined with the respective input) are the same, then the models retained in the
+the annotation of a given strict rule or fact are the same for both inputs.
+Relationships between Postulates. There are a couple of interesting relationships among the postulates. The first is a sufficient condition for Core
+Retainment to be implied by Relevance.
+Proposition 2. Let • be an operator such that I • (f, af ′ ) = (ΠEM , ΠAM ∪
+I•(f,af ′ )
+I
+(w) is a maximal consis{f }, af ′′ ), where ∀w ∈ WEM
+(I ∪ (f, af ′ )), ΠAM
+′
+I∪(f,af )
+(w). If • satisfies Relevance then it also satisfies Core
+tent subset of ΠAM
+Retainment.
 
-Similarly, we can show the equivalence between the two Uniformity postulates under certain conditions. Proposition 3. Let � be an operator such that I � (f, af  ) = (EM , AM  I(f,af  ) I�(f,af  ) (w). Operator � satisfies Unifor(w)  AM {f }, af  ) and w, AM mity 1 iff it satisfies Uniformity 2. Given the results of Propositions 2 and 3, we will not study Core Retainment and Uniformity 2 with respect to the construction of a belief revision operator in the next section. 5.2 An Operator for P-PreDeLP Revision
+Similarly, we can show the equivalence between the two Uniformity postulates
+under certain conditions.
+Proposition 3. Let • be an operator such that I • (f, af ′ ) = (ΠEM , ΠAM ∪
+I∪(f,af ′ )
+I•(f,af ′ )
+(w). Operator • satisfies Unifor(w) ⊆ ΠAM
+{f }, af ′′ ) and ∀w, ΠAM
+mity 1 iff it satisfies Uniformity 2.
+Given the results of Propositions 2 and 3, we will not study Core Retainment
+and Uniformity 2 with respect to the construction of a belief revision operator
+in the next section.
+5.2
 
-In this section, we introduce an operator for revising a P-PreDeLP program. As I stated earlier, any subset of AM associated with a world in WEM (I  (f, af  )) must be modified by the operator in order to remain consistent. So, for such a world w, we introduce a set of candidate replacement programs for AM (w) in order to maintain consistency and satisfy the Inclusion postulate.
-   candP gm(w, I ) = {AM | AM  AM (w) s.t. AM is consistent and     s.t. AM is consistent} AM  AM (w) s.t. AM  AM
+An Operator for P-PreDeLP Revision
 
-Intuitively, candP gm(w, I ) is the set of maximal consistent subsets of AM (w). Coming back to the rain/hail example presented above, we have: Example 8. Consider the P-PreDeLP program I presented right after Example 7, and the following EM knowledge base: rain  hail : 0.5 � 0.1; rain  hail : 0.3 � 0.1; wind : 0.2 � 0. Given this setup, we have, for instance: candP gm({rain, hail, wind}, I ) = umbrella , �umbrella .
+In this section, we introduce an operator for revising a P-PreDeLP program. As
+I
+stated earlier, any subset of ΠAM associated with a world in WEM
+(I ∪ (f, af ′ ))
+must be modified by the operator in order to remain consistent. So, for such a
+world w, we introduce a set of candidate replacement programs for ΠAM (w) in
+order to maintain consistency and satisfy the Inclusion postulate.
+′
+′
+′
+candP gm(w, I) = {ΠAM
+| ΠAM
+⊆ ΠAM (w) s.t. ΠAM
+is consistent and
+′′
+′′
+′′
+′
+s.t. ΠAM
+is consistent}
+∄ΠAM ⊆ ΠAM (w) s.t. ΠAM ⊃ ΠAM
 
-Intuitively, this means that, since the world where rain, hail, and wind are all true can be assigned a non-zero probability by the EM, we must choose either umbrella or �umbrella in order to recover consistency. We now show a series of intermediate results that lead up to the representation theorem (Theorem 1). First, we show how this set plays a role in showing a necessary and sufficient requirement for Inclusion and Consistency Preservation to hold together. Lemma 1. Given program I and input (f, af  ), operator � satisfies Inclusion and Consistency Preservation iff for I � (f, af  ) = (EM , AM , af  ), for all I (I  (f, af  )), there exists an element X  candP gm(w, I  (f, af  )) w  WEM s.t. {h      {f } | w |= af  (h)}  X .
+Intuitively, candP gm(w, I) is the set of maximal consistent subsets of ΠAM (w).
+Coming back to the rain/hail example presented above, we have:
+Example 8. Consider the P-PreDeLP program I presented right after Example 7, and the following EM knowledge base:
+rain ∨ hail : 0.5 ± 0.1;
+rain ∧ hail : 0.3 ± 0.1;
+wind : 0.2 ± 0.
+Given this setup, we have, for instance:
+candP gm({rain, hail, wind}, I) =
 
-Next, we investigate the role that the set candP gm plays in showing the necessary and sufficient requirement for satisfying Inclusion, Consistency Preservation, and Relevance all at once. Lemma 2. Given program I and input (f, af  ), operator � satisfies Inclusion, Consistency Preservation, and Relevance iff for I � (f, af  ) = (EM , AM , af  ), I for all w  WEM (I  (f, af  )) we have {h      {f } | w |= af  (h)}  candP gm(w, I  (f, af  )). The last of the intermediate results shows that if there is a consistent program where two inputs cause inconsistencies to arise in the same way, then for each world the set of candidate replacement programs (minus the added AM formula) is the same. This result will be used as a support of the satisfaction of the first Uniformity postulate.
- Lemma 3. Let I = (EM , AM , af ) be a consistent program, (f1 , af  1 ), (f2 , af 2 )  I I be two inputs, and Ii = (EM , AM  {fi }, af i ). If WEM (I1 ) = WEM (I2 ), then I for all w  WEM (I1 ) and all X  AM (w) we have that:
+n
 
-1. If {x | x  X  {f1 }, w |= af  = 1 (x)} is inconsistent  {x | x  X  {f2 }, w | af  ( x ) } is inconsistent, then { X \ { f } | X  candP gm ( w, I ) } = { X \ 1 1 2 {f2 } | X  candP gm(w, I2 )}. 2. If {X \ {f1 } | X  candP gm(w, I1 )} = {X \ {f2 } | X  candP gm(w, I2 )} = then {x | x  X {f1 }, w |= af  1 (x)} is inconsistent  {x | x  X {f2 }, w | af  2 (x)} is inconsistent. We now have the necessary tools to present the construction of our nonprioritized belief revision operator. Construction. Before introducing the construction, we define some preliminary notation. Let  : WEM  2[][ ] . For each h there is a formula in AM  {f }, where f is part of the input. Given these elements, we define: newFor(h, , I , (f, af  )) = af  (h) 
-I (I(f,af  )) w WEM
+	 
+	o
+umbrella , ¬umbrella .
 
-�f or(wi )
-| h /  (w )
+Intuitively, this means that, since the world where rain, hail, and wind are all
+true can be assigned a non-zero probability by the EM, we must choose either
+umbrella or ¬umbrella in order to recover consistency.
+
+We now show a series of intermediate results that lead up to the representation theorem (Theorem 1). First, we show how this set plays a role in showing a
+necessary and sufficient requirement for Inclusion and Consistency Preservation
+to hold together.
+Lemma 1. Given program I and input (f, af ′ ), operator • satisfies Inclusion
+and Consistency Preservation iff for I • (f, af ′ ) = (ΠEM , ΠAM , af ′′ ), for all
+I
+(I ∪ (f, af ′ )), there exists an element X ∈ candP gm(w, I ∪ (f, af ′ ))
+w ∈ WEM
+s.t. {h ∈ Θ ∪ Ω ∪ {f } | w |= af ′′ (h)} ⊆ X.
 
-The following definition then characterizes the class of operators called AFO (annotation function-based operators). Definition 12 (AF-based Operators). A belief revision operator � is an "annotation function-based" (or af-based) operator (�  AFO) iff given program I = (EM , AM , af ) and input (f, af  ), the revision is defined as I � (f, af  ) = (EM , AM  {f }, af  ), where: h, af  (h) = newFor(h, , I , (f, af  )) where w  WEM , (w)  CandP gmaf (w, I  (f, af  )). As the main result of the paper, we now show that satisfying a key set of postulates is a necessary and sufficient condition for membership in AFO.
+Next, we investigate the role that the set candP gm plays in showing the necessary and sufficient requirement for satisfying Inclusion, Consistency Preservation, and Relevance all at once.
+Lemma 2. Given program I and input (f, af ′ ), operator • satisfies Inclusion,
+Consistency Preservation, and Relevance iff for I • (f, af ′ ) = (ΠEM , ΠAM , af ′′ ),
+I
+for all w ∈ WEM
+(I ∪ (f, af ′ )) we have {h ∈ Θ ∪ Ω ∪ {f } | w |= af ′′ (h)} ∈
+candP gm(w, I ∪ (f, af ′ )).
+The last of the intermediate results shows that if there is a consistent program
+where two inputs cause inconsistencies to arise in the same way, then for each
+world the set of candidate replacement programs (minus the added AM formula)
+is the same. This result will be used as a support of the satisfaction of the first
+Uniformity postulate.
+Lemma 3. Let I = (ΠEM , ΠAM , af ) be a consistent program, (f1 , af ′1 ), (f2 , af ′2 )
+I
+I
+be two inputs, and Ii = (ΠEM , ΠAM ∪ {fi }, af ′i ). If WEM
+(I1 ) = WEM
+(I2 ), then
+I
+for all w ∈ WEM (I1 ) and all X ⊆ ΠAM (w) we have that:
+1. If {x | x ∈ X ∪ {f1 }, w |= af ′1 (x)} is inconsistent ⇔ {x | x ∈ X ∪ {f2 }, w |=
+af ′2 (x)} is inconsistent, then {X \ {f1 } | X ∈ candP gm(w, I1 )} = {X \
+{f2 } | X ∈ candP gm(w, I2 )}.
+2. If {X \ {f1 } | X ∈ candP gm(w, I1 )} = {X \ {f2 } | X ∈ candP gm(w, I2 )}
+then {x | x ∈ X ∪{f1 }, w |= af ′1 (x)} is inconsistent ⇔ {x | x ∈ X ∪{f2 }, w |=
+af ′2 (x)} is inconsistent.
+We now have the necessary tools to present the construction of our nonprioritized belief revision operator.
+Construction. Before introducing the construction, we define some preliminary
+notation. Let Φ : WEM → 2[Θ]∪[Ω ] . For each h there is a formula in ΠAM ∪ {f },
+where f is part of the input. Given these elements, we define:
+^
+newFor(h, Φ, I, (f, af ′ )) = af ′ (h) ∧
+¬f or(wi )
+I (I∪(f,af ′ )) | h∈Φ(w)
+w∈WEM
+/
 
-Theorem 1 (Representation Theorem). An operator � belongs to class AFO iff it satisfies Inclusion, Vacuity, Consistency Preservation, Weak Success, Relevance, and Uniformity 1. Proof. (Sketch) (If) By the fact that formulas associated with worlds in the set I WEM (I  (f, af  )) are considered in the change of the annotation function, Vacuity and Weak Success follow trivially. Further, Lemma 2 shows that Inclusion, Consistency Preservation, and Relevance are satisfied while Lemma 3 shows that Uniformity 1 is satisfied. (Only-If) Suppose BWOC that an operator � satisfies all postulates and �  / AFO. Then, one of four conditions must hold: (i) it does not satisfy Lemma 2 or (ii) it does not satisfy Lemma 3. However, by those previous arguments, if it satisfies all postulates, these arguments must be true as well � hence a contradiction.
+The following definition then characterizes the class of operators called AFO
+(annotation function-based operators).
+Definition 12 (AF-based Operators). A belief revision operator • is an “annotation function-based” (or af-based) operator (• ∈ AFO) iff given program
+I = (ΠEM , ΠAM , af ) and input (f, af ′ ), the revision is defined as I • (f, af ′ ) =
+(ΠEM , ΠAM ∪ {f }, af ′′ ), where:
+∀h, af ′′ (h) = newFor(h, Φ, I, (f, af ′ ))
+where ∀w ∈ WEM , Φ(w) ∈ CandP gmaf (w, I ∪ (f, af ′ )).
+As the main result of the paper, we now show that satisfying a key set of
+postulates is a necessary and sufficient condition for membership in AFO.
+
+Theorem 1 (Representation Theorem). An operator • belongs to class AFO
+iff it satisfies Inclusion, Vacuity, Consistency Preservation, Weak Success, Relevance, and Uniformity 1.
+Proof. (Sketch) (If) By the fact that formulas associated with worlds in the set
+I
+WEM
+(I ∪(f, af ′ )) are considered in the change of the annotation function, Vacuity and Weak Success follow trivially. Further, Lemma 2 shows that Inclusion,
+Consistency Preservation, and Relevance are satisfied while Lemma 3 shows that
+Uniformity 1 is satisfied.
+(Only-If) Suppose BWOC that an operator • satisfies all postulates and • ∈
+/
+AFO. Then, one of four conditions must hold: (i) it does not satisfy Lemma 2
+or (ii) it does not satisfy Lemma 3. However, by those previous arguments,
+if it satisfies all postulates, these arguments must be true as well – hence a
+contradiction.
+
 
 6
 
 Conclusions
 
-We have proposed an extension of the PreDeLP language that allows sentences to be annotated with probabilistic events; such events are connected to a probabilistic model, allowing a clear separation of interests between certain and uncertain knowledge. After presenting the language, we focused on characterizing belief revision operations over P-PreDeLP KBs. We presented a set of postulates inspired in the ones presented for non-prioritized revision of classical belief bases, and then proceeded to study a construction based on these postulates and prove that the two characterizations are equivalent. As future work, we plan to study other kinds of operators, such as more general ones that allow the modification of the EM, as well as others that operate at different levels of granularity. Finally, we are studying the application of PPreDeLP to real-world problems in cyber security and cyber warfare domains. Acknowledgments. The authors are partially supported by UK EPSRC grant EP/J008346/1 ("PrOQAW"), ERC grant 246858 ("DIADEM"), ARO project 2GDATXR042, DARPA project R.0004972.001, Consejo Nacional de Investigaciones Cient� ificas y T� ecnicas (CONICET) and Universidad Nacional del Sur (Argentina). The opinions in this paper are those of the authors and do not necessarily reflect the opinions of the funders, the U.S. Military Academy, or the U.S. Army.
+We have proposed an extension of the PreDeLP language that allows sentences to
+be annotated with probabilistic events; such events are connected to a probabilistic model, allowing a clear separation of interests between certain and uncertain
+knowledge. After presenting the language, we focused on characterizing belief
+revision operations over P-PreDeLP KBs. We presented a set of postulates inspired in the ones presented for non-prioritized revision of classical belief bases,
+and then proceeded to study a construction based on these postulates and prove
+that the two characterizations are equivalent.
+As future work, we plan to study other kinds of operators, such as more
+general ones that allow the modification of the EM, as well as others that operate
+at different levels of granularity. Finally, we are studying the application of PPreDeLP to real-world problems in cyber security and cyber warfare domains.
+Acknowledgments. The authors are partially supported by UK EPSRC grant
+EP/J008346/1 (“PrOQAW”), ERC grant 246858 (“DIADEM”), ARO project
+2GDATXR042, DARPA project R.0004972.001, Consejo Nacional de Investigaciones Cientı́ficas y Técnicas (CONICET) and Universidad Nacional del Sur
+(Argentina).
+The opinions in this paper are those of the authors and do not necessarily
+reflect the opinions of the funders, the U.S. Military Academy, or the U.S. Army.
 
 References
-1. Martinez, M.V., Garc� ia, A.J., Simari, G.R.: On the use of presumptions in structured defeasible reasoning. In: Proc. of COMMA. (2012) 185�196 2. Hansson, S.: Semi-revision. J. of App. Non-Classical Logics 7(1-2) (1997) 151�175 3. Alchourr� on, C.E., G� ardenfors, P., Makinson, D.: On the logic of theory change: Partial meet contraction and revision functions. J. Sym. Log. 50(2) (1985) 510�530
+1. Martinez, M.V., Garcı́a, A.J., Simari, G.R.: On the use of presumptions in structured defeasible reasoning. In: Proc. of COMMA. (2012) 185–196
+2. Hansson, S.: Semi-revision. J. of App. Non-Classical Logics 7(1-2) (1997) 151–175
+3. Alchourrón, C.E., Gärdenfors, P., Makinson, D.: On the logic of theory change:
+Partial meet contraction and revision functions. J. Sym. Log. 50(2) (1985) 510–530
 
-4. Gardenfors, P.: Knowledge in flux: modeling the dynamics of epistemic states. MIT Press, Cambridge, Mass. (1988) 5. Hansson, S.O.: Kernel contraction. J. Symb. Log. 59(3) (1994) 845�859 6. Doyle, J.: A truth maintenance system. Artif. Intell. 12(3) (1979) 231�272 7. Falappa, M.A., Kern-Isberner, G., Simari, G.R.: Explanations, belief revision and defeasible reasoning. Artif. Intell. 141(1/2) (2002) 1�28 8. Li, H., Oren, N., Norman, T.J.: Probabilistic argumentation frameworks. In: Proc. of TAFA. (2011) 1�16 9. Thimm, M.: A probabilistic semantics for abstract argumentation. In: Proc. of ECAI 2012. (2012) 750�755 10. Hunter, A.: Some foundations for probabilistic abstract argumentation. In: Proc. of COMMA 2012. (2012) 117�128 11. Fazzinga, B., Flesca, S., Parisi, F.: On the complexity of probabilistic abstract argumentation. In: Proc. of IJCAI 2013. (2013) 12. Haenni, R., Kohlas, J., Lehmann, N.: Probabilistic argumentation systems. Springer (1999) 13. Ches~ nevar, C.I., Simari, G.R., Alsinet, T., Godo, L.: A logic programming framework for possibilistic argumentation with vague knowledge. In: Proc. of UAI 2004. (2004) 76�84 14. Hunter, A.: A probabilistic approach to modelling uncertain logical arguments. Int. J. Approx. Reasoning 54(1) (2013) 47�81 15. Gottlob, G., Lukasiewicz, T., Martinez, M.V., Simari, G.I.: Query answering under probabilistic uncertainty in Datalog+/� ontologies. AMAI (2013) 16. Nilsson, N.J.: Probabilistic logic. Artif. Intell. 28(1) (1986) 71�87 17. Khuller, S., Martinez, M.V., Nau, D.S., Sliva, A., Simari, G.I., Subrahmanian, V.S.: Computing most probable worlds of action probabilistic logic programs: scalable estimation for 1030,000 worlds. AMAI 51(2-4) (2007) 295�331 18. Simari, G.I., Martinez, M.V., Sliva, A., Subrahmanian, V.S.: Focused most probable world computations in probabilistic logic programs. AMAI 64(2-3) (2012) 113�143 19. Rahwan, I., Simari, G.R.: Argumentation in Artificial Intelligence. Springer (2009) 20. Garc� ia, A.J., Simari, G.R.: Defeasible logic programming: An argumentative approach. TPLP 4(1-2) (2004) 95�138 21. Lloyd, J.W.: Foundations of Logic Programming, 2nd Edition. Springer (1987) 22. Simari, G.R., Loui, R.P.: A mathematical treatment of defeasible reasoning and its implementation. Artif. Intell. 53(2-3) (1992) 125�157 23. Stolzenburg, F., Garc� ia, A., Ches~ nevar, C.I., Simari, G.R.: Computing Generalized Specificity. Journal of Non-Classical Logics 13(1) (2003) 87�113 24. Dung, P.M.: On the acceptability of arguments and its fundamental role in nonmonotonic reasoning, logic programming and n-person games. Artif. Intell. 77 (1995) pp. 321�357 25. Falappa, M.A., Kern-Isberner, G., Reis, M., Simari, G.R.: Prioritized and nonprioritized multiple change on belief bases. J. Philosophical Logic 41(1) (2012) 77�113
+4. Gardenfors, P.: Knowledge in flux: modeling the dynamics of epistemic states.
+MIT Press, Cambridge, Mass. (1988)
+5. Hansson, S.O.: Kernel contraction. J. Symb. Log. 59(3) (1994) 845–859
+6. Doyle, J.: A truth maintenance system. Artif. Intell. 12(3) (1979) 231–272
+7. Falappa, M.A., Kern-Isberner, G., Simari, G.R.: Explanations, belief revision and
+defeasible reasoning. Artif. Intell. 141(1/2) (2002) 1–28
+8. Li, H., Oren, N., Norman, T.J.: Probabilistic argumentation frameworks. In: Proc.
+of TAFA. (2011) 1–16
+9. Thimm, M.: A probabilistic semantics for abstract argumentation. In: Proc. of
+ECAI 2012. (2012) 750–755
+10. Hunter, A.: Some foundations for probabilistic abstract argumentation. In: Proc.
+of COMMA 2012. (2012) 117–128
+11. Fazzinga, B., Flesca, S., Parisi, F.: On the complexity of probabilistic abstract
+argumentation. In: Proc. of IJCAI 2013. (2013)
+12. Haenni, R., Kohlas, J., Lehmann, N.: Probabilistic argumentation systems.
+Springer (1999)
+13. Chesñevar, C.I., Simari, G.R., Alsinet, T., Godo, L.: A logic programming framework for possibilistic argumentation with vague knowledge. In: Proc. of UAI 2004.
+(2004) 76–84
+14. Hunter, A.: A probabilistic approach to modelling uncertain logical arguments.
+Int. J. Approx. Reasoning 54(1) (2013) 47–81
+15. Gottlob, G., Lukasiewicz, T., Martinez, M.V., Simari, G.I.: Query answering under
+probabilistic uncertainty in Datalog+/– ontologies. AMAI (2013)
+16. Nilsson, N.J.: Probabilistic logic. Artif. Intell. 28(1) (1986) 71–87
+17. Khuller, S., Martinez, M.V., Nau, D.S., Sliva, A., Simari, G.I., Subrahmanian, V.S.:
+Computing most probable worlds of action probabilistic logic programs: scalable
+estimation for 1030,000 worlds. AMAI 51(2-4) (2007) 295–331
+18. Simari, G.I., Martinez, M.V., Sliva, A., Subrahmanian, V.S.: Focused most probable world computations in probabilistic logic programs. AMAI 64(2-3) (2012)
+113–143
+19. Rahwan, I., Simari, G.R.: Argumentation in Artificial Intelligence. Springer (2009)
+20. Garcı́a, A.J., Simari, G.R.: Defeasible logic programming: An argumentative approach. TPLP 4(1-2) (2004) 95–138
+21. Lloyd, J.W.: Foundations of Logic Programming, 2nd Edition. Springer (1987)
+22. Simari, G.R., Loui, R.P.: A mathematical treatment of defeasible reasoning and
+its implementation. Artif. Intell. 53(2-3) (1992) 125–157
+23. Stolzenburg, F., Garcı́a, A., Chesñevar, C.I., Simari, G.R.: Computing Generalized
+Specificity. Journal of Non-Classical Logics 13(1) (2003) 87–113
+24. Dung, P.M.: On the acceptability of arguments and its fundamental role in nonmonotonic reasoning, logic programming and n-person games. Artif. Intell. 77
+(1995) pp. 321–357
+25. Falappa, M.A., Kern-Isberner, G., Reis, M., Simari, G.R.: Prioritized and nonprioritized multiple change on belief bases. J. Philosophical Logic 41(1) (2012)
+77–113
 
 

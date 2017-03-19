@@ -1,254 +1,809 @@
 Unsupervised Sentiment Analysis for Social Media Images
-Yilin Wang, Suhang Wang, Jiliang Tang, Huan Liu, and Baoxin Li Arizona State University Tempe, Arizona {yilin.wang.1, suhang.wang, jiliang.tang, huan.liu, baoxin.li}@asu.edu
+Yilin Wang, Suhang Wang, Jiliang Tang, Huan Liu, and Baoxin Li
+Arizona State University
+Tempe, Arizona
+{yilin.wang.1, suhang.wang, jiliang.tang, huan.liu, baoxin.li}@asu.edu
 
 Abstract
-Recently text-based sentiment prediction has been extensively studied, while image-centric sentiment analysis receives much less attention. In this paper, we study the problem of understanding human sentiments from large-scale social media images, considering both visual content and contextual information, such as comments on the images, captions, etc. The challenge of this problem lies in the "semantic gap" between low-level visual features and higher-level image sentiments. Moreover, the lack of proper annotations/labels in the majority of social media images presents another challenge. To address these two challenges, we propose a novel Unsupervised SEntiment Analysis (USEA) framework for social media images. Our approach exploits relations among visual content and relevant contextual information to bridge the "semantic gap" in the prediction of image sentiments. With experiments on two large-scale datasets, we show that the proposed method is effective in addressing the two challenges.
+Recently text-based sentiment prediction has been
+extensively studied, while image-centric sentiment
+analysis receives much less attention. In this paper, we study the problem of understanding human
+sentiments from large-scale social media images,
+considering both visual content and contextual information, such as comments on the images, captions, etc. The challenge of this problem lies in
+the “semantic gap” between low-level visual features and higher-level image sentiments. Moreover,
+the lack of proper annotations/labels in the majority of social media images presents another challenge. To address these two challenges, we propose
+a novel Unsupervised SEntiment Analysis (USEA)
+framework for social media images. Our approach
+exploits relations among visual content and relevant contextual information to bridge the “semantic
+gap” in the prediction of image sentiments. With
+experiments on two large-scale datasets, we show
+that the proposed method is effective in addressing
+the two challenges.
 
 1
 
 Introduction
 
-Recent years have witnessed the explosive popularity of image-sharing services such as Flickr1 and Instagram2 . For example, as of 2013, 87 millions of users have registered with Flickr3 . Also, it was estimated that about 20 billion Instagram photos are shared to 20144 . Since by sharing photos, users could also express opinions or sentiments, social media images provide a potentially rich source for understanding public opinions/sentiments. Such an understanding may in turn benefit or even enable many real-world applications such as advertisement, recommendation, marketing and health-care. The importance of sentiment analysis for social media images has thus attracted increasing attention recently [Yang et al., 2014; You et al., 2015].
-www.flickr.com www.instagram.com 3 http://en.wikipedia.org/wiki/Flickr 4 http://blog.instagram.com/post/ 80721172292/200m
-2 1
+Recent years have witnessed the explosive popularity of
+image-sharing services such as Flickr1 and Instagram2 . For
+example, as of 2013, 87 millions of users have registered with
+Flickr3 . Also, it was estimated that about 20 billion Instagram
+photos are shared to 20144 . Since by sharing photos, users
+could also express opinions or sentiments, social media images provide a potentially rich source for understanding public opinions/sentiments. Such an understanding may in turn
+benefit or even enable many real-world applications such as
+advertisement, recommendation, marketing and health-care.
+The importance of sentiment analysis for social media images has thus attracted increasing attention recently [Yang et
+al., 2014; You et al., 2015].
+1
 
-Current methods of sentiment analysis for social media images include low-level visual feature based approaches [Jia et al., 2012; Yang et al., 2014], mid-level visual feature based approaches [Borth et al., 2013; Yuan et al., 2013] and deep learning based approaches [You et al., 2015]. The vast majority of existing methods are supervised, relying on labeled images to train sentiment classifiers. Unfortunately, sentiment labels are in general unavailable for social media images, and it is too labor- and time-intensive to obtain labeled sets large enough for robust training. In order to utilize the vast amount of unlabeled social media images, an unsupervised approach would be much more desirable. This paper studies unsupervised sentiment analysis. Typically, visual features such as color histogram, brightness, the presence of objects and visual attributes lack the level of semantic meanings required by sentiment prediction. In supervised case, label information could be directly utilized to build the connection between the visual features and the sentiment labels. Thus, unsupervised sentiment analysis for social media images is inherently more challenging than its supervised counterpart. As images from social media sources are often accompanied by textual information, intuitively such information may be employed. However, textual information accompanying images is often incomplete (e.g., scarce tags) and noisy (e.g., irrelevant comments), and thus often inadequate to support independent sentiment analysis [Hu and Liu, 2004; Hu et al., 2013b]. On the other hand, such information can provide much-needed additional semantic information about the underlying images, which may be exploited to enable unsupervised sentiment analysis. How to achieve this is the objective of our approach. In this paper, we study unsupervised sentiment analysis for social media images with textual information by investigating two related challenges: (1) how to model the interaction between images and textual information systematically so as to support sentiment prediction using both sources of information, and (2) how to use textual information to enable unsupervised sentiment analysis for social media images. In addressing these two challenges, we propose a novel Unsupervised SEntiment Analysis (USEA) framework, which performs sentiment analysis for social media images in an unsupervised fashion. Figure 1 schematically illustrates the difference between the proposed unsupervised method and existing supervised methods. Supervised methods use label informa-
+www.flickr.com
+www.instagram.com
+3
+http://en.wikipedia.org/wiki/Flickr
+4
+http://blog.instagram.com/post/
+80721172292/200m
+2
 
-tively. Let C = {c1 , c2 , . . . , ck } be the set of sentiment labels. Note that in this work we only consider positive, neutral and negative sentiments with k = 3 but the generalization of the proposed framework to multi-class sentiment analysis is straightforward. With the aforementioned notations/definitions, the problem of unsupervised sentiment analysis for social media images with textual information is formally defined as: Given n images with visual information Xv and textual information Xt , to predict sentiment labels in C for the given n images.
+Current methods of sentiment analysis for social media images include low-level visual feature based approaches [Jia et
+al., 2012; Yang et al., 2014], mid-level visual feature based
+approaches [Borth et al., 2013; Yuan et al., 2013] and deep
+learning based approaches [You et al., 2015]. The vast majority of existing methods are supervised, relying on labeled images to train sentiment classifiers. Unfortunately, sentiment
+labels are in general unavailable for social media images, and
+it is too labor- and time-intensive to obtain labeled sets large
+enough for robust training. In order to utilize the vast amount
+of unlabeled social media images, an unsupervised approach
+would be much more desirable. This paper studies unsupervised sentiment analysis.
+Typically, visual features such as color histogram, brightness, the presence of objects and visual attributes lack the
+level of semantic meanings required by sentiment prediction.
+In supervised case, label information could be directly utilized to build the connection between the visual features and
+the sentiment labels. Thus, unsupervised sentiment analysis for social media images is inherently more challenging
+than its supervised counterpart. As images from social media
+sources are often accompanied by textual information, intuitively such information may be employed. However, textual information accompanying images is often incomplete
+(e.g., scarce tags) and noisy (e.g., irrelevant comments), and
+thus often inadequate to support independent sentiment analysis [Hu and Liu, 2004; Hu et al., 2013b]. On the other
+hand, such information can provide much-needed additional
+semantic information about the underlying images, which
+may be exploited to enable unsupervised sentiment analysis.
+How to achieve this is the objective of our approach.
+In this paper, we study unsupervised sentiment analysis for
+social media images with textual information by investigating two related challenges: (1) how to model the interaction
+between images and textual information systematically so as
+to support sentiment prediction using both sources of information, and (2) how to use textual information to enable unsupervised sentiment analysis for social media images. In
+addressing these two challenges, we propose a novel Unsupervised SEntiment Analysis (USEA) framework, which performs sentiment analysis for social media images in an unsupervised fashion. Figure 1 schematically illustrates the difference between the proposed unsupervised method and existing
+supervised methods. Supervised methods use label informa-
+
+tively. Let C = {c1 , c2 , . . . , ck } be the set of sentiment labels. Note that in this work we only consider positive, neutral
+and negative sentiments with k = 3 but the generalization of
+the proposed framework to multi-class sentiment analysis is
+straightforward.
+With the aforementioned notations/definitions, the problem of unsupervised sentiment analysis for social media
+images with textual information is formally defined as:
+Given n images with visual information Xv and textual
+information Xt , to predict sentiment labels in C for the given
+n images.
 (a) Supervised Sentiment Analysis.
 
 3
 
-Unsupervised Sentiment Analysis for Social Media Images
+Unsupervised Sentiment Analysis for Social
+Media Images
 
-In this section, we first present our method for exploiting text information and then introduce the unsupervised sentiment analysis framework with an optimization method.
+In this section, we first present our method for exploiting text
+information and then introduce the unsupervised sentiment
+analysis framework with an optimization method.
 
 3.1
 
-Exploiting Textual Information
-
 (b) The Proposed Unsupervised Sentiment Analysis.
 
-Figure 1: Sentiment Analysis for Social Media Images. tion to learn a sentiment classifier; while the proposed method does not assume the availability of label information but employ auxiliary textual information. Our main contribution can be summarized as below: � A principled approach to enable unsupervised sentiment analysis for social media images. � A novel unsupervised sentiment analysis framework USEA for social media images, which captures visual and textual information into a unifying model. To our best knowledge, USEA is the first unsupervised sentiment analysis framework for social media images; and � Comparative studies and evaluations using datasets from real-world social media image-sharing sites, documenting the performance of USEA and leading existing methods, serving as benchmark for further exploration.
-
-Without label information, it is challenging for unsupervised sentiment analysis to connect visual features with sentiment labels. Textual information associated with social media images may be exploited to help, as it provides semantics about the underly images and in particular rich sentiment signals such as sentiment words and emotion symbols may be found in the textual fields. Hence, to exploit textual information, we investigate (1) how to incorporate textual information into visual information; and (2) how to model sentiment signals in textual information. Since visual and textual information are two views about the same set of images, it is reasonable to assume that they share the same sentiment label space. More specifically, the sentiment of Ii should be consistent with that of its associated textual information pi . Let U0  Rn�k be the sentiment label space where U0 (i, j ) = 1 if the i-th data instance belongs to cj , and U0 (i, j ) = 0 otherwise. We propose the following formulation to incorporate visual information with textual information based on nonnegative matrix factorization:
-T min Xv - Uv Vv UV 2 F 2 T +  X t - Ut V t 2 2 F
+Figure 1: Sentiment Analysis for Social Media Images.
+tion to learn a sentiment classifier; while the proposed method
+does not assume the availability of label information but employ auxiliary textual information. Our main contribution can
+be summarized as below:
+• A principled approach to enable unsupervised sentiment
+analysis for social media images.
+• A novel unsupervised sentiment analysis framework
+USEA for social media images, which captures visual
+and textual information into a unifying model. To our
+best knowledge, USEA is the first unsupervised sentiment analysis framework for social media images; and
+• Comparative studies and evaluations using datasets from
+real-world social media image-sharing sites, documenting the performance of USEA and leading existing methods, serving as benchmark for further exploration.
 
 2
 
 Problem Statement
 
-In this paper, scalars are denoted by lower-case letters (a, b, . . . ; ,  , . . .), vectors are written as lower-case bolded letters (a, b, . . .), and matrices correspond to boldfaced uppercase letters (A, B, . . .). Let I = {I1 , I2 , . . . , In } be the set of images where n is the number of images. We use P = {p1 , p2 , . . . , pn } to denote associated textual information about images where pi is the textual information about Ii . Let Fv be set of mv visual features and Ft be set of mt textual features. We use Xv  Rn�mv and Xt  Rn�mt to denote visual and textual information about images, respec-
+In this paper, scalars are denoted by lower-case letters (a, b,
+. . . ; α, β, . . .), vectors are written as lower-case bolded
+letters (a, b, . . .), and matrices correspond to boldfaced uppercase letters (A, B, . . .). Let I = {I1 , I2 , . . . , In } be
+the set of images where n is the number of images. We use
+P = {p1 , p2 , . . . , pn } to denote associated textual information about images where pi is the textual information about
+Ii . Let Fv be set of mv visual features and Ft be set of mt
+textual features. We use Xv ∈ Rn×mv and Xt ∈ Rn×mt to
+denote visual and textual information about images, respec-
 
-+  ( U v - U 0 F + Ut - U0 F ) subject to Uv  0, Ut  0; ||U0 (i, :)||0 = 1, i  {1, 2, ..n} U0 (i, j )  {0, 1} j  {1, 2, ..k } (1) where  controls how textual information contributes to the model and ||�||0 is 0 , which counts the number of nonzero entries in the vector. Uv  Rn�k and Ut  Rn�k are the sentiment label spaces learned from visual information and tex2 tual information, respectively. The term of  ( Uv - U0 F + 2 Ut - U0 F ) ensures that these two types of information should share the sentiment label space U0 . Vv  Rmv �k and Vt  Rmt �k indicate the sentiment polarities of visual and textual features, respectively. Textual information contains rich sentiment signals. First, some words may contain sentiment polarities. For example,
+Exploiting Textual Information
 
-some words are positive such as "happy" and "terrific"; while others are negative such as "gloomy" and "disappointed". The sentiment polarities of words can be obtained via some public sentiment lexicons. For example, the sentiment lexicon MPQA contains 7,504 human labeled words which are commonly used in the daily life with 2,721 positive words and 4,783 negative words. Second, some abbreviations and emoticons are strong sentiment indicators. For example, "lol"(means laughing out loud) is a positive indicator while ":(" is a negative indicator. Let Vt0  Rmv �k be the matrix coding sentiment signals in textual information where Vt0 (i, j ) = 1 if i-th word belongs to cj and Vt0 (i, j ) = 0 otherwise. To model sentiment signals, we force the learned sentiment polarities of textual features to be consistent with those indicated by sentiment signals. Furthermore, not all textual features in Ft contain sentiment polarities and Vt should be sparse. We propose the following formulation to achieve these two goals as: min Vt - Vt0
-2,1
+Without label information, it is challenging for unsupervised
+sentiment analysis to connect visual features with sentiment
+labels. Textual information associated with social media images may be exploited to help, as it provides semantics about
+the underly images and in particular rich sentiment signals
+such as sentiment words and emotion symbols may be found
+in the textual fields. Hence, to exploit textual information, we
+investigate (1) how to incorporate textual information into visual information; and (2) how to model sentiment signals in
+textual information.
+Since visual and textual information are two views about
+the same set of images, it is reasonable to assume that they
+share the same sentiment label space. More specifically, the
+sentiment of Ii should be consistent with that of its associated
+textual information pi . Let U0 ∈ Rn×k be the sentiment label space where U0 (i, j) = 1 if the i-th data instance belongs
+to cj , and U0 (i, j) = 0 otherwise. We propose the following formulation to incorporate visual information with textual
+information based on nonnegative matrix factorization:
 
-3.3
+2
 
-An Optimization Method
+2
+min Xv − Uv VvT  + α Xt − Ut VtT 
+UV
 
-There are 5 components, i.e. Uv , Vv , Ut , Vt and U0 , in Eq. (4). Thus it is difficult to optimize all the components simultaneously. In the following parts, we demonstrate an alternating algorithm to optimize the objective function by updating each component iteratively. Update Vt : If U0 , Uv , Vv and Ut are fixed, then the objective function is decoupled and the constrains are independent of Vt . Thus we can optimize Vt separately and ignore the term without Vt , leading to the following:
-T minJ (Vt ) = Xt - Ut Vt Vv 2 F
+F
 
-+  V t - V t0
+2
+U0 kF
 
-2 F
+F
 
-(5)
+2
+U0 kF )
 
- where  =  . Taking the derivation of J (Vt ) and setting it to zero, we can obtain the following form: T (-XT (6) t Ut + Vt Ut Ut ) +  Dt (Vt - Vt0 ) = 0 where Dt is a diagonal matrix with j th element on the di1 agonal D(j, j ) = 2 Vt (j,:)- Vt 0(j,:) . In Eq. (6), solving
++ β(kUv −
++ kUt −
+subject to Uv ≥ 0, Ut ≥ 0; ||U0 (i, :)||0 = 1, i ∈ {1, 2, ..n}
+U0 (i, j) ∈ {0, 1} j ∈ {1, 2, ..k}
+(1)
+where α controls how textual information contributes to the
+model and ||·||0 is `0 , which counts the number of nonzero entries in the vector. Uv ∈ Rn×k and Ut ∈ Rn×k are the sentiment label spaces learned from visual information and tex2
+tual information, respectively. The term of β(kUv − U0 kF +
+2
+kUt − U0 kF ) ensures that these two types of information
+should share the sentiment label space U0 . Vv ∈ Rmv ×k
+and Vt ∈ Rmt ×k indicate the sentiment polarities of visual
+and textual features, respectively.
+Textual information contains rich sentiment signals. First,
+some words may contain sentiment polarities. For example,
+
+some words are positive such as “happy” and “terrific”; while
+others are negative such as “gloomy” and “disappointed”.
+The sentiment polarities of words can be obtained via some
+public sentiment lexicons. For example, the sentiment lexicon MPQA contains 7,504 human labeled words which are
+commonly used in the daily life with 2,721 positive words
+and 4,783 negative words. Second, some abbreviations and
+emoticons are strong sentiment indicators. For example,
+”lol”(means laughing out loud) is a positive indicator while
+“:(” is a negative indicator. Let Vt0 ∈ Rmv ×k be the matrix coding sentiment signals in textual information where
+Vt0 (i, j) = 1 if i-th word belongs to cj and Vt0 (i, j) = 0
+otherwise. To model sentiment signals, we force the learned
+sentiment polarities of textual features to be consistent with
+those indicated by sentiment signals. Furthermore, not all
+textual features in Ft contain sentiment polarities and Vt
+should be sparse. We propose the following formulation to
+achieve these two goals as:
+min kVt − Vt0 k2,1
 
 (2)
 
-X 2,1 is the 2,1 of the matrix X, which ensures the row sparsity of X [Nie et al., 2010]. The significance of textual information in unsupervised sentiment analysis for social media images is two-fold. First, textual information bridges the semantic gap between visual features and sentiment labels. Second, we are allowed to do sentiment analysis for social media images in an unsupervised scenarios by modeling textual information via Eqs. (1) and (2).
-
-Vt directly is intractable. Since Dt and UT t Ut are symmetric and positive definite, we employ eigen decomposition for them as: T UT t U t = U1  1 U1 (7) D t = U2  2 UT 2 where U1 , U2 are eigen vectors and 1 , 2 are diagonal matrices with eigen values on the diagonal. Substituting UT t Ut and Dt in Eq. (6), we have:
-T T Vt U1 1 UT (8) 1 +  U2 2 U2 Vt = Xt Ut +  Dt Vt0 T Multiplying U2 and U1 from left to right on both sides: T T UT 2 Vt U1 1 +  2 U2 Vt U1 = U2 (Xt Ut +  Dt Vt0 )U1 (9) T T Let Vt = U2 Vt U1 and Q = U2 (Xt Ut +  Dt Vt0 )U1 , Eq. (9) becomes Vt 1 +  2 Vt = Q, then we can obtain the Vt and Vt as: Q(s, l) Vt (s, l) = s 2 + l (10) 1
-
-2
+kXk2,1 is the `2,1 of the matrix X, which ensures the row
+sparsity of X [Nie et al., 2010].
+The significance of textual information in unsupervised
+sentiment analysis for social media images is two-fold. First,
+textual information bridges the semantic gap between visual
+features and sentiment labels. Second, we are allowed to do
+sentiment analysis for social media images in an unsupervised scenarios by modeling textual information via Eqs. (1)
+and (2).
 
 3.2
 
 The Framework: USEA
 
-By combining the above discussion, we can have the following initial framework, which provides a potential solution to inferring sentiments by jointly considering visual information and corresponding contextual information:
-T min Xv - Uv Vv UV 2 F 2 T +  X t - Ut V t 2 2 F
+By combining the above discussion, we can have the following initial framework, which provides a potential solution to
+inferring sentiments by jointly considering visual information
+and corresponding contextual information:
+
+2
+
+2
+min Xv − Uv VvT  + α Xt − Ut VtT 
+F
+
+UV
+
+F
+
+2
+U0 k F
 
 s.t.
 
-+  ( Uv - U0 F + U t - U0 F ) (3) +  Vt - Vt0 2,1 Uv  0; Ut  0, ||U0 (i, :)||0 = 1, i  {1, 2, ..n} U0 (i, j )  {0, 1} j  {1, 2, ..k }
+2
+U0 k F )
 
-V t = U 2 V t UT 1
-l where s 2 is the s-th eigen value of Dt and 1 is l-th eigen value of UT U . The following theorem shows that the updatt t ing rule in Eq(10) can monotonically decrease the objective function J (Vt ). Theorem 1. The update rule in Eq. (10) can monotonically decrease the value of J (Vt ) Proof. The proof is similar to that in [Nie et al., 2010], due to space limit, we omit the details of the proof. Update Vv . If U0 , Ut , Vt and Uv are fixed, by setting the derivation of the objective function to zero, Vv can be T -1 easily obtained as Vv = XT . Moreover, we v Uv (Uv Uv ) can easily verify updating Vv will monotonically decrease the objective function. Update Uv : If Vv , Ut , Vt and U0 are fixed, Uv can be obtained by the following optimization problem: T minJ (Uv ) = Xv - Uv Vv Uv 2 F
++ β(kUv −
++ kUt −
+(3)
++ γkVt − Vt0 k2,1
+Uv ≥ 0; Ut ≥ 0, ||U0 (i, :)||0 = 1, i ∈ {1, 2, ..n}
+U0 (i, j) ∈ {0, 1} j ∈ {1, 2, ..k}
 
-The parameter  controls the sparsity of regularization term. However, the constrains of U0 in Eq. (3), mixed vector zero norm with integer programming, make the problem difficult to solve. To tackle this problem, we consider the relaxation of U0 by adding the extra orthogonal constraint on the value of U0 . With the relaxation, the proposed framework (USEA) is to solve the following optimization problem:
-T min Xv - Uv Vv UV 2 F 2 T +  X t - Ut V t 2 F) 2 F
+The parameter γ controls the sparsity of regularization
+term. However, the constrains of U0 in Eq. (3), mixed vector zero norm with integer programming, make the problem
+difficult to solve. To tackle this problem, we consider the relaxation of U0 by adding the extra orthogonal constraint on
+the value of U0 . With the relaxation, the proposed framework
+(USEA) is to solve the following optimization problem:
+
+2
+
+2
+min Xv − Uv VvT F + α Xt − Ut VtT F
+UV
+
+2
 
 s.t.
 
-+  ( Uv - U0 F + Ut - U0 +  Vt - Vt0 2,1 Uv  0, Ut  0, UT 0 U0 = I ; U0  0
+2
+
++ β(kUv − U0 kF + kUt − U0 kF )
++ γkVt − Vt0 k2,1
+Uv ≥ 0, Ut ≥ 0,
+UT0 U0 = I; U0 ≥ 0
 
 (4)
 
-+  Uv - U0
+3.3
 
-2 F
+An Optimization Method
 
+There are 5 components, i.e. Uv , Vv , Ut , Vt and U0 , in
+Eq. (4). Thus it is difficult to optimize all the components
+simultaneously. In the following parts, we demonstrate an
+alternating algorithm to optimize the objective function by
+updating each component iteratively.
+Update Vt : If U0 , Uv , Vv and Ut are fixed, then the objective function is decoupled and the constrains are independent of Vt . Thus we can optimize Vt separately and ignore
+the term without Vt , leading to the following:
+2
+
+2
+(5)
+minJ (Vt ) = Xt − Ut VtT F + δ kVt − Vt0 kF
+Vv
+
+where δ = αγ . Taking the derivation of J (Vt ) and setting it
+to zero, we can obtain the following form:
+(−XTt Ut + Vt UTt Ut ) + δDt (Vt − Vt0 ) = 0 (6)
+where Dt is a diagonal matrix with jth element on the di1
+. In Eq. (6), solving
+agonal D(j, j) = 2kVt (j,:)−V
+t 0(j,:)k
+2
+
+Vt directly is intractable. Since Dt and UTt Ut are symmetric and positive definite, we employ eigen decomposition for
+them as:
+UTt Ut = U1 Λ1 UT1
+(7)
+Dt = U2 Λ2 UT2
+where U1 , U2 are eigen vectors and Λ1 , Λ2 are diagonal matrices with eigen values on the diagonal. Substituting UTt Ut
+and Dt in Eq. (6), we have:
+Vt U1 Λ1 UT1 + δU2 Λ2 UT2 Vt = XtT Ut + δDt Vt0 (8)
+Multiplying UT2 and U1 from left to right on both sides:
+UT2 Vt U1 Λ1 + δΛ2 UT2 Vt U1 = UT2 (Xt Ut + δDt Vt0 )U1
+(9)
+T
+T
+f
+Let Vt = U2 Vt U1 and Q = U2 (Xt Ut + δDt Vt0 )U1 ,
+ft Λ1 + δΛ2 V
+ft = Q, then we can obtain
+Eq. (9) becomes V
+ft and Vt as:
+the V
+ft (s, l) = Q(s, l)
+V
+δλs2 + λl1
+(10)
+ft UT
+Vt = U 2 V
+1
+
+λs2
+
+where
+is the s-th eigen value of Dt and λl1 is l-th eigen
+value of UTt Ut . The following theorem shows that the updating rule in Eq(10) can monotonically decrease the objective
+function J (Vt ).
+Theorem 1. The update rule in Eq. (10) can monotonically
+decrease the value of J (Vt )
+Proof. The proof is similar to that in [Nie et al., 2010], due
+to space limit, we omit the details of the proof.
+Update Vv . If U0 , Ut , Vt and Uv are fixed, by setting
+the derivation of the objective function to zero, Vv can be
+easily obtained as Vv = XTv Uv (UTv Uv )−1 . Moreover, we
+can easily verify updating Vv will monotonically decrease
+the objective function.
+Update Uv : If Vv , Ut , Vt and U0 are fixed, Uv can be
+obtained by the following optimization problem:
+
+2
+2
+minJ (Uv ) = Xv − Uv VvT F + β kUv − U0 kF
+Uv
 (11)
-
 s.t.
-
-Uv  0
+Uv ≥ 0
 
 The Lagrangian function of Eq. (11) is :
-T minL(Uv ) = Xv - Uv Vv Uv 2 F
 
-+  Uv - U0
-
-2 F
+2
+2
+minL(Uv ) = Xv − Uv VvT F + β kUv − U0 kF
+Uv
 
 (12)
 
-- T r(Uv ) where  is Lagrangian multiplier. Taking the deviation of J (Uv ) and using the KKT condition ((s, l)Uv (s, l) = 0), we can obtain:
-T (-Xv Vv + Uv Vv Vv +  Uv -  U0 )sl (Uv )sl = 0 (13)
+− T r(ΓUv )
+where Γ is Lagrangian multiplier. Taking the deviation of
+J (Uv ) and using the KKT condition (Γ(s, l)Uv (s, l) = 0),
+we can obtain:
 
-Update Ut : It is worth noting that the procedure of solving Ut is exactly the same as that of Uv . Thus, we omit the solution of Ut here. Update U0 : With Uv , Ut , Vt and Vv fixed, the sentiment label U0 can be obtained by solving the following optimization problem: minJ (U0 ) = Uv - U0
-U 2 F
+Update Ut : It is worth noting that the procedure of solving
+Ut is exactly the same as that of Uv . Thus, we omit the
+solution of Ut here.
+Update U0 : With Uv , Ut , Vt and Vv fixed, the sentiment
+label U0 can be obtained by solving the following optimization problem:
+minJ (U0 ) = kUv − U0 k2F + kUt − U0 k2F
+U
 
-+ Ut - U0
-
-2 F
-
-s.t. UT 0 U0 = I ; U0  0 The Lagrangian function of Eq. (17) is: minJ (U0 ) = Uv - U0
-U 2 F
-
-(17)
-
+(−Xv Vv + Uv VvT Vv + βUv − βU0 )sl (Uv )sl = 0 (13)
 which leads to the following update rule for Uv :
-T V )- +  U ) ((Xv Vv )+ + Uv (Vv v 0 sl - T ((Xv Vv ) + Uv (Vv Vv )+ +  Uv )sl (14) where (X(s, l))+ = (|X(s, l)| + X(s, l))/2, (X(s, l))- = (|X(s, l)| - X(s, l))/2 and X = X+ - X- . Theorem 2. Let
+s
+((Xv Vv )+ + Uv (VvT Vv )− + βU0 )sl
+(Uv )sl ← (Uv )sl
+((Xv Vv )− + Uv (VvT Vv )+ + βUv )sl
+(14)
+where (X(s, l))+ = (|X(s, l)| + X(s, l))/2, (X(s, l))− =
+(|X(s, l)| − X(s, l))/2 and X = X+ − X− .
+Theorem 2. Let
 
-(Uv )sl  (Uv )sl
+s.t. UT0 U0 = I; U0 ≥ 0
+The Lagrangian function of Eq. (17) is:
+minJ (U0 ) = kUv − U0 k2F + kUt − U0 k2F
+U
 
-+ Ut - U0
++ T r(Λ(UT0 U0 − I)) − T r(ΓU0 )
 
-2 F
++β
 
-+ T r((UT 0 U0 - I )) - T r (U0 )
+fv (s, l)U2 (s, l)
+U
+v
+fv (s, l)
+U
 
-(18)
++ (VvT Vv )+ (s, l)
+−
 
-where  and  are Lagrangian multipliers. Taking the derivation of J (U0 ) and using KKT conditions we can obtain (U0 - Uv + U0 - Ut + U0 )sl (U0 )sl = 0 which leads the following update rule for U0 : (Uv + Ut + (U0 )- )sl ((U0 )+ + 2U0 )sl (19)
+X
 
-T T H (Uv ) = T r(-2Xv Vv UT v + U v V v V v Uv ) T + T r(-2UT v U0 + Uv U v )
+fv (s, l)U2 (s, l)
+U
+v
+)
+fv (s, l)
+U
 
-h(Uv , Uv ) =
+fv (s, l)(1 + log
+(2(Xv Vv )+ U
+
 sl
 
-((Xv Vv )- (s, l) Uv (s, l)U2 v (s, l) Uv (s, l)
+fv (s, l)(1 + log
++ 2βU0 (s, l)U
+−
 
-2 U2 v (s, l) + Uv (s, l)
+X
 
 Uv (s, l)
+)
+fv (s, l)
+U
 
-(U0 )sl  (U0 )sl
+Uv (s, l)
+))
+fv (s, l)
+U
 
-(20)
+fv (k, s)U
+fv (k, l)
+(VvT Vv )− (s, l)U
 
-+
-
-T + ( Vv Vv )+ (s, l)
-
-Uv (s, l)U2 v (s, l) Uv (s, l)
-
-) Uv (s, l) Uv (s, l) )) )
-
--
-sl
-
-(2(Xv Vv )+ Uv (s, l)(1 + log
-
-+ 2 U0 (s, l)Uv (s, l)(1 + log -
 k,s,l
-
-Uv (s, l) Uv (s, l)
-
-T (Vv Vv )- (s, l)Uv (k, s)Uv (k, l)
 
 (1 + log
 
-Uv (k, s)Uv (k, l) Uv (k, s)Uv (k, l)
-
+Uv (k, s)Uv (k, l)
 )
+fv (k, s)U
+fv (k, l)
+U
 
-Note that updating U0 needs updating the Lagrangian multiplier  as well. To obtain , we sum over s and get T (s, s) = (UT 0 Uv - I + U0 Ut - I )s,s . The offdiagonal elements of  are approximately obtained from non-negative T value of U0 , leading to (s, t) = (UT 0 Uv - I + U0 Ut - I )st . Overall, we can obtain  by combining the diagonal values and off-diagonal values. With the update rules for all the components in the proposed model, we summarize the solution in Algorithm 1. The convergence of Algorithm 1 is demonstrated as below: Theorem 4.With Algorithm 1, the objective function Eq. (4) will converge. Proof From Theorem 1 and Theorem 2, the object function monotonically decreases:
-0 1 0 1 1 2 1 J (Vv , U0 v )  J (Vv , Uv )  J (Vv , Uv )J (Vv , Uv )...  0 (21) Similarly, we can have the inequality chain for J (Vt , Ut ). Thus we complete the proof.
+(15)
+fv ) of H(Uv ) is convex and the
+The auxiliary function h(Uv U
+fv )is:
+global minimum ofqh(Uv , U
 
-(15) The auxiliary function h(Uv Uv ) of H (Uv ) is convex and the global minimum of h(Uv , Uv )is:
-v v v v 0 sl v (Uv )sl  (Uv )sl ((Xv T V )+ + U ) Vv )- +Uv (Vv v v sl Proof : The proof is similar to [Ding et al., 2006] and [Ding et al., 2010], due to space limit, we omit the details. Theorem 3. Updating Uv in Eq. (14) will monotonically decrease the value of objective function J (Uv ) Proof : H (Uv ) is the KKT condition of the Lagrangian function for Eq. (11). Based on the definition of auxiliary function and Theorem 2 we can obtain the following equations:
+(18)
 
-((X V )+ +U (VT V )- + U )
+where Λ and Γ are Lagrangian multipliers. Taking the derivation of J (U0 ) and using KKT conditions we can obtain
+(U0 − Uv + U0 − Ut + U0 Λ)sl (U0 )sl = 0
+
+H(Uv ) = T r(−2Xv Vv UTv + Uv VvT Vv UTv )
++ βT r(−2UTv U0 + UTv Uv )
+f2 (s, l) + U2 (s, l)
+X
+U
+v
+fv ) =
+h(Uv , U
+((Xv Vv )− (s, l) v
+fv (s, l)
+U
+sl
+
+(17)
+
+(19)
+
+which leads the following update rule for U0 :
+s
+(U0 )sl ← (U0 )sl
+
+(Uv + Ut + (U0 Λ)− )sl
+((U0 Λ)+ + 2U0 )sl
+
+(20)
+
+Note that updating U0 needs updating the Lagrangian multiplier Λ as well. To obtain Λ, we sum over s and get
+Λ(s, s) = (UT0 Uv − I + UT0 Ut − I)s,s . The offdiagonal
+elements of Λ are approximately obtained from non-negative
+value of U0 , leading to Λ(s, t) = (UT0 Uv −I +UT0 Ut −I)st .
+Overall, we can obtain Λ by combining the diagonal values
+and off-diagonal values.
+With the update rules for all the components in the proposed model, we summarize the solution in Algorithm 1. The
+convergence of Algorithm 1 is demonstrated as below:
+Theorem 4.With Algorithm 1, the objective function Eq.
+(4) will converge.
+Proof From Theorem 1 and Theorem 2, the object function
+monotonically decreases:
+J (Vv0 , U0v ) ≥ J (Vv1 , U0v ) ≥ J (Vv1 , U1v )J (Vv2 , U1v )... ≥ 0
+(21)
+Similarly, we can have the inequality chain for J (Vt , Ut ).
+Thus we complete the proof.
+
+((X V )+ +U (VT V )− +βU )
+
+(Uv )sl ← (Uv )sl ((Xvv Vvv )− +Uvv (VvT Vvv )+ +βUv0 )sl
+sl
+v
+Proof : The proof is similar to [Ding et al., 2006] and [Ding
+et al., 2010], due to space limit, we omit the details.
+Theorem 3. Updating Uv in Eq. (14) will monotonically
+decrease the value of objective function J (Uv )
+Proof : H(Uv ) is the KKT condition of the Lagrangian function for Eq. (11). Based on the definition of auxiliary function
+and Theorem 2 we can obtain the following equations:
 
 4
 
 Experiments
 
-In this section, we conduct experiments to answer the following questions - (1) can the proposed framework do sentiment analysis in an unsupervised scenario? and (2) how does the textual information affect the performance of the proposed framework? We begin by giving details about the experimental settings.
+In this section, we conduct experiments to answer the following questions - (1) can the proposed framework do sentiment
+analysis in an unsupervised scenario? and (2) how does the
+textual information affect the performance of the proposed
+framework? We begin by giving details about the experimental settings.
 
-0 0 0 1 1 1 1 4.1 Experiment Settings H ( U0 v ) = h(Uv , Uv )  h(Uv , Uv )  h(Uv , Uv )  H (Uv )... (16) We collect datasets from Flickr and Instagram for this study This shows the update rule will monotonically decrease the and we give more details below, objective function H (Uv ), which complete the proof.
+H(U0v ) = h(U0v , U0v ) ≥ h(U0v , U1v ) ≥ h(U1v , U1v ) ≥ H(U1v )... 4.1 Experiment Settings
+(16)
+We collect datasets from Flickr and Instagram for this study
+This shows the update rule will monotonically decrease the
+and we give more details below,
+objective function H(Uv ), which complete the proof.
 
-Algorithm 1 The proposed USEA Input: {Xv , Xt , Vt0 } , ,  Output: k sentiment label for each data instance. Initialization: Ut , Uv , Vv , Vt while Not Converge do Update Vt using Eq.(10) and compute Vv = T -1 XT U . v ( Uv Uv ) v T Computing (Xv Vv )+,- , (Xt Vt )+,- , (Vv Vv )+,- T +,- and (Vt Vt ) Update Uv using Eq. (14), similarly update Ut Computing  Update U0 End Using max-pooling for U0 to predict sentiment labels. Flickr: On Flickr, an image-hosting Website, users can provide tags and descriptions for each uploaded image. Thus the textual information could be comments, image caption, user profile and tags. The collection of Flickr dataset is based on the image id provided by [Yang et al., 2014], which contains 350,4192 images from 4807 users. Some images are unavailable when we crawled the data; hence we limit the number of images from one user as 50, which leads to a dataset with 140,221 images from 4341 users. Instagram: Instagram is a service supporting photosharing via mobile app, where users take pictures and share them on social networking platforms like Facebook and Twitter. Similar to Flickr, we crawl at most 50 images for each user and get totally 131,224 images from 4853 users. Although the textual information as same as that on Flickr, for some images the number of comments is much bigger than that in Flickr, e.g., the images from celebrities usually contain thousands of comments, and we only consider the latest 50 comments for each image in Instagram. Establishing Ground Truth: For evaluation purpose, we need to create sentiment labels of images. We follow the scheme in [Yang et al., 2014; Liu, 2012] and create labels for images via images' tags. Since we use tags to create labels of images, we do not consider tag information as textual information in the proposed framework. Labeling each post solely relying on tags may cause noise in the ground truth. Therefore we additionally select 20000 images from Flickr and ask three human subjects to manually create labels for them. Feature extraction: the proposed method has the ability to incorporate visual and textual information. For visual information, we follow the recent approaches [Yuan et al., 2013; Borth et al., 2013] by using mid-level visual features. The visual features are extracted by a large-scale visual attribute detectors [Borth et al., 2013] and the feature dimension is 1200. Text-based features are formed by the term frequency in user profiles, image captions and comments. It is worth noting that textual features, which contain user descriptions, friends' comments and image captions, are preprocessed by stop word removing and stemming. MPQA5 lexicon is employed as sentiment signals.
+Algorithm 1 The proposed USEA
+Input: {Xv , Xt , Vt0 } α, β, γ
+Output: k sentiment label for each data instance.
+Initialization: Ut , Uv , Vv , Vt
+while Not Converge do
+Update Vt using Eq.(10) and compute Vv =
+XTv Uv (UTv Uv )−1 .
+Computing (Xv Vv )+,− , (Xt Vt )+,− , (VvT Vv )+,−
+and (VtT Vt )+,−
+Update Uv using Eq. (14), similarly update Ut
+Computing Λ
+Update U0
+End
+Using max-pooling for U0 to predict sentiment labels.
+Flickr: On Flickr, an image-hosting Website, users can
+provide tags and descriptions for each uploaded image. Thus
+the textual information could be comments, image caption,
+user profile and tags. The collection of Flickr dataset is based
+on the image id provided by [Yang et al., 2014], which contains 350,4192 images from 4807 users. Some images are unavailable when we crawled the data; hence we limit the number of images from one user as 50, which leads to a dataset
+with 140,221 images from 4341 users.
+Instagram: Instagram is a service supporting photosharing via mobile app, where users take pictures and share
+them on social networking platforms like Facebook and Twitter. Similar to Flickr, we crawl at most 50 images for each
+user and get totally 131,224 images from 4853 users. Although the textual information as same as that on Flickr, for
+some images the number of comments is much bigger than
+that in Flickr, e.g., the images from celebrities usually contain thousands of comments, and we only consider the latest
+50 comments for each image in Instagram.
+Establishing Ground Truth: For evaluation purpose, we
+need to create sentiment labels of images. We follow the
+scheme in [Yang et al., 2014; Liu, 2012] and create labels
+for images via images’ tags. Since we use tags to create labels of images, we do not consider tag information as textual
+information in the proposed framework. Labeling each post
+solely relying on tags may cause noise in the ground truth.
+Therefore we additionally select 20000 images from Flickr
+and ask three human subjects to manually create labels for
+them.
+Feature extraction: the proposed method has the ability to
+incorporate visual and textual information. For visual information, we follow the recent approaches [Yuan et al., 2013;
+Borth et al., 2013] by using mid-level visual features. The
+visual features are extracted by a large-scale visual attribute
+detectors [Borth et al., 2013] and the feature dimension is
+1200. Text-based features are formed by the term frequency
+in user profiles, image captions and comments. It is worth
+noting that textual features, which contain user descriptions,
+friends’ comments and image captions, are preprocessed by
+stop word removing and stemming. MPQA5 lexicon is employed as sentiment signals.
 5
 
-The proposed framework USEA is compared with the following sentiment analysis algorithms: � Senti API:6 . This API is natural language processing API that performs unsupervised sentiment prediction using word-based sentiment. The method only uses textual information. � Sentibank: As a mid-level visual feature based sentiment analysis approach, it uses large-scale visual attribute detectors and low-level visual features to form the Adjective and Nouns visual sentiment description pairs [Borth et al., 2013]. � EL: A topical graphical model based sentiment analysis approach, which models the sentiment by low-level visual features and friends information [Yang et al., 2014]. � USEA-T: A variant of the proposed method that only considers the textual information including user profiles, image captions and friends' comments. � Random: It predicts sentiment labels of images by randomly guessing. Noting that SentiBank [Borth et al., 2013] and EL[Yang et al., 2014] are originally proposed for supervised sentiment analysis. We extend them to unsupervised scenarios by replacing original classifiers such as SVM or logistic regression with K-means. However, the clusters identified by K-means have no sentiment labels and we determine their sentiment labels with the Euclidean distance to the ground truth. We use SentiBank-K, and EL-K to represent these modifications.
+http://mpqa.cs.pitt.edu/
+
+The proposed framework USEA is compared with the following sentiment analysis algorithms:
+• Senti API:6 . This API is natural language processing
+API that performs unsupervised sentiment prediction using word-based sentiment. The method only uses textual
+information.
+• Sentibank: As a mid-level visual feature based sentiment analysis approach, it uses large-scale visual attribute detectors and low-level visual features to form the
+Adjective and Nouns visual sentiment description pairs
+[Borth et al., 2013].
+• EL: A topical graphical model based sentiment analysis
+approach, which models the sentiment by low-level visual features and friends information [Yang et al., 2014].
+• USEA-T: A variant of the proposed method that only
+considers the textual information including user profiles,
+image captions and friends’ comments.
+• Random: It predicts sentiment labels of images by randomly guessing.
+Noting that SentiBank [Borth et al., 2013] and EL[Yang
+et al., 2014] are originally proposed for supervised sentiment
+analysis. We extend them to unsupervised scenarios by replacing original classifiers such as SVM or logistic regression
+with K-means. However, the clusters identified by K-means
+have no sentiment labels and we determine their sentiment labels with the Euclidean distance to the ground truth. We use
+SentiBank-K, and EL-K to represent these modifications.
 
 4.2
 
 Performance Evaluation
 
-Table 1 lists the comparison results and we make several key observations: � Most of the time, textual based approaches obtain slight better performance than Random. These results support - (1) textual information is often incomplete and noisy and thus often inadequate to support independent sentiment analysis; and (2) textual information contains important cues for sentiment analysis. � The proposed framework often obtains better performance than baseline methods. There are two major reasons. First textual information provides semantic meanings and sentiment signals for images. Second we combine visual and textual information for sentiment analysis. The impact of textual information on the proposed framework will be discussed in the following subsection. In summary, compared to the performance Random, the proposed framework can significantly improve the sentiment analysis performance in a unsupervised scenario.
+Table 1 lists the comparison results and we make several key
+observations:
+• Most of the time, textual based approaches obtain slight
+better performance than Random. These results support
+- (1) textual information is often incomplete and noisy
+and thus often inadequate to support independent sentiment analysis; and (2) textual information contains important cues for sentiment analysis.
+• The proposed framework often obtains better performance than baseline methods. There are two major reasons. First textual information provides semantic meanings and sentiment signals for images. Second we combine visual and textual information for sentiment analysis. The impact of textual information on the proposed
+framework will be discussed in the following subsection.
+In summary, compared to the performance Random, the
+proposed framework can significantly improve the sentiment
+analysis performance in a unsupervised scenario.
 
 4.3
 
 Impact of Textual Information
 
-We introduce two parameters  and  to control contributions from textual information. In this subsection, we investigate the impact of textual information on the proposed framework by examining how the performance of USEA varies with the changes of these parameters.
+We introduce two parameters α and γ to control contributions
+from textual information. In this subsection, we investigate
+the impact of textual information on the proposed framework
+by examining how the performance of USEA varies with the
+changes of these parameters.
 6
-
-http://mpqa.cs.pitt.edu/
 
 http://sentistrength.wlv.ac.uk/
 
-Table 1: The comparison results of different methods for sentiment analysis. Method Senti API SentiBank-K EL-K USEA-T USEA Random Flickr (#20,000) 32.30% 41.32% 36.39% 37.90% 55.22% 32.81% Flickr (#140,221) 34.15% 41.12% 42.90% 40.22% 56.18% 33.12% Instagram (#131,224) 37.80% 46.31% 43.21% 36.41% 59.94% 33.05%
+Table 1: The comparison results of different methods for sentiment analysis.
+Method
+Senti API
+SentiBank-K
+EL-K
+USEA-T
+USEA
+Random
 
-To study the impact of , we fix  = 0.7 and vary the value of  as {0.001, 0.1, 0.2, 0.3, 0.5, 0.7, 1.5, 2, 10}. The performance variance of USEA w.r.t.  is demonstrated in Figure 2. Note that we only show results in Flickr with manual labels since we have similar observations for other datasets. In general, with the increase of , the performance first increases greatly, reach its peak value and then decrease dramatically. When we increase  from 0.001 to 0.1, the performance increases from 43.21% to 48.07%, which suggests the importance of textual information. With larger values of  (> 1.5), textual information dominates the learning process and the learnt parameters may overfit.
+Flickr (#20,000)
+32.30%
+41.32%
+36.39%
+37.90%
+55.22%
+32.81%
 
-Figure 3: Performance Variance w.r.t.  . Y axis is the accuracy performance and X axis is the value of  . Jia et al., 2012; Yuan et al., 2013], such as images from Twitter and Flickr. Social media are heterogeneous, containing visual and other types of information. Some of existing methods use mainly textual information. For example, [Hu et al., 2013b] proposes a method by counting the word frequency in the user description and predict the sentiment by measuring the word's sentiment. In [Yang et al., 2014], it was argued that friends' comments are more related to the user's sentiment. There are also methods that use solely visual information. For example, [Borth et al., 2013; Yuan et al., 2013; Chen et al., 2014] employ mid-level attributes to model visual content, [Jia et al., 2012] provides a method based on low-level visual features, and [Wang et al., 2015] uses a regulated matrix factorization approach. Inspired by the success of deep learning, [You et al., 2015; Xu et al., 2014] employ a convolution neural network architecture for visual sentiment analysis. However, as discussed previously, these approaches are largely supervised, which means their performance is linked to the assumed availability of a good training set with labels.
+Flickr (#140,221)
+34.15%
+41.12%
+42.90%
+40.22%
+56.18%
+33.12%
 
-Figure 2: Performance variance w.r.t. . Y axis is the accuracy performance and X axis is the value of . Similarly, to study the impact of  , we fix  = 0.7 and vary the value of  as {0.1, 0.2, 0.3, ..., 0.9, 1}. The performance variance of USEA w.r.t.  is demonstrated in Figure 3. We also only show results in Flickr with manual labels since similar observations are made for other datasets. When  increases from 0.1 to 0.6, the performance increases a lot, which further supports the importance of sentiment signals from textual information. After 0.8, the increase of  will reduce the performance dramatically because the proposed framework may overfit to sentiment signals from textual information.
+To study the impact of α, we fix γ = 0.7 and vary the value
+of α as {0.001, 0.1, 0.2, 0.3, 0.5, 0.7, 1.5, 2, 10}. The performance variance of USEA w.r.t. α is demonstrated in Figure 2.
+Note that we only show results in Flickr with manual labels
+since we have similar observations for other datasets. In general, with the increase of α, the performance first increases
+greatly, reach its peak value and then decrease dramatically.
+When we increase α from 0.001 to 0.1, the performance increases from 43.21% to 48.07%, which suggests the importance of textual information. With larger values of α (> 1.5),
+textual information dominates the learning process and the
+learnt parameters may overfit.
 
-6
-
-Conclusion
+Figure 2: Performance variance w.r.t. α. Y axis is the accuracy performance and X axis is the value of α.
+Similarly, to study the impact of γ, we fix α = 0.7 and
+vary the value of γ as {0.1, 0.2, 0.3, ..., 0.9, 1}. The performance variance of USEA w.r.t. γ is demonstrated in Figure 3. We also only show results in Flickr with manual labels
+since similar observations are made for other datasets. When
+γ increases from 0.1 to 0.6, the performance increases a lot,
+which further supports the importance of sentiment signals
+from textual information. After 0.8, the increase of γ will
+reduce the performance dramatically because the proposed
+framework may overfit to sentiment signals from textual information.
 
 5
 
 Related Work
 
-Recently sentiment analysis have shown success in many aspects, e.g., social response to special events [Hu et al., 2013b; Fukuhara et al., 2007; Diakopoulos and Shamma, 2010], product reviews [Pang and Lee, 2008; Cui et al., 2006], and opinion mining [Liu, 2012; Hu et al., 2013a; Pang et al., 2002; Pak and Paroubek, 2010; Godbole et al., 2007]. Besides, there have been increasing interests in social media images [Borth et al., 2013; Yang et al., 2014;
+Recently sentiment analysis have shown success in many
+aspects, e.g., social response to special events [Hu et al.,
+2013b; Fukuhara et al., 2007; Diakopoulos and Shamma,
+2010], product reviews [Pang and Lee, 2008; Cui et al.,
+2006], and opinion mining [Liu, 2012; Hu et al., 2013a;
+Pang et al., 2002; Pak and Paroubek, 2010; Godbole et al.,
+2007]. Besides, there have been increasing interests in social media images [Borth et al., 2013; Yang et al., 2014;
 
-In this paper, we propose a novel unsupervised sentiment analysis framework USEA by leveraging textual information and visual information in a unified model. Moreover, USEA provides a new viewpoint for us to better understand how textual information helps bridge the "semantic gap" between visual feature and image sentiment. Experiments on three large-scale datasets demonstrated 1) the advantages of the proposed methods in unsupervised sentiment analysis; and 2) the importance of textual information. In the future, we will exploit more social media sources, such as link information, user history, geo-location, etc., for sentiment analysis.
+Instagram (#131,224)
+37.80%
+46.31%
+43.21%
+36.41%
+59.94%
+33.05%
+
+Figure 3: Performance Variance w.r.t. γ. Y axis is the accuracy performance and X axis is the value of γ.
+Jia et al., 2012; Yuan et al., 2013], such as images from
+Twitter and Flickr. Social media are heterogeneous, containing visual and other types of information. Some of existing methods use mainly textual information. For example, [Hu et al., 2013b] proposes a method by counting the
+word frequency in the user description and predict the sentiment by measuring the word’s sentiment. In [Yang et al.,
+2014], it was argued that friends’ comments are more related to the user’s sentiment. There are also methods that use
+solely visual information. For example, [Borth et al., 2013;
+Yuan et al., 2013; Chen et al., 2014] employ mid-level attributes to model visual content, [Jia et al., 2012] provides
+a method based on low-level visual features, and [Wang et
+al., 2015] uses a regulated matrix factorization approach. Inspired by the success of deep learning, [You et al., 2015;
+Xu et al., 2014] employ a convolution neural network architecture for visual sentiment analysis. However, as discussed
+previously, these approaches are largely supervised, which
+means their performance is linked to the assumed availability of a good training set with labels.
+
+6
+
+Conclusion
+
+In this paper, we propose a novel unsupervised sentiment
+analysis framework USEA by leveraging textual information
+and visual information in a unified model. Moreover, USEA
+provides a new viewpoint for us to better understand how
+textual information helps bridge the “semantic gap” between
+visual feature and image sentiment. Experiments on three
+large-scale datasets demonstrated 1) the advantages of the
+proposed methods in unsupervised sentiment analysis; and 2)
+the importance of textual information. In the future, we will
+exploit more social media sources, such as link information,
+user history, geo-location, etc., for sentiment analysis.
 
 7
 
 Acknowledgments
 
-Yilin Wang and Baoxin Li are supported in part by National Science Foundation (NSF) under grant number #1135616. Suhang Wang and Huan Liu are supported by, or in part by, the National Science Foundation (NSF) under grant number #1217466 and the U.S. Army Research Office (ARO) under contract/grant number #025071. Any opinions expressed in this material are those of the authors and do not necessarily reflect the views of the funding agencies
+Yilin Wang and Baoxin Li are supported in part by National
+Science Foundation (NSF) under grant number #1135616.
+Suhang Wang and Huan Liu are supported by, or in part by,
+the National Science Foundation (NSF) under grant number
+#1217466 and the U.S. Army Research Office (ARO) under
+contract/grant number #025071. Any opinions expressed in
+this material are those of the authors and do not necessarily
+reflect the views of the funding agencies
 
 References
-[Borth et al., 2013] Damian Borth, Rongrong Ji, Tao Chen, Thomas Breuel, and Shih-Fu Chang. Large-scale visual sentiment ontology and detectors using adjective noun pairs. In Proceedings of the 21st ACM international conference on Multimedia, pages 223�232. ACM, 2013. [Chen et al., 2014] Tao Chen, Felix X Yu, Jiawei Chen, Yin Cui, Yan-Ying Chen, and Shih-Fu Chang. Object-based visual sentiment concept analysis and application. In Proceedings of the ACM International Conference on Multimedia, pages 367�376. ACM, 2014. [Cui et al., 2006] Hang Cui, Vibhu Mittal, and Mayur Datar. Comparative experiments on sentiment classification for online product reviews. In AAAI, volume 6, pages 1265� 1270, 2006. [Diakopoulos and Shamma, 2010] Nicholas A Diakopoulos and David A Shamma. Characterizing debate performance via aggregated twitter sentiment. In Proceedings of the SIGCHI Conference on Human Factors in Computing Systems, pages 1195�1198. ACM, 2010. [Ding et al., 2006] Chris Ding, Tao Li, Wei Peng, and Haesun Park. Orthogonal nonnegative matrix t-factorizations for clustering. In Proceedings of the 12th ACM SIGKDD international conference on Knowledge discovery and data mining, pages 126�135. ACM, 2006. [Ding et al., 2010] Chris Ding, Tao Li, and Michael I Jordan. Convex and semi-nonnegative matrix factorizations. Pattern Analysis and Machine Intelligence, IEEE Transactions on, 32(1):45�55, 2010. [Fukuhara et al., 2007] Tomohiro Fukuhara, Hiroshi Nakagawa, and Toyoaki Nishida. Understanding sentiment of people from news articles: Temporal sentiment analysis of social events. In ICWSM, 2007. [Godbole et al., 2007] Namrata Godbole, Manja Srinivasaiah, and Steven Skiena. Large-scale sentiment analysis for news and blogs. ICWSM, 7:21, 2007. [Hu and Liu, 2004] Minqing Hu and Bing Liu. Mining and summarizing customer reviews. In Proceedings of the tenth ACM SIGKDD international conference on Knowledge discovery and data mining, pages 168�177. ACM, 2004. [Hu et al., 2013a] Xia Hu, Jiliang Tang, Huiji Gao, and Huan Liu. Unsupervised sentiment analysis with emotional signals. In Proceedings of the 22nd international conference on World Wide Web, pages 607�618. International World Wide Web Conferences Steering Committee, 2013.
+[Borth et al., 2013] Damian Borth, Rongrong Ji, Tao Chen,
+Thomas Breuel, and Shih-Fu Chang. Large-scale visual
+sentiment ontology and detectors using adjective noun
+pairs. In Proceedings of the 21st ACM international conference on Multimedia, pages 223–232. ACM, 2013.
+[Chen et al., 2014] Tao Chen, Felix X Yu, Jiawei Chen, Yin
+Cui, Yan-Ying Chen, and Shih-Fu Chang. Object-based
+visual sentiment concept analysis and application. In Proceedings of the ACM International Conference on Multimedia, pages 367–376. ACM, 2014.
+[Cui et al., 2006] Hang Cui, Vibhu Mittal, and Mayur Datar.
+Comparative experiments on sentiment classification for
+online product reviews. In AAAI, volume 6, pages 1265–
+1270, 2006.
+[Diakopoulos and Shamma, 2010] Nicholas A Diakopoulos
+and David A Shamma. Characterizing debate performance
+via aggregated twitter sentiment. In Proceedings of the
+SIGCHI Conference on Human Factors in Computing Systems, pages 1195–1198. ACM, 2010.
+[Ding et al., 2006] Chris Ding, Tao Li, Wei Peng, and Haesun Park. Orthogonal nonnegative matrix t-factorizations
+for clustering. In Proceedings of the 12th ACM SIGKDD
+international conference on Knowledge discovery and
+data mining, pages 126–135. ACM, 2006.
+[Ding et al., 2010] Chris Ding, Tao Li, and Michael I Jordan. Convex and semi-nonnegative matrix factorizations.
+Pattern Analysis and Machine Intelligence, IEEE Transactions on, 32(1):45–55, 2010.
+[Fukuhara et al., 2007] Tomohiro Fukuhara, Hiroshi Nakagawa, and Toyoaki Nishida. Understanding sentiment of
+people from news articles: Temporal sentiment analysis of
+social events. In ICWSM, 2007.
+[Godbole et al., 2007] Namrata Godbole, Manja Srinivasaiah, and Steven Skiena. Large-scale sentiment analysis for
+news and blogs. ICWSM, 7:21, 2007.
+[Hu and Liu, 2004] Minqing Hu and Bing Liu. Mining and
+summarizing customer reviews. In Proceedings of the
+tenth ACM SIGKDD international conference on Knowledge discovery and data mining, pages 168–177. ACM,
+2004.
+[Hu et al., 2013a] Xia Hu, Jiliang Tang, Huiji Gao, and Huan
+Liu. Unsupervised sentiment analysis with emotional signals. In Proceedings of the 22nd international conference
+on World Wide Web, pages 607–618. International World
+Wide Web Conferences Steering Committee, 2013.
 
-[Hu et al., 2013b] Yuheng Hu, Fei Wang, and Subbarao Kambhampati. Listening to the crowd: automated analysis of events via aggregated twitter sentiment. In Proceedings of the Twenty-Third international joint conference on Artificial Intelligence, pages 2640�2646. AAAI Press, 2013. [Jia et al., 2012] Jia Jia, Sen Wu, Xiaohui Wang, Peiyun Hu, Lianhong Cai, and Jie Tang. Can we understand van gogh's mood?: learning to infer affects from images in social networks. In Proceedings of the 20th ACM international conference on Multimedia, pages 857�860. ACM, 2012. [Liu, 2012] Bing Liu. Sentiment analysis and opinion mining. Synthesis Lectures on Human Language Technologies, 5(1):1�167, 2012. [Nie et al., 2010] Feiping Nie, Heng Huang, Xiao Cai, and Chris H Ding. Efficient and robust feature selection via joint 2, 1-norms minimization. In Advances in Neural Information Processing Systems, pages 1813�1821, 2010. [Pak and Paroubek, 2010] Alexander Pak and Patrick Paroubek. Twitter as a corpus for sentiment analysis and opinion mining. In LREC, volume 10, pages 1320�1326, 2010. [Pang and Lee, 2008] Bo Pang and Lillian Lee. Opinion mining and sentiment analysis. Foundations and trends in information retrieval, 2(1-2):1�135, 2008. [Pang et al., 2002] Bo Pang, Lillian Lee, and Shivakumar Vaithyanathan. Thumbs up?: sentiment classification using machine learning techniques. In Proceedings of the ACL-02 conference on Empirical methods in natural language processing-Volume 10, pages 79�86. Association for Computational Linguistics, 2002. [Wang et al., 2015] Yilin Wang, Yuheng Hu, Subbarao Kambhampati, and Baoxin. Li. Inferring sentiment from web images with joint inference on visual and social cues: A regulated matrix factorization approach. In ICWSM, page 21, 2015. [Xu et al., 2014] Can Xu, Suleyman Cetintas, Kuang-Chih Lee, and Li-Jia Li. Visual sentiment prediction with deep convolutional neural networks. arXiv preprint arXiv:1411.5731, 2014. [Yang et al., 2014] Yang Yang, Jia Jia, Shumei Zhang, Boya Wu, Juanzi Li, and Jie Tang. How do your friends on social media disclose your emotions? 2014. [You et al., 2015] Quanzeng You, Jiebo Luo, Hailin Jin, and Jianchao Yang. Robust image sentiment analysis using progressively trained and domain transferred deep networks. 2015. [Yuan et al., 2013] Jianbo Yuan, Sean Mcdonough, Quanzeng You, and Jiebo Luo. Sentribute: image sentiment analysis from a mid-level perspective. In Proceedings of the Second International Workshop on Issues of Sentiment Discovery and Opinion Mining, page 10. ACM, 2013.
+[Hu et al., 2013b] Yuheng Hu, Fei Wang, and Subbarao
+Kambhampati. Listening to the crowd: automated analysis
+of events via aggregated twitter sentiment. In Proceedings
+of the Twenty-Third international joint conference on Artificial Intelligence, pages 2640–2646. AAAI Press, 2013.
+[Jia et al., 2012] Jia Jia, Sen Wu, Xiaohui Wang, Peiyun Hu,
+Lianhong Cai, and Jie Tang. Can we understand van
+gogh’s mood?: learning to infer affects from images in
+social networks. In Proceedings of the 20th ACM international conference on Multimedia, pages 857–860. ACM,
+2012.
+[Liu, 2012] Bing Liu. Sentiment analysis and opinion mining. Synthesis Lectures on Human Language Technologies, 5(1):1–167, 2012.
+[Nie et al., 2010] Feiping Nie, Heng Huang, Xiao Cai, and
+Chris H Ding. Efficient and robust feature selection via
+joint 2, 1-norms minimization. In Advances in Neural Information Processing Systems, pages 1813–1821, 2010.
+[Pak and Paroubek, 2010] Alexander Pak and Patrick
+Paroubek. Twitter as a corpus for sentiment analysis and
+opinion mining. In LREC, volume 10, pages 1320–1326,
+2010.
+[Pang and Lee, 2008] Bo Pang and Lillian Lee. Opinion
+mining and sentiment analysis. Foundations and trends
+in information retrieval, 2(1-2):1–135, 2008.
+[Pang et al., 2002] Bo Pang, Lillian Lee, and Shivakumar
+Vaithyanathan. Thumbs up?: sentiment classification using machine learning techniques. In Proceedings of the
+ACL-02 conference on Empirical methods in natural language processing-Volume 10, pages 79–86. Association
+for Computational Linguistics, 2002.
+[Wang et al., 2015] Yilin Wang, Yuheng Hu, Subbarao
+Kambhampati, and Baoxin. Li. Inferring sentiment from
+web images with joint inference on visual and social cues:
+A regulated matrix factorization approach. In ICWSM,
+page 21, 2015.
+[Xu et al., 2014] Can Xu, Suleyman Cetintas, Kuang-Chih
+Lee, and Li-Jia Li. Visual sentiment prediction with
+deep convolutional neural networks.
+arXiv preprint
+arXiv:1411.5731, 2014.
+[Yang et al., 2014] Yang Yang, Jia Jia, Shumei Zhang, Boya
+Wu, Juanzi Li, and Jie Tang. How do your friends on social
+media disclose your emotions? 2014.
+[You et al., 2015] Quanzeng You, Jiebo Luo, Hailin Jin, and
+Jianchao Yang. Robust image sentiment analysis using
+progressively trained and domain transferred deep networks. 2015.
+[Yuan et al., 2013] Jianbo Yuan,
+Sean Mcdonough,
+Quanzeng You, and Jiebo Luo.
+Sentribute: image
+sentiment analysis from a mid-level perspective. In Proceedings of the Second International Workshop on Issues
+of Sentiment Discovery and Opinion Mining, page 10.
+ACM, 2013.
 
 

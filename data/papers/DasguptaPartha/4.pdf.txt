@@ -1,151 +1,1132 @@
-A Rule-Based Approach for Minimizing Power Dissipation of Digital Circuits
-Subrata Das , Parthasarathi Dasgupta , Petr Fiser , Sudip Ghosh� and Debesh Kumar Das
-of Computer Science & Engineering, Jadavpur University, Kolkata, India Email: dsubrata.mt@gmail.com, debeshd@hotmail.com  MIS Group, Indian Institute of management Calcutta, Kolkata, India Email: partha@iimcal.ac.in  Faculty of Information Technology, Czech Technical University in Prague, Czech Republic Email:fiserp@fit.cvut.cz � School of VLSI Technology, IIEST, Shibpur, Howrah, India Email:sudipghosh2005@gmail.com
-Abstract--Minimization of power dissipation of VLSI circuits is one of the major concerns of recent digital circuit design primarily due to the ever decreasing feature sizes of circuits, higher clock frequencies and larger die sizes. The primary contributors to power dissipation in digital circuits include leakage power, short-circuit power and switching power. Of these, power dissipation due to the circuit switching activity constitutes the major component. As such, an effective mechanism to minimize the power loss in such cases often involves the minimization of the switching activity. In this paper, we propose an intelligent rule-based algorithm for reducing the switching activity of the digital circuits at logic optimization stage. The proposed algorithm is empirically tested for several standard digital circuits with Synopsys EDA tool and the results obtained are quite encouraging. Index Terms--Switching activity, low-power VLSI circuits, CMOS, power dissipation, dynamic power, logic optimization.
- Department
+A Rule-Based Approach for Minimizing Power
+Dissipation of Digital Circuits
+Subrata Das∗ , Parthasarathi Dasgupta† , Petr Fiser‡ , Sudip Ghosh§ and Debesh Kumar Das∗
+∗ Department
 
-I. I NTRODUCTION Traditionally, the major concerns of VLSI designers include minimization of the chip area, enhancement of performance, testability, reduction of manufacturing cost and the improvement of reliability. With increasing use of portable devices and wireless communication systems, the reduction of energy consumption and hence the reduction of power dissipation and optimization of chip temperature are current issues in recent VLSI design [1]. Power dissipated by a digital system increases the temperature of the chip and affects battery life of the digital devices [2]. Aggressive device scaling also causes excessive increase in power per unit area of the chip. As such, heat generation and its removal from a chip is a matter of serious concern [3]. In   circuits the three primary sources of power dissipation are [4] 1) The switching activity occurs due to logic transitions. When the nodes of a digital circuit make transition back and forth between two logic levels, parasitic capacitances are charged and discharged. Consequently current flows through the channel resistance of the transistors, and electrical energy is converted into heat [4].
+of Computer Science & Engineering, Jadavpur University, Kolkata, India
+Email: dsubrata.mt@gmail.com, debeshd@hotmail.com
+† MIS Group, Indian Institute of management Calcutta, Kolkata, India
+Email: partha@iimcal.ac.in
+‡ Faculty of Information Technology, Czech Technical University in Prague, Czech Republic
+Email:fiserp@fit.cvut.cz
+§ School of VLSI Technology, IIEST, Shibpur, Howrah, India
+Email:sudipghosh2005@gmail.com
+Abstract—Minimization of power dissipation of VLSI circuits
+is one of the major concerns of recent digital circuit design
+primarily due to the ever decreasing feature sizes of circuits,
+higher clock frequencies and larger die sizes. The primary contributors to power dissipation in digital circuits include leakage
+power, short-circuit power and switching power. Of these, power
+dissipation due to the circuit switching activity constitutes the
+major component. As such, an effective mechanism to minimize
+the power loss in such cases often involves the minimization of
+the switching activity. In this paper, we propose an intelligent
+rule-based algorithm for reducing the switching activity of
+the digital circuits at logic optimization stage. The proposed
+algorithm is empirically tested for several standard digital circuits
+with Synopsys EDA tool and the results obtained are quite
+encouraging.
+Index Terms—Switching activity, low-power VLSI circuits,
+CMOS, power dissipation, dynamic power, logic optimization.
 
-2) The short-circuit current that flows from supply to ground when both the -subnetwork and -subnetwork of a   gate conduct [4]. 3) The leakage current [4] caused by substrate injection at - junctions and sub-threshold effects determined by the fabrication technology. The first two sources of power dissipation are known as dynamic power dissipation and the third one constitutes the static power dissipation. In the present-day technology about 80% of the total power loss occurs due to the switching activity [4]. Thus, minimization of the power dissipation of VLSI circuits necessitates minimization of the dynamic power and hence minimization of the switching activity. Minimization of switching activity can be done at the logic optimization stage. However, the focus of earlier works in logic optimization is primarily on reduction of the number of appearances of literals, minimum number of literals in a Sum of Products (SOP) or Product of Sums (POS) expression and minimum number of terms in a SOP expression [5]. In this paper, we propose an algorithm to obtain for a given input logic expression, an equivalent logic expression with minimized switching activity. II. L ITERATURE R EVIEW Minimization of power consumption of CMOS digital circuits is studied in the past, considering all levels of the design such as physical, circuit and logic level [6], [7]. In digital CMOS circuits the measure of power dissipation is the circuit switching activity or the average number of transitions. Minimization of the average number of transitions of CMOS digital circuits nodes is discussed in [8]. The work in [9] provides an interesting repository of recent techniques of power modeling and low-power design based on high-level synthesis. The evaluation and the reduction of the switching activity in combinational logic circuits considering both the transitions 1  0 and 0  1 at any output node is proposed in [10]. In order to satisfy the classical probabilistic approach that limits the maximum value of the switching activity to 1, the definition of the switching activity as proposed in [10]
+I. I NTRODUCTION
+Traditionally, the major concerns of VLSI designers include
+minimization of the chip area, enhancement of performance,
+testability, reduction of manufacturing cost and the improvement of reliability. With increasing use of portable devices
+and wireless communication systems, the reduction of energy
+consumption and hence the reduction of power dissipation
+and optimization of chip temperature are current issues in
+recent VLSI design [1]. Power dissipated by a digital system
+increases the temperature of the chip and affects battery life of
+the digital devices [2]. Aggressive device scaling also causes
+excessive increase in power per unit area of the chip. As
+such, heat generation and its removal from a chip is a matter
+of serious concern [3]. In 𝐶𝑀 𝑂𝑆 circuits the three primary
+sources of power dissipation are [4]
+1) The switching activity occurs due to logic transitions.
+When the nodes of a digital circuit make transition back
+and forth between two logic levels, parasitic capacitances are charged and discharged. Consequently current
+flows through the channel resistance of the transistors,
+and electrical energy is converted into heat [4].
 
-was customized in [11]. An algorithmic approach at the gate level using Karnaugh maps for reducing the switching activity in combinational logic circuits is presented in [12]. However, the use of Karnaugh maps restricts the number of variables to around 6. Moreover, for the method proposed in [12], the switching activity can be minimized only for some specific switching functions. In [13] the authors proposed a method to estimate the switching activity using a variable delay model. The work of [14] has discussed the system level dynamic power management in chip multiprocessor (CMP) architectures. [15] proposed an algorithm to minimize logic functions with reduced area and interconnects that will improve the circuit performance. Pre-computation-based optimization for low power that computes the output logic values of the circuit in one clock cycle before they are computed, was discussed in [16]. III. P RELIMINARIES A definition of the switching activity based on the classical probabilistic approach is given in [11]. For a logic expression of a switching function for an output node , let    and    represent the number of 1's and the number of 0's. The probabilities of occurrence of a 0 and a 1 respectively at the output node  are given by the following equations: 0 = 1 =       +          +    (1) (2)
+2) The short-circuit current that flows from supply to
+ground when both the 𝑝-subnetwork and 𝑛-subnetwork
+of a 𝐶𝑀 𝑂𝑆 gate conduct [4].
+3) The leakage current [4] caused by substrate injection at
+𝑝-𝑛 junctions and sub-threshold effects determined by
+the fabrication technology.
+The first two sources of power dissipation are known as
+dynamic power dissipation and the third one constitutes the
+static power dissipation. In the present-day technology about
+80% of the total power loss occurs due to the switching activity
+[4]. Thus, minimization of the power dissipation of VLSI
+circuits necessitates minimization of the dynamic power and
+hence minimization of the switching activity. Minimization of
+switching activity can be done at the logic optimization stage.
+However, the focus of earlier works in logic optimization
+is primarily on reduction of the number of appearances of
+literals, minimum number of literals in a Sum of Products
+(SOP) or Product of Sums (POS) expression and minimum
+number of terms in a SOP expression [5].
+In this paper, we propose an algorithm to obtain for a given
+input logic expression, an equivalent logic expression with
+minimized switching activity.
+II. L ITERATURE R EVIEW
+Minimization of power consumption of CMOS digital circuits is studied in the past, considering all levels of the
+design such as physical, circuit and logic level [6], [7]. In
+digital CMOS circuits the measure of power dissipation is the
+circuit switching activity or the average number of transitions.
+Minimization of the average number of transitions of CMOS
+digital circuits nodes is discussed in [8]. The work in [9]
+provides an interesting repository of recent techniques of
+power modeling and low-power design based on high-level
+synthesis. The evaluation and the reduction of the switching
+activity in combinational logic circuits considering both the
+transitions 1 → 0 and 0 → 1 at any output node is proposed
+in [10]. In order to satisfy the classical probabilistic approach
+that limits the maximum value of the switching activity to 1,
+the definition of the switching activity as proposed in [10]
 
-switching activity of the basic gates. For an  , ,    and   gate with  inputs, the output is 0 or 1 for exactly one input combination (input vector). Hence the value of    or    is 1 or 2 - 1. Hence 0 = 21  or 2 -1 2 -1 1 , respectively, and the corresponding  = or 1 2 2 2 . 2 -1 Thus, the switching activity is given by 22 . Hence, as the number of inputs to the above mentioned logic gates increases, the switching activity of these gates decreases. It is clear to see that the switching activity for the   gate is maximum and of value 1 4 . The switching activity for  and   gates is independent of the number of inputs to the gate and is equal to 1 4. B. Calculation of Switching Activity for a Logic Expression Without loss of generality, we assume the logic gates to have at most two inputs. Computation of the switching activity for a logic expression is illustrated by an example. Consider a logic expression  (, , , ) =  +  +  + . Consider Figure 1 and the following logic expressions, 1 = , 2 = , 3 = ., 4 =  + , 5 = , 6 =  +  = 3 + 5 , 7 .  = 6 +  +  = 6 + 4 . The switching activity for 5 is 64 This is due to the fact that the output is 1 only for the input vector 101. As such, the number of 1's and 0's in the output column are 1 and 7 respectively. For the implementation of , a   gate is required for 2 = , having  = 1 4, 3 . The an   gate is required for 1 =  with  = 16 outputs of these   gate and   gate are inputs to a 7 second   gate having   = 64 . 6 can be represented in sum of minterms as 0, 1, 2, 3, 4, 5. Hence the switching (since   = 6,   = 2). The total activity for 6 is 12 64 3 7 12 switching activity for 1 , 2 , 5 and 6 is thus 1 4 + 16 + 64 + 64 . Clearly, the switching activities for 3 =  and 4 =  +  3 each. When represented as a sum of minterms, the are 16 function  is given by  = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 and the switching 39 . (since   = 13,   = 3). Thus, the activity is 256 3 3 3 total switching activity of the circuit is 1 4 + 16 + 16 + 16 + 7 12 39 323 64 + 64 + 256 = 256 (Figure 1). Signal probability can also
-a b c
-3/16
+was customized in [11]. An algorithmic approach at the gate
+level using Karnaugh maps for reducing the switching activity
+in combinational logic circuits is presented in [12]. However,
+the use of Karnaugh maps restricts the number of variables
+to around 6. Moreover, for the method proposed in [12], the
+switching activity can be minimized only for some specific
+switching functions. In [13] the authors proposed a method to
+estimate the switching activity using a variable delay model.
+The work of [14] has discussed the system level dynamic
+power management in chip multiprocessor (CMP) architectures. [15] proposed an algorithm to minimize logic functions
+with reduced area and interconnects that will improve the
+circuit performance. Pre-computation-based optimization for
+low power that computes the output logic values of the circuit
+in one clock cycle before they are computed, was discussed
+in [16].
+III. P RELIMINARIES
+A definition of the switching activity based on the classical
+probabilistic approach is given in [11]. For a logic expression
+of a switching function for an output node 𝑖, let ∣ 𝑁𝑖 ∣ and
+∣ 𝑋𝑖 ∣ represent the number of 1’s and the number of 0’s. The
+probabilities of occurrence of a 0 and a 1 respectively at the
+output node 𝑖 are given by the following equations:
+𝑃0 =
 
-In the computation of the switching activity, it is assumed that the distribution of 0's and 1's at the primary inputs (PIs) is uniform. Definition 1. For a given node of a circuit the probability of transition either from 0 to 1 or from 1 to 0 is known as switching activity of that node. Thus, the switching activity of node  is given by the composite probability  = 0 � 1 =    �   (   +   )
+∣ 𝑋𝑖 ∣
+∣ 𝑁𝑖 ∣ + ∣ 𝑋 𝑖 ∣
+
+(1)
+
+𝑃1 =
+
+∣ 𝑁𝑖 ∣
+∣ 𝑁𝑖 ∣ + ∣ 𝑋 𝑖 ∣
+
+(2)
+
+In the computation of the switching activity, it is assumed that
+the distribution of 0’s and 1’s at the primary inputs (PIs) is
+uniform.
+Definition 1. For a given node of a circuit the probability
+of transition either from 0 to 1 or from 1 to 0 is known as
+switching activity of that node.
+Thus, the switching activity of node 𝑖 is given by the
+composite probability
+𝑆𝐴 = 𝑃0 × 𝑃1 =
+
+∣ 𝑁𝑖 ∣ ×∣ 𝑋𝑖 ∣
+(∣ 𝑁𝑖 ∣ + ∣ 𝑋𝑖 ∣)
+
 2
 
 (3)
 
-f1
-1/4
+As already mentioned, power dissipation in digital circuits
+can be reduced by minimizing their total switching activity
+(TSA).
+It can be easily shown that the switching activity is maximum when the number of 1’s (∣ 𝑁𝑖 ∣) and the number of
+0’s (∣ 𝑋𝑖 ∣) in the output column of the truth table are equal
+and the switching activity is minimum when the difference
+between the number of zeroes and the number of ones in the
+output column in the truth table is maximum.
+A. Calculation of Switching Activities of Logic Gates
+To calculate the switching activity of a logic circuit, it is important to determine the switching activity for the constituent
+logic gates. Based on the classical probabilistic definition
+of the switching activity [11], we can easily calculate the
 
-As already mentioned, power dissipation in digital circuits can be reduced by minimizing their total switching activity (TSA). It can be easily shown that the switching activity is maximum when the number of 1's (  ) and the number of 0's (  ) in the output column of the truth table are equal and the switching activity is minimum when the difference between the number of zeroes and the number of ones in the output column in the truth table is maximum. A. Calculation of Switching Activities of Logic Gates To calculate the switching activity of a logic circuit, it is important to determine the switching activity for the constituent logic gates. Based on the classical probabilistic definition of the switching activity [11], we can easily calculate the
+switching activity of the basic gates. For an 𝐴𝑁 𝐷, 𝑂𝑅,
+𝑁 𝐴𝑁 𝐷 and 𝑁 𝑂𝑅 gate with 𝑛 inputs, the output is 0 or
+1 for exactly one input combination (input vector). Hence the
+value of ∣ 𝑁𝑖 ∣ or ∣ 𝑋𝑖 ∣ is 1 or 2𝑛 − 1. Hence 𝑃0 = 21𝑛 or
+2𝑛 −1
+2𝑛 −1
+or 21𝑛 .
+2𝑛 , respectively, and the corresponding 𝑛𝑃1 = 2𝑛
+2 −1
+Thus, the switching activity is given by 22𝑛 . Hence, as the
+number of inputs to the above mentioned logic gates increases,
+the switching activity of these gates decreases.
+It is clear to see that the switching activity for the 𝑁 𝑂𝑇
+gate is maximum and of value 14 . The switching activity for
+𝑋𝑂𝑅 and 𝑋𝑁 𝑂𝑅 gates is independent of the number of
+inputs to the gate and is equal to 14 .
+B. Calculation of Switching Activity for a Logic Expression
+Without loss of generality, we assume the logic gates to
+have at most two inputs. Computation of the switching activity
+for a logic expression is illustrated by an example. Consider
+a logic expression 𝑓 (𝑎, 𝑏, 𝑐, 𝑑) = 𝑎𝑏𝑐 + 𝑎𝑏 + 𝑐 + 𝑑. Consider
+Figure 1 and the following logic expressions, 𝑓1 = 𝑎𝑐, 𝑓2 = 𝑏,
+𝑓3 = 𝑎.𝑏, 𝑓4 = 𝑐 + 𝑑, 𝑓5 = 𝑎𝑏𝑐, 𝑓6 = 𝑎𝑏𝑐 + 𝑎𝑏 = 𝑓3 + 𝑓5 ,
+7
+.
+𝑓 = 𝑓6 + 𝑐 + 𝑑 = 𝑓6 + 𝑓4 . The switching activity for 𝑓5 is 64
+This is due to the fact that the output is 1 only for the input
+vector 101. As such, the number of 1’s and 0’s in the output
+column are 1 and 7 respectively. For the implementation of
+𝑎𝑏𝑐, a 𝑁 𝑂𝑇 gate is required for 𝑓2 = 𝑏, having 𝑆𝐴 = 14 ,
+3
+. The
+an 𝐴𝑁 𝐷 gate is required for 𝑓1 = 𝑎𝑐 with 𝑆𝐴 = 16
+outputs of these 𝑁 𝑂𝑇 gate and 𝐴𝑁 𝐷 gate are inputs to a
+7
+second 𝐴𝑁 𝐷 gate having
+∑ 𝑆𝐴 = 64 . 𝑓6 can be represented
+in sum of minterms as
+0, 1, 2, 3, 4, 5. Hence the switching
+(since
+∣ 𝑁𝑖 ∣= 6, ∣ 𝑋𝑖 ∣= 2). The total
+activity for 𝑓6 is 12
+64
+3
+7
+12
++ 64
++ 64
+.
+switching activity for 𝑓1 , 𝑓2 , 𝑓5 and 𝑓6 is thus 14 + 16
+Clearly, the switching activities for 𝑓3 = 𝑎𝑏 and 𝑓4 = 𝑐 + 𝑑
+3
+each. When represented as a sum of minterms, the
+are 16
+function
+∑ is given by
+𝑓 =
+0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 and the switching
+39
+. (since ∣ 𝑁𝑖 ∣= 13, ∣ 𝑋𝑖 ∣= 3). Thus, the
+activity is 256
+3
+3
+3
++ 16
++ 16
++
+total switching activity of the circuit is 14 + 16
+7
+12
+39
+323
++
++
+=
+(Figure
+1).
+Signal
+probability
+can
+also
+64
+64
+256
+256
+a
+b
+
+3/16
+
+f1
 
 7/64
 
 f5
-3/16
+
+1/4
+
+c
+
+f2
 
 12/64
 
-f2 f3
+f6
 3/16
 
-f6
+f3
+
 39/256
 
 f
+3/16
 
 d
 
 f4
 
-Fig. 1. Circuit schematic and switching activity for  +  +  + 
+Fig. 1. Circuit schematic and switching activity for 𝑎𝑏𝑐 + 𝑎𝑏 + 𝑐 + 𝑑
 
-be used to estimate the switching activity. Figure 2 shows the propagation of signal probabilities through the gates. Here it is assumed that at the PIs the signal probabilities are equal. Hence in Figure 1,  () =  () =  () =  () = 1 2. The Algorithm, Compute Signal Probabilities [4], [17], can
+be used to estimate the switching activity. Figure 2 shows the
+propagation of signal probabilities through the gates. Here it
+is assumed that at the PIs the signal probabilities are equal.
+Hence in Figure 1, 𝑃 (𝑎) = 𝑃 (𝑏) = 𝑃 (𝑐) = 𝑃 (𝑑) = 12 .
+The Algorithm, Compute Signal Probabilities [4], [17], can
 
-be used to estimate signal probabilities at the internal nodes of a logic circuit. From Figure 1, using this algorithm and propagation of signal probabilities through gates, we can 3 obtain  1 =  (). () = 1 4 ,  = 16 . Similarly, the switching activities for nodes 2 to 6 and  can be computed.
+be used to estimate signal probabilities at the internal nodes
+of a logic circuit. From Figure 1, using this algorithm and
+propagation of signal probabilities through gates, we can
+3
+. Similarly, the
+obtain 𝑃 1 = 𝑃 (𝑎).𝑃 (𝑐) = 14 , 𝑆𝐴 = 16
+switching activities for nodes 𝑓2 to 𝑓6 and 𝑓 can be computed.
 
-A B C D E
+P1
+
+P1.P2
+
+P1
+P2
+
+P2
+
+1-P1.P2
+
+P1
+P2
+
+P1
+P2
+1-(1- P1 )(1-P2)
+
+7/64
+15/256
+
+A
+B
+
+31/1024
+63/4096
+
+F
+Total Switching Activity=1643/4096
+Delay=5
+SA*d=8215/4096
+
+C
+D
 
 3/16
-
-7/64 15/256 31/1024 63/4096
-
-A B C D E F
-
-3/16 15/256 3/16 3/16
-Total Switching Activity =2607/4096 Delay=3 SA*d=7821/4096
+15/256
+3/16
 
 63/4096
 
-F Total Switching Activity=1643/4096 Delay=5 SA*d=8215/4096
+3/16
+E
+F
 
-P1 P2
+Total Switching Activity =2607/4096
+Delay=3
+SA*d=7821/4096
 
-P1.P2 1-P1
+Fig. 4. Comparison of switching activity between ((((A*B)*C)*D)*E)*F and
+((A*B)*(C*D))*(E*F)
 
-P1 P2
+1-P1
 
-1-P1.P2 (1-P1 )(1-P2 )
+P1
 
-Fig. 4. Comparison of switching activity between ((((A*B)*C)*D)*E)*F and ((A*B)*(C*D))*(E*F) TABLE I S WITCHING ACTIVITY (SA) AND D ELAY ( D ) P RODUCT       �  0.1875 1 0.1875 0.2461 2 0.4922 0.4336 2 0.8672 0.4639 3 1.3916 0.6365 3 1.9094 0.7382 3 2.2147 0.8711 3 2.6132 0.8884 4 3.5536 1.0596 4 4.2382   0.1875 0.2461 0.3555 0.3857 0.4011 0.4089 0.4128 0.4147 0.4157    �  1 0.1875 2 0.4922 3 1.0664 4 1.5430 5 2.0056 6 2.4532 7 2.8894 8 3.3177 9 3.7412
+3/16
 
-P1 P1 P2
+A
+B
+C
+D
+E
 
-P1 P2 1-(1- P1 )(1-P2) =P1 +P2 -P1.P2
+(1-P1 )(1-P2 )
+
+TABLE I
+S WITCHING ACTIVITY (SA) AND D ELAY ( D ) P RODUCT
+
+=P1 +P2 -P1.P2
 
 Fig. 2. Propagation of probabilities through gates
 
-The controllability/observability concepts as described in [19] can also be used to calculate the switching activity. Unfortunately, both approaches give inaccurate results in presence of reconvergent paths. The approach presented in [20] tries to partially solve this problem. IV. M OTIVATION OF THE WORK In this paper, we attempt to design a generalized method to minimize the switching activity for logic expressions. The proposed method accepts any  /   expression as input and transforms it into a functionally equivalent multilevel expression with minimized switching activity. Figure 3 illustrates a motivating example. Consider the logic expression of a Full Subtractor with  , ,  as input variables and  and   as output variables. Here only the  is of interest. The logic expressions corresponding to  and   are respectively given by ( +  +  ) and (     ). With the discussions in next few sections, we will find that the total switching activity of this logic expression will be 83 64 . But the logic expression for borrow can also be written as (( +  )  ( +  )) +  and the switching activity for this expression will be 70 64 .
-bout=xy+xb in +yb in 15/64 3/16 y 1/4 x 3/16 b in 3/16 y Total Switching Activity =3*(3/16)+2*(1/4)+15/64=83/64
+The controllability/observability concepts as described in
+[19] can also be used to calculate the switching activity. Unfortunately, both approaches give inaccurate results in presence
+of reconvergent paths. The approach presented in [20] tries to
+partially solve this problem.
+
+𝑃𝐼
+2
+3
+4
+5
+6
+7
+8
+9
+10
+
+𝑇 𝑟𝑒𝑒 𝑆𝑡𝑟𝑢𝑐𝑡𝑢𝑟𝑒
+𝑆𝐴
+𝑑
+𝑆𝐴 × 𝑑
+0.1875
+1
+0.1875
+0.2461
+2
+0.4922
+0.4336
+2
+0.8672
+0.4639
+3
+1.3916
+0.6365
+3
+1.9094
+0.7382
+3
+2.2147
+0.8711
+3
+2.6132
+0.8884
+4
+3.5536
+1.0596
+4
+4.2382
+
+𝐶ℎ𝑎𝑖𝑛
+𝑆𝐴
+0.1875
+0.2461
+0.3555
+0.3857
+0.4011
+0.4089
+0.4128
+0.4147
+0.4157
+
+𝑆𝑡𝑟𝑢𝑐𝑡𝑢𝑟𝑒
+𝑑
+𝑆𝐴 × 𝑑
+1
+0.1875
+2
+0.4922
+3
+1.0664
+4
+1.5430
+5
+2.0056
+6
+2.4532
+7
+2.8894
+8
+3.3177
+9
+3.7412
+
+IV. M OTIVATION OF THE WORK
+In this paper, we attempt to design a generalized method
+to minimize the switching activity for logic expressions. The
+proposed method accepts any 𝑆𝑂𝑃 / 𝑃 𝑂𝑆 expression as
+input and transforms it into a functionally equivalent multilevel expression with minimized switching activity. Figure 3
+illustrates a motivating example. Consider the logic expression
+of a Full Subtractor with 𝑏𝑖𝑛 , 𝑥, 𝑦 as input variables and 𝑏𝑜𝑢𝑡
+and 𝑑𝑖𝑓 𝑓 as output variables. Here only the 𝑏𝑜𝑢𝑡 is of interest.
+The logic expressions corresponding to 𝑏𝑜𝑢𝑡 and 𝑑𝑖𝑓 𝑓 are
+respectively given by (𝑥𝑦 + 𝑥𝑏𝑖𝑛 + 𝑦𝑏𝑖𝑛 ) and (𝑥 ⊕ 𝑦 ⊕ 𝑏𝑖𝑛 ).
+With the discussions in next few sections, we will find that
+the total switching activity of this logic expression will be 83
+64 .
+But the logic expression for borrow can also be written as
+(𝑥(𝑦 + 𝑏𝑖𝑛 ) ⊕ (𝑦 + 𝑏𝑖𝑛 )) + 𝑦𝑏𝑖𝑛 and the switching activity for
+this expression will be 70
+64 .
+bout=xy+xb in +yb in
+15/64
+3/16
+y
+1/4
+x
+3/16
+b in
+3/16
+y
+Total Switching Activity
+=3*(3/16)+2*(1/4)+15/64=83/64
+
 bout=xy+xb in +yb in =(x(y+b in ) + (y+b in ))+yb in
-
-  2 3 4 5 6 7 8 9 10
-
-by the corresponding logic expression. Here, we consider a straightforward realization of the expression. Lemma 1. If a product (or sum) term contains more than two literals (..  = -1  -2  -3  -4  . . .  1  0 ), the function can be implemented as ((-1  -2 )  -3 )  . . .)  1  0 ) (chain representation) instead of ((-1  -2 )  (-3  -4 )  . . .  (1  0 )) if  is even or ((-1  -2 )  (-3  -4 )  . . .  (2  1 )  0 ) (tree representation) if  is odd. The switching activity is less in the chain representation [7]. Figure 4 shows the implementation of a 6 variable (A, B, C, D, E, F) product term. The first implementation switching 2607 activity ( 1643 4096 ) is less in comparison to the second one ( 4096 ). A similar type of operation can be done for a sum term as well. Due to delay in different gates there may be power loss due to glitches. The width of the glitch depends on the delay of logic gates and interconnections [4]. It is clear that glitches can occur in a chain structure and in the tree structure the occurrence of glitches is much less. Hence, minimization of the product of the switching activity and the delay may be a good design parameter. Table I shows the product of the switching activity and the delay for AND gate in the Tree structure and the Chain structure. Here, it is assumed that for each gate the delay is 1. Observation 1. if the switching then for   9 chain structure inputs. For AND and OR gates, it can be shown that activity and the delay product is considered, the tree structure is better, and if  > 9 the is better. Here  is the number of primary
-
-x 1/4 y b in 3/16
 
 15/64
 
-15/64 1/4
+x
+1/4
 
-y b in 3/16 Total switching activity =2*(3/16)+2*(15/64)+1/4=70/64
+15/64
+
+3/16
+
+y
+
+1/4
+
+y
+b in
+3/16
+Total switching activity
+=2*(3/16)+2*(15/64)+1/4=70/64
+
+b in
 
 Fig. 3. Reduction of switching activity of Full Subtractor
 
-A Rule-based systems for logic synthesis through local transformations has been proposed in [18]. In our paper different rules are used to minimize the switching activity. V. D ESIGN FOR M INIMAL S WITCHING ACTIVITY Based on the discussions in Section III-A and Section III-B, it is observed that the switching activity of a circuit realization depends on its implementation, which can be described
+A Rule-based systems for logic synthesis through local
+transformations has been proposed in [18]. In our paper
+different rules are used to minimize the switching activity.
+V. D ESIGN FOR M INIMAL S WITCHING ACTIVITY
+Based on the discussions in Section III-A and Section III-B,
+it is observed that the switching activity of a circuit realization depends on its implementation, which can be described
 
-For XOR and XNOR gates the tree structure is better since the switching activities for these gates are independent of the number of inputs. Lemma 2. Let an  variables product term contains an odd number of complemented literals, say, 0 to  literals -1 literals are in are in complemented form and +1 to =   =-1 prime form, k is even, i.e., ( =0  ).(  =+1  ) then the following transformations will reduce the switching activity:  =-1 = ( =0  ).(  =+1  ) =-1  =-1 =( =0  ).(  =+1  ).  =-1 =(0 + 1 . . . -2 + -1 ).(  =+1  ).   =-1 (0 + 1 . . . -2 + -1 ).(  =+1  )
-7/64 3/16 7/64
+by the corresponding logic expression. Here, we consider a
+straightforward realization of the expression.
+Lemma 1. If a product (or sum) term contains more than two
+literals (𝑒.𝑔. 𝑓 = 𝑥𝑛−1 ∗ 𝑥𝑛−2 ∗ 𝑥𝑛−3 ∗ 𝑥𝑛−4 ∗ . . . ∗ 𝑥1 ∗ 𝑥0 ),
+the function can be implemented as ((𝑥𝑛−1 ∗ 𝑥𝑛−2 ) ∗ 𝑥𝑛−3 ) ∗
+. . .)∗𝑥1 ∗𝑥0 ) (chain representation) instead of ((𝑥𝑛−1 ∗𝑥𝑛−2 )∗
+(𝑥𝑛−3 ∗𝑥𝑛−4 )∗. . . ∗(𝑥1 ∗𝑥0 )) if 𝑛 is even or ((𝑥𝑛−1 ∗𝑥𝑛−2 )∗
+(𝑥𝑛−3 ∗ 𝑥𝑛−4 ) ∗ . . . ∗ (𝑥2 ∗ 𝑥1 ) ∗ 𝑥0 ) (tree representation) if 𝑛 is
+odd. The switching activity is less in the chain representation
+[7].
+Figure 4 shows the implementation of a 6 variable (A, B,
+C, D, E, F) product term. The first implementation switching
+2607
+activity ( 1643
+4096 ) is less in comparison to the second one ( 4096 ).
+A similar type of operation can be done for a sum term as
+well.
+Due to delay in different gates there may be power loss due
+to glitches. The width of the glitch depends on the delay of
+logic gates and interconnections [4]. It is clear that glitches
+can occur in a chain structure and in the tree structure the
+occurrence of glitches is much less. Hence, minimization of
+the product of the switching activity and the delay may be
+a good design parameter. Table I shows the product of the
+switching activity and the delay for AND gate in the Tree
+structure and the Chain structure. Here, it is assumed that for
+each gate the delay is 1.
+Observation 1.
+if the switching
+then for 𝑛 ≤ 9
+chain structure
+inputs.
 
-TABLE II I NCREMENT / D ECREMENT OF DELAY AND AREA DUE TO EACH RULE  1 2 3 4 5 6 7 8 9 10 11 12 13                               ( = 2)( > 2)        
+For AND and OR gates, it can be shown that
+activity and the delay product is considered,
+the tree structure is better, and if 𝑛 > 9 the
+is better. Here 𝑛 is the number of primary
 
-z y x
+For XOR and XNOR gates the tree structure is better since
+the switching activities for these gates are independent of the
+number of inputs.
+Lemma 2. Let an 𝑛 variables product term contains an
+odd number of complemented literals, say, 𝑥0 to 𝑥𝑘 literals
+are in complemented form and
+𝑥𝑘+1 to∏𝑥𝑛−1 literals are in
+∏𝑖=𝑘
+𝑗=𝑛−1
+prime form, k is even, i.e., ( 𝑖=0 𝑥𝑖 ).( 𝑗=𝑘+1 𝑥𝑗 ) then the
+following
+transformations
+will reduce the switching activity:
+∏𝑗=𝑛−1
+∏𝑖=𝑘
+( 𝑖=0 𝑥𝑖 ).( 𝑗=𝑘+1 𝑥𝑗 )
+∏𝑖=𝑘−1
+∏𝑗=𝑛−1
+=( 𝑖=0 𝑥𝑖 ).( 𝑗=𝑘+1 𝑥𝑗 ).𝑥𝑘
+∏𝑗=𝑛−1
+=(𝑥0 + 𝑥1 . . . 𝑥𝑘−2 + 𝑥𝑘−1 ).( 𝑗=𝑘+1 𝑥𝑗 ).𝑥𝑘 ⊕
+∏𝑗=𝑛−1
+(𝑥0 + 𝑥1 . . . 𝑥𝑘−2 + 𝑥𝑘−1 ).( 𝑗=𝑘+1 𝑥𝑗 )
 
-3/16 1/4 7/64
+z
+y
+x
 
-x y z
+1/4
 
 a) Switching Activity for
 
+7/64
+
 zy x
 
+y
+z
+
+𝑅𝑢𝑙𝑒
+1
+
+𝐴𝑟𝑒𝑎
+𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+
+2
+
+𝑈 𝑛𝑐ℎ𝑎𝑛𝑔𝑒𝑑
+
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+
+𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+
+𝐷𝑒𝑙𝑎𝑦
+𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒𝑑 𝑖𝑛 𝑇 𝑟𝑒𝑒 𝑅𝑒𝑝𝑟𝑒𝑠𝑒𝑛𝑡𝑎𝑡𝑖𝑜𝑛
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑 𝑖𝑛 𝐶ℎ𝑎𝑖𝑛 𝑅𝑒𝑝𝑟𝑒𝑠𝑒𝑛𝑡𝑎𝑡𝑖𝑜𝑛
+𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝑈 𝑛𝑐ℎ𝑎𝑛𝑔𝑒𝑑
+𝑈 𝑛𝑐ℎ𝑎𝑛𝑔𝑒𝑑(𝑛 = 2)𝑜𝑟𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒𝑑(𝑛 > 2)
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐷𝑒𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+𝐼𝑛𝑐𝑟𝑒𝑎𝑠𝑒𝑑
+
+7/64
+
+x
+
+3/16
+
+TABLE II
+I NCREMENT / D ECREMENT OF DELAY AND AREA DUE TO EACH RULE
+
+3/16
+
 b) Switching Activity for
+
+=𝐵1 . . . .𝐵𝑘 .(𝐴1 . . . .𝐴𝑛 .𝐵𝑘+1 . . . 𝐵𝑚 +𝐶1 .𝐶2 . . . 𝐶𝑝 )
+Here 𝑛, 𝑚 and 𝑝 are in general different and 𝑚 ≥ 𝑘.
+
+7/64
 
 zyx
 
 zy
 
-=1 . . . . .(1 . . . . .+1 . . .  +1 .2 . . .  ) Here ,  and  are in general different and    . Rule 2: Apply the transformation of Lemma 1 and Observation 1. Rule 3: If a product (sum) term contains even number of complemented literals, then replacing each pair of complemented literals with their   (  ) combination by application of De Morgan's theorem will reduce the switching activity of the entire term. Rule 4: Applying Consensus Theorem [5] i.e. ( +  +  ) = ( +  ). Rule 5: If (  2) and  is even then apply 1 + 2 .3 . . . . . = 1 + 1 + 2 + . . .  Rule 6: If (  3) then apply 1 + 2 .3 . . . . .-1 . = 1 + 1 + 2 + . . . -1 . . Rule 7: For two or more than two variables the Boolean expression 1) ( +  )=(( +  ) +  ). 2) 1 +2 + . . . -1 +1 .2 . . . . . = 1 .2 . . . . .-1 +  +  Rule 8: 1) 2) 3)  = ( ) .   = 1 2 . . .  2 3 . . .  . 1 2 3 . . .  =  =2� ( =0  ).(  =1  ).( ) = =( =0  ).(1 + 2 ) . . . (2�-1 + 2� ). = ( =0  ).(1 + 2 ) . . . (2�-1 + 2� )( )
-
 Fig. 5. Reduction of switching activity by introducing XOR gate
 
-Figure 5 shows the reduction of the switching activity if the logic expression  is modified as    . The total switching activities for  and    are respectively 35 64 and 26 64 . Lemma 3. If a sum term in a logic expression contains an odd numbers of complemented terms, then the switching activity can be reduced gate. i.e. 2�by introducing      + +  = + =1   =  =1  ) . . . (   ) +  =  +  =    where (   +1 2 �  - 1 2 �        = =1  + ( +1 ) . . . (2�-1 2� ). From Lemma 2 and Lemma 3, it can be clearly seen that the introduction of  or   gate in a sum term or in a product term with an odd number of literals reduces the total switching activity and hence reduces the power dissipation of digital circuits. VI. A LGORITHM F OR M INIMIZATION O F T OTAL S WITCHING ACTIVITY The proposed algorithm for minimization of the switching activity in a circuit is shown in Figure 6. The algorithm takes the truth table of any switching function as input and gives the output as a logic expression of the switching function with minimized switching activity. The following Rules (i.e. transformations) are applied to the switching expression in order to reduce the switching activity. Rule 1: 1) . + . =.( +  ) 2) 1 .1 +2 .1 +1 .2 +2 .2 +. . . +1 . +2 . = (1 + 2 ).(1 + 2 + . . .  ) 3) 1 .2 . . .  .1 .2 . . .  +1 .2 . . .  .1 .2 . . .  =1 .2 . . . . . (1 .2 .3 . . .  +1 .2 . . .  ) 4) 1 .2 . . . . .1 .2 . . . . +1 .2 . . . . .1 .2 . . . .
+Figure 5 shows the reduction of the switching activity if
+the logic expression 𝑧𝑦𝑥 is modified as 𝑧𝑦𝑥 ⊕ 𝑧𝑦. The total
+switching activities for 𝑧𝑦𝑥 and 𝑧𝑦𝑥 ⊕ 𝑧𝑦 are respectively 35
+64
+and 26
+64 .
+Lemma 3. If a sum term in a logic expression contains
+an odd numbers of complemented terms, then the switching
+activity
+can be reduced
+i.e.
+∑2×𝑘by introducing 𝑋𝑁 𝑂𝑅∑gate.
+∑𝑝
+𝑝
++
++
+𝑥𝑙 =
++
+𝑖=1 𝑥𝑖
+𝑗=𝑘 𝑥𝑗
+𝑖=1 𝑥𝑖
+)
+.
+.
+.
+(𝑥
+𝑥
+)
++
+𝑥
+=𝐸
++
+𝑥
+=𝐸𝑥
+⊙
+𝑥
+where
+(𝑥𝑘 𝑥
+𝑘+1
+2×𝑘−1
+2×𝑘
+𝑙
+𝑙
+𝑙
+𝑙
+∑𝑝
+𝐸= 𝑖=1 𝑥𝑖 + (𝑥𝑘 𝑥𝑘+1 ) . . . (𝑥2×𝑘−1 𝑥2×𝑘 ).
+From Lemma 2 and Lemma 3, it can be clearly seen that
+the introduction of 𝑋𝑂𝑅 or 𝑋𝑁 𝑂𝑅 gate in a sum term or in
+a product term with an odd number of literals reduces the total
+switching activity and hence reduces the power dissipation of
+digital circuits.
+VI. A LGORITHM F OR M INIMIZATION O F T OTAL
+S WITCHING ACTIVITY
+The proposed algorithm for minimization of the switching
+activity in a circuit is shown in Figure 6. The algorithm takes
+the truth table of any switching function as input and gives
+the output as a logic expression of the switching function
+with minimized switching activity. The following Rules (i.e.
+transformations) are applied to the switching expression in
+order to reduce the switching activity.
+Rule 1:
+1) 𝐴.𝐵 + 𝐵.𝐶=𝐵.(𝐴 + 𝐶)
+2) 𝐴1 .𝐵1 +𝐴2 .𝐵1 +𝐴1 .𝐵2 +𝐴2 .𝐵2 +. . . +𝐴1 .𝐵𝑛 +𝐴2 .𝐵𝑛
+= (𝐴1 + 𝐴2 ).(𝐵1 + 𝐵2 + . . . 𝐵𝑛 )
+3) 𝐴1 .𝐴2 . . . 𝐴𝑛 .𝐵1 .𝐵2 . . . 𝐵𝑚 +𝐵1 .𝐵2 . . . 𝐵𝑘 .𝐶1 .𝐶2 . . . 𝐶𝑝
+=𝐵1 .𝐵2 . . . . .𝐵𝑘 (𝐴1 .𝐴2 .𝐴3 . . . 𝐴𝑛 +𝐶1 .𝐶2 . . . 𝐶𝑝 )
+4) 𝐴1 .𝐴2 . . . .𝐴𝑛 .𝐵1 .𝐵2 . . . .𝐵𝑚
++𝐵1 .𝐵2 . . . .𝐵𝑘 .𝐶1 .𝐶2 . . . .𝐶𝑝
 
-Rule 9: 1)  +  =  +  . This is known as absorption rule [5]. 2)  +  = . . 3)  +  =  +  = ( ). The last two transformation can be defined as a modified absorption rule. Rule Rule Rule Rule 10: 11: 12: 13:  =    .  +  =    . Apply Lemma 2. Apply lemma 3.
+Rule 2: Apply the transformation of Lemma 1 and Observation
+1.
+Rule 3: If a product (sum) term contains even number of complemented literals, then replacing each pair of complemented
+literals with their 𝑁 𝑂𝑅 (𝑁 𝐴𝑁 𝐷) combination by application
+of De Morgan’s theorem will reduce the switching activity of
+the entire term.
+Rule 4: Applying Consensus Theorem [5] i.e.
+(𝐴𝐵 + 𝐴𝐶 + 𝐵𝐶) = (𝐴𝐵 + 𝐴𝐶).
+Rule 5: If (𝑛 ≥ 2) and 𝑛 is even then apply
+𝐴1 + 𝐴2 .𝐴3 . . . . .𝐴𝑛 = 𝐴1 + 𝐴1 + 𝐴2 + . . . 𝐴𝑛
+Rule 6: If (𝑛 ≥ 3) then apply
+𝐴1 + 𝐴2 .𝐴3 . . . . .𝐴𝑛−1 .𝐴𝑛 = 𝐴1 + 𝐴1 + 𝐴2 + . . . 𝐴𝑛−1 .𝐴𝑛 .
+Rule 7: For two or more than two variables the Boolean
+expression
+1) (𝐴 + 𝐴𝐵)=((𝐴 + 𝐵) + 𝐵).
+2) 𝐴1 +𝐴2 + . . . 𝐴𝑛−1 +𝐴1 .𝐴2 . . . . .𝐴𝑛
+= 𝐴1 .𝐴2 . . . . .𝐴𝑛−1 + 𝐴𝑛 + 𝐴𝑛
+Rule 8:
+1)
+2)
+3)
 
-Algorithm Minimize Switching Activity() Input: Truth Table Output: Function for minimal switching activity 1. Obtain the minimal Sum-of-Product ( ) or Product-ofSum (  ) expression using any standard method (such as Kmap, Quine- McCluskey method, Espresso)for the minimization of given switching function  . E-XOR() operations can also be considered to minimize the logic expression. 2. Apply Rule 1 and Rule 2 to reduce the switching activity. 3. If either the  or   does not contain any complemented literal then 4. Calculate the total switching activity of  or   . 5. Take the function with minimum switching activity. 6. Endif 7. If number of complemented literals of a product term in a  is even then 8. Replace a pair of complemented terms by   gate using De Morgan's theorem. (Rule 3). 9. Endif 10. If number of complemented literals of a sum term in a   is even then 11. Replace a pair of complemented terms by    gate using De Morgan's theorem. (Rule 3). 12. Endif 13. If applicable then 14. Apply Rule 4, Rule6, Rule 7, Rule 9 to reduce the switching activity. 15. Endif 16. If a  (  ) contains only one complemented literal  then 17. Apply Rule 8 or Rule 10 (in case of SOP). 18. Apply Rule 5 or Rule 11 (in case of POS). 19. Take the function with minimum switching activity. 20. Endif 21. If the product term in  (  ) contains odd number of complemented literals then 22. Apply rule 12 in case of  . 23. Or Apply Rule 13 in case of   24. Take the function with minimum switching activity. 25. Endif 26. end.
+𝐴𝐵 = (𝐴𝐵)𝐵.
+𝐴∏
+𝐴𝑛 = 𝐴1 𝐴2 . . . 𝐴𝑛 𝐴2 𝐴3 . . . 𝐴𝑛 .
+1 𝐴2 𝐴3 . . .∏
+𝑖=𝑛
+𝑗=2×𝑝
+( 𝑖=0 𝑥𝑖 ).( 𝑗=1 𝑥𝑗 ).(𝑥𝑘 )
+∏𝑖=𝑛
+=( 𝑖=0 𝑥𝑖 ).(𝑥1 + 𝑥2 ) . . . (𝑥2×𝑝−1 + 𝑥2×𝑝 ).
+∏𝑖=𝑛
+( 𝑖=0 𝑥𝑖 ).(𝑥1 + 𝑥2 ) . . . (𝑥2×𝑝−1 + 𝑥2×𝑝 )(𝑥𝑘 )
+
+Rule 9:
+1) 𝐴𝐵 + 𝐵 = 𝐴 + 𝐵. This is known as absorption rule [5].
+2) 𝐴𝐵 + 𝐵 = 𝐴.𝐵.
+3) 𝐴𝐶 + 𝐴𝐵𝐶 = 𝐴𝐶 + 𝐵𝐶 =𝐶(𝐴𝐵).
+The last two transformation can be defined as a modified
+absorption rule.
+Rule
+Rule
+Rule
+Rule
+
+10:
+11:
+12:
+13:
+
+𝐴𝐵 = 𝐴𝐵 ⊕ 𝐵.
+𝐴 + 𝐵 = 𝐴𝐵 ⊙ 𝐵.
+Apply Lemma 2.
+Apply lemma 3.
+
+Algorithm Minimize Switching Activity()
+Input: Truth Table
+Output: Function for minimal switching activity
+1. Obtain the minimal Sum-of-Product (𝑓𝑆𝑂𝑃 ) or Product-ofSum (𝑓𝑃 𝑂𝑆 ) expression using any standard method (such as Kmap, Quine- McCluskey method, Espresso)for the minimization
+of given switching function 𝑓 . E-XOR(⊕) operations can also
+be considered to minimize the logic expression.
+2. Apply Rule 1 and Rule 2 to reduce the switching activity.
+3. If either the 𝑓𝑆𝑂𝑃 or 𝑓𝑃 𝑂𝑆 does not contain any complemented
+literal then
+4. Calculate the total switching activity of 𝑓𝑆𝑂𝑃 or 𝑓𝑃 𝑂𝑆 .
+5. Take the function with minimum switching activity.
+6. Endif
+7. If number of complemented literals of a product term in a 𝑓𝑆𝑂𝑃
+is even then
+8.
+Replace a pair of complemented terms by 𝑁 𝑂𝑅 gate using
+De Morgan’s theorem. (Rule 3).
+9. Endif
+10. If number of complemented literals of a sum term in a 𝑓𝑃 𝑂𝑆
+is even then
+11.
+Replace a pair of complemented terms by 𝑁 𝐴𝑁 𝐷 gate
+using De Morgan’s theorem. (Rule 3).
+12. Endif
+13. If applicable then
+14. Apply Rule 4, Rule6, Rule 7, Rule 9 to reduce the switching
+activity.
+15. Endif
+16. If a 𝑓𝑆𝑂𝑃 (𝑓𝑃 𝑂𝑆 ) contains only one complemented literal 𝑥𝑖
+then
+17. Apply Rule 8 or Rule 10 (in case of SOP).
+18. Apply Rule 5 or Rule 11 (in case of POS).
+19. Take the function with minimum switching activity.
+20. Endif
+21. If the product term in 𝑓𝑆𝑂𝑃 (𝑓𝑃 𝑂𝑆 ) contains odd number of
+complemented literals then
+22.
+Apply rule 12 in case of 𝑆𝑂𝑃 .
+23.
+Or Apply Rule 13 in case of 𝑃 𝑂𝑆
+24.
+Take the function with minimum switching activity.
+25. Endif
+26. end.
 Fig. 6. Algorithm For Minimal Switching Activity
 
-of the circuit may increase. Table II shows the decrease or the increase of area or delay due to each transformation. VII. E XPERIMENTAL R ESULTS The implementation and power estimation of the proposed rule-based algorithm has been done by using Synopsys EDA tool -DESIGN VISION version I-2013.12-SP1, 20, 2014 under CENT OS and TSMC 120 nm library. The experiment is done on some basic circuits and three other benchmarks circuit (alu1, cm138a, z9sym) [21]. The basic circuits and also the 2-adder and the 3-adder circuits are manually constructed. The switching activity of circuits and the associated dynamic power dissipation using conventional SOP (POS) method implemented with two-input gates with the help of chain structure and our proposed method are summarized in Table III. We observe that the total switching activity for our proposed method never exceeds, and is less in most of the cases than the one obtained using the traditional logic optimization. To calculate the area of a circuit it is assumed that the area of inverter is 1. The area of  , ,   ,  , and  gate are assumed to be 3, 3 2, 2 and 7 respectively. The delay of   ,  , ,   ,  , and  gate are assumed to be 1, 3, 3, 2, 2 and 7 respectively. A. Comparison of Our Proposed Method with the Existing Method of [12] In [12] the authors basically modify the Karnaugh maps to reduce the switching activity. Logic optimization using Karnaugh maps is limited to 6 variables switching functions. The reduction of the switching activity and hence the power dissipation of CMOS VLSI circuits by our proposed algorithm is not restricted to 6 variables switching functions and it is applicable for any kind of circuits. Moreover, the method of [12] is not applicable for all types of switching functions. For instance if the logic expression of a two-variable switching function is  , then the method in [12] cannot reduce the switching activity. On the other hand, our proposed method reduces the switching activity. B. Power-Delay Tradeoff Logic optimization using our proposed method surely minimizes the switching activity. But in order to minimize the switching activity by the proposed rules, it may also happen that a NOR gate is used instead of a single NOT gate (e.g. transformation of Rule 7, i.e., ( +  ) = (( +  )+  ) and so on). In this case, the total transistors count of the circuit increases. In our proposed method we do not consider the circuit delay. Logic optimization to minimize the switching activity and the delay as a joint objective will be the future direction of our work. VIII. C ONCLUSION In this paper we propose a rule-based approach to reduce the switching activity of combinational logic circuits. This would reduce the dynamic power and hence the total power
+A. Effectiveness of the Proposed Algorithm
+The total switching activity of a logic expression calculated
+by the proposed algorithm is less than or equal to the switching
+activity of the equivalent logic expression by any standard
+logic method.
+In our proposed algorithm, first, any standard logic optimization method is used to find the minimized logic expression. Then a part of or the whole logic expression is
+replaced with an equivalent logic expression for which the
+switching activity is minimized. The transformations as given
+by Rule 1 to Rule 13 decrease the switching activity by i)
+reducing the number of NOT gates ii) increasing the number
+of inputs to AND or OR gates, iii) introducing XOR or XNOR
+gate (Lemma 2, Lemma 3) iv) a combination of these. For
+some specific logic expressions, it is not possible to replace
+the logic expression with an equivalent logic expression with
+less switching activity. Hence the total switching activity of
+a logic expression calculated by the proposed algorithm is
+less than or equal to the switching activity of the same logic
+expression calculated by any standard method. In order to
+reduce the switching activity, some times, the area or the delay
 
-A. Effectiveness of the Proposed Algorithm The total switching activity of a logic expression calculated by the proposed algorithm is less than or equal to the switching activity of the equivalent logic expression by any standard logic method. In our proposed algorithm, first, any standard logic optimization method is used to find the minimized logic expression. Then a part of or the whole logic expression is replaced with an equivalent logic expression for which the switching activity is minimized. The transformations as given by Rule 1 to Rule 13 decrease the switching activity by i) reducing the number of NOT gates ii) increasing the number of inputs to AND or OR gates, iii) introducing XOR or XNOR gate (Lemma 2, Lemma 3) iv) a combination of these. For some specific logic expressions, it is not possible to replace the logic expression with an equivalent logic expression with less switching activity. Hence the total switching activity of a logic expression calculated by the proposed algorithm is less than or equal to the switching activity of the same logic expression calculated by any standard method. In order to reduce the switching activity, some times, the area or the delay
+of the circuit may increase. Table II shows the decrease or the
+increase of area or delay due to each transformation.
+VII. E XPERIMENTAL R ESULTS
+The implementation and power estimation of the proposed
+rule-based algorithm has been done by using Synopsys EDA
+tool -DESIGN VISION version I-2013.12-SP1, 20, 2014 under
+CENT OS and TSMC 120 nm library.
+The experiment is done on some basic circuits and three
+other benchmarks circuit (alu1, cm138a, z9sym) [21]. The
+basic circuits and also the 2-adder and the 3-adder circuits are
+manually constructed. The switching activity of circuits and
+the associated dynamic power dissipation using conventional
+SOP (POS) method implemented with two-input gates with
+the help of chain structure and our proposed method are
+summarized in Table III.
+We observe that the total switching activity for our proposed
+method never exceeds, and is less in most of the cases than
+the one obtained using the traditional logic optimization. To
+calculate the area of a circuit it is assumed that the area of
+inverter is 1. The area of 𝐴𝑁 𝐷, 𝑂𝑅, 𝑁 𝐴𝑁 𝐷, 𝑁 𝑂𝑅, and
+𝑋𝑂𝑅 gate are assumed to be 3, 3 2, 2 and 7 respectively.
+The delay of 𝑁 𝑂𝑇 , 𝐴𝑁 𝐷, 𝑂𝑅, 𝑁 𝐴𝑁 𝐷, 𝑁 𝑂𝑅, and 𝑋𝑂𝑅
+gate are assumed to be 1, 3, 3, 2, 2 and 7 respectively.
+A. Comparison of Our Proposed Method with the Existing
+Method of [12]
+In [12] the authors basically modify the Karnaugh maps
+to reduce the switching activity. Logic optimization using
+Karnaugh maps is limited to 6 variables switching functions.
+The reduction of the switching activity and hence the power
+dissipation of CMOS VLSI circuits by our proposed algorithm
+is not restricted to 6 variables switching functions and it is
+applicable for any kind of circuits. Moreover, the method of
+[12] is not applicable for all types of switching functions. For
+instance if the logic expression of a two-variable switching
+function is 𝐴𝐵, then the method in [12] cannot reduce the
+switching activity. On the other hand, our proposed method
+reduces the switching activity.
+B. Power-Delay Tradeoff
+Logic optimization using our proposed method surely minimizes the switching activity. But in order to minimize the
+switching activity by the proposed rules, it may also happen
+that a NOR gate is used instead of a single NOT gate (e.g.
+transformation of Rule 7, i.e., (𝐴+𝐴𝐵) = ((𝐴 + 𝐵)+𝐵) and
+so on). In this case, the total transistors count of the circuit
+increases. In our proposed method we do not consider the
+circuit delay. Logic optimization to minimize the switching
+activity and the delay as a joint objective will be the future
+direction of our work.
+VIII. C ONCLUSION
+In this paper we propose a rule-based approach to reduce
+the switching activity of combinational logic circuits. This
+would reduce the dynamic power and hence the total power
 
-TABLE III C OMPARISON OF S WITCHING ACTIVITY AND DYNAMIC POWER OF DIFFERENT COMBINATIONAL CIRCUITS
-TSA Conv 2.75 1.6875 0.4375 1.5469 0.6875 1.8125 5.9609 3.5392 4.2218 6.2285 10.034 8.0374 19.1958 our 1.8125 1.4375 0.4375 1.3594 0.625 1.4375 4.7891 2.9064 2.9710 3.7479 7.3476 5.3484 15.8665 Dynamic Power (micro watt) Conv Our 15.7121 14.3159 7.3628 5.2588 5.1288 5.1288 17.8317 11.1890 6.5248 5.8172 15.3178 14.7618 18.3713 15.4985 14.0391 9.0759 17.8394 14.7104 32.5028 28.608 21.5760 18.8346 7.1527 5.97 61.3653 58.35 Area Conv Our 39 50 35 42 10 10 29 26 11 12 30 33 82 94 52 50 59 51 91 89 113 96 92 77 231 210 Delay Conv Our 7 9 13 16 7 7 12 12 7 7 12 13 13 16 19 14 24 25 36 39 14 13 14 12 50 57
+TABLE III
+C OMPARISON OF S WITCHING ACTIVITY AND DYNAMIC POWER OF DIFFERENT COMBINATIONAL CIRCUITS
 
-Circuits 3: 8 decoder 4:1 MUX Half Adder Full Adder Half Subtractor Full Subtractor 2 Bit Comparator Priority Encoder 2-Adder 3-Adder ALU1 cm18a z9sym
+Circuits
+3: 8 decoder
+4:1 MUX
+Half Adder
+Full Adder
+Half Subtractor
+Full Subtractor
+2 Bit Comparator
+Priority Encoder
+2-Adder
+3-Adder
+ALU1
+cm18a
+z9sym
 
-% Reduction of TSA 34.09 14.81 0 12.12 9.09 20.69 19.66 17.88 29.63 39.83 26.77 33.46 17.34
+TSA
+Conv
+2.75
+1.6875
+0.4375
+1.5469
+0.6875
+1.8125
+5.9609
+3.5392
+4.2218
+6.2285
+10.034
+8.0374
+19.1958
 
-dissipation, enabling the design of power-efficient circuits with several useful applications. Experimental results show significant reduction of the switching activity. In this paper, together with all the limitations, SOP representations are used and switching possibility of input signal are assumed to be 50% . The method can be improved by making the computation scalable and precise. Introduction of signal probability to compute the switching activity for logic circuits can be used for this computation. The method presented in this paper can be further improved by considering both delay and power as objective functions and implementation and testing of the improved algorithm with standard benchmark circuits. ACKNOWLEDGMENT This research has been partially supported by a grant GA16-05179S of the Czech Grant Agency, "Fault-Tolerant and Attack-Resistant Architectures Based on Programmable Devices: Research of Interplay and Common Features" (20162018). R EFERENCES
-[1] S. Chattopadhyay and N. Choudhary, "Genetic Algorithm based Approach for Low Power Combinational Circuit Testing",Procedings of the 16th International conference on VLSI Design (VLSI'03). [2] P.Girard, C.Landraut, S.Pravossoudovitch and D.Severac, "Reducing Power Consumption During Test Application by Test Vector Ordering", Int'l Symposium on Circuits and Systems (ISCAS 98), pp 296-299. [3] P. Ghosal, T. Samanta, H. Rahaman and P. Dasgupta, "Thermal-aware placement of standard cells and gate arrays: Studies and observations", IEEE Computer Society Annual Symposium on VLSI, April 2008. ISVLSI'08., pp 369-374. [4] K. Roy and S.C.Prasad, "Low Power CMOS VLSI Circuit Design", Wiley India Edition, Reprint 2011. [5] Z. Kohavi and N. K. Jha, "Switching and Finite Automata Theory", 3 Edition, Cambridge University Press, 2010. [6] N. Wehn and M. Munch, "Minimising power consumption in digital circuits and systems: An overview", Kleinheubacher Berichte, Band 43, pages pp.308-319, September, 1999, Kleinheubach, Germany, Invited Talk. [7] A. P. Chandrakasan and R. W. Brodersen, "Minimizing Power Consumption in Digital CMOS Circuits", Proceedings of the IEEE, Vol 83, No. 4, April 1995.
+our
+1.8125
+1.4375
+0.4375
+1.3594
+0.625
+1.4375
+4.7891
+2.9064
+2.9710
+3.7479
+7.3476
+5.3484
+15.8665
 
-[8] K. Roy and S. C. Prasad, "Circuit Activity Based Logic Synthesis for Low Power Reliable Operations", IEEE Transactions on VLSI, Vol-1, No. 4, December 1993, pp 503-512. [9] S. Ahuja, A. Lakshminarayana and S. K. Shukla, "Low Power Design with High-Level Power Estimation and Power-Aware Synthesis", Springer Pub., 2011. [10] I. Brzozowski and A. Kos, "Minimization of Power Consumption in Digital Integrated Circuits of Reduction of Switching Activity", 25 Euromicro Conference, 1999, pp 376-380 Vol. 1. [11] R. V. Menon, S. Chennupati, N. K. Samala, D. Radhakrishnan and B. Izadi, "Power Optimized Combinational Logic Design", Proceeding of the International Conference on Embeded Systems and Applications, June 2003, pp. 223-227. [12] R. V. Menon, S. Chennupati, N. K. Samala, D. Radhakrishnan and B. Izadi, "Switching Activity Minimization in combinational Logic Design", Proceeding of the International Conference on Embeded System and Application, 2004, pp 47-53. [13] J. Monteiro, S. Devadas, A. Ghosh, K. Keutzer, and J. White, "Estimation of average Switching Activity in Combinational Logic Circuits Using Symbolic Simulation", IEEE Transaction on Computer Aided Design of Integrated Circuits and Systems, Vol. 16, NO. 1, 1997, pp 121-127. [14] M. Ghasemazar and M. Pedram, "Variation Aware Dynamic Power Management for Chip Multiprocessor Architectures", Design, Automation & Test in Europe Conference & Exhibition (DATE), 2011. [15] P. Dasgupta, P. Dasgupta, D. K. Das, "A Novel Algorithm for Interconnect-aware Two level Optimization of Multi-output SOP functions", Proceeding of the 11 International Workshop on Boolean Problems, Freiberg, September 2014, pp 219-226. [16] M. Alidina, J. Monterio, S. Davadas, A. Ghosh and M. Papaeftymiou, "Precomputation-Based Sequential Logic Optiomization for Low Power", IEEE International Conference on Computer Aided design, 1994, pp 74-81. [17] P. Parker and E. J. McCluskey, "Probabilistic treatment of General Combinatorial Networks", IEEE trans. Computers, Vol c-24, pp 668670, 1975 [18] J. A. Darringer, W. H. Joyner, Jr. C. Leonard Berman and L. Trevillyan, "Logic Synthesis Through Local Transformations", IBM J. RES. DEVELOP. Vol. 25 NO. 4 July 1981. [19] L. H. Goldstein, "Controllability / Observability Analysis of Digital Circuits", IEEE Transactions on Circuit and Systems, Vol. CAS-26, No. 9, 1979, pp 685-693. [20] S. C. Seth, V. D. Agrawal, "A new model for Computation of Probabilistic testability in combinational circuits", Integration, The VLSI Journal 7(1989) pp 49-75, 1989. [21] S. Yang, "Logic Synthesis and Optimization Benchmarks User Guide," Technical Report 1991 IWLS-UG-Saeyang, MCNC, Research Triangle Park, NC, January 1991, p. 45.
+% Reduction
+of TSA
+34.09
+14.81
+0
+12.12
+9.09
+20.69
+19.66
+17.88
+29.63
+39.83
+26.77
+33.46
+17.34
+
+dissipation, enabling the design of power-efficient circuits
+with several useful applications. Experimental results show
+significant reduction of the switching activity. In this paper,
+together with all the limitations, SOP representations are used
+and switching possibility of input signal are assumed to be
+50% . The method can be improved by making the computation scalable and precise. Introduction of signal probability
+to compute the switching activity for logic circuits can be
+used for this computation. The method presented in this paper
+can be further improved by considering both delay and power
+as objective functions and implementation and testing of the
+improved algorithm with standard benchmark circuits.
+ACKNOWLEDGMENT
+This research has been partially supported by a grant
+GA16-05179S of the Czech Grant Agency, ”Fault-Tolerant
+and Attack-Resistant Architectures Based on Programmable
+Devices: Research of Interplay and Common Features” (20162018).
+R EFERENCES
+[1] S. Chattopadhyay and N. Choudhary, ”Genetic Algorithm based Approach for Low Power Combinational Circuit Testing”,Procedings of
+the 16th International conference on VLSI Design (VLSI’03).
+[2] P.Girard, C.Landraut, S.Pravossoudovitch and D.Severac, ”Reducing
+Power Consumption During Test Application by Test Vector Ordering”,
+Int’l Symposium on Circuits and Systems (ISCAS 98), pp 296-299.
+[3] P. Ghosal, T. Samanta, H. Rahaman and P. Dasgupta, ”Thermal-aware
+placement of standard cells and gate arrays: Studies and observations”,
+IEEE Computer Society Annual Symposium on VLSI, April 2008.
+ISVLSI’08., pp 369-374.
+[4] K. Roy and S.C.Prasad, ”Low Power CMOS VLSI Circuit Design”,
+Wiley India Edition, Reprint 2011.
+[5] Z. Kohavi and N. K. Jha, ”Switching and Finite Automata Theory”, 3𝑟𝑑
+Edition, Cambridge University Press, 2010.
+[6] N. Wehn and M. Munch, ”Minimising power consumption in digital
+circuits and systems: An overview”, Kleinheubacher Berichte, Band 43,
+pages pp.308-319, September, 1999, Kleinheubach, Germany, Invited
+Talk.
+[7] A. P. Chandrakasan and R. W. Brodersen, ”Minimizing Power Consumption in Digital CMOS Circuits”, Proceedings of the IEEE, Vol 83, No.
+4, April 1995.
+
+Dynamic Power (micro watt)
+Conv
+Our
+15.7121
+14.3159
+7.3628
+5.2588
+5.1288
+5.1288
+17.8317
+11.1890
+6.5248
+5.8172
+15.3178
+14.7618
+18.3713
+15.4985
+14.0391
+9.0759
+17.8394
+14.7104
+32.5028
+28.608
+21.5760
+18.8346
+7.1527
+5.97
+61.3653
+58.35
+
+Area
+Conv
+Our
+39
+50
+35
+42
+10
+10
+29
+26
+11
+12
+30
+33
+82
+94
+52
+50
+59
+51
+91
+89
+113
+96
+92
+77
+231
+210
+
+Delay
+Conv
+Our
+7
+9
+13
+16
+7
+7
+12
+12
+7
+7
+12
+13
+13
+16
+19
+14
+24
+25
+36
+39
+14
+13
+14
+12
+50
+57
+
+[8] K. Roy and S. C. Prasad, ”Circuit Activity Based Logic Synthesis for
+Low Power Reliable Operations”, IEEE Transactions on VLSI, Vol-1,
+No. 4, December 1993, pp 503-512.
+[9] S. Ahuja, A. Lakshminarayana and S. K. Shukla, ”Low Power Design with High-Level Power Estimation and Power-Aware Synthesis”,
+Springer Pub., 2011.
+[10] I. Brzozowski and A. Kos, ”Minimization of Power Consumption in
+Digital Integrated Circuits of Reduction of Switching Activity”, 25𝑡ℎ
+Euromicro Conference, 1999, pp 376-380 Vol. 1.
+[11] R. V. Menon, S. Chennupati, N. K. Samala, D. Radhakrishnan and B.
+Izadi, ”Power Optimized Combinational Logic Design”, Proceeding of
+the International Conference on Embeded Systems and Applications,
+June 2003, pp. 223-227.
+[12] R. V. Menon, S. Chennupati, N. K. Samala, D. Radhakrishnan and B.
+Izadi, ”Switching Activity Minimization in combinational Logic Design”, Proceeding of the International Conference on Embeded System
+and Application, 2004, pp 47-53.
+[13] J. Monteiro, S. Devadas, A. Ghosh, K. Keutzer, and J. White, ”Estimation of average Switching Activity in Combinational Logic Circuits
+Using Symbolic Simulation”, IEEE Transaction on Computer Aided
+Design of Integrated Circuits and Systems, Vol. 16, NO. 1, 1997, pp
+121-127.
+[14] M. Ghasemazar and M. Pedram, ”Variation Aware Dynamic Power Management for Chip Multiprocessor Architectures”, Design, Automation &
+Test in Europe Conference & Exhibition (DATE), 2011.
+[15] P. Dasgupta, P. Dasgupta, D. K. Das, ”A Novel Algorithm for
+Interconnect-aware Two level Optimization of Multi-output SOP functions”, Proceeding of the 11𝑡ℎ International Workshop on Boolean
+Problems, Freiberg, September 2014, pp 219-226.
+[16] M. Alidina, J. Monterio, S. Davadas, A. Ghosh and M. Papaeftymiou, ”Precomputation-Based Sequential Logic Optiomization for
+Low Power”, IEEE International Conference on Computer Aided design,
+1994, pp 74-81.
+[17] P. Parker and E. J. McCluskey, ”Probabilistic treatment of General
+Combinatorial Networks”, IEEE trans. Computers, Vol c-24, pp 668670, 1975
+[18] J. A. Darringer, W. H. Joyner, Jr. C. Leonard Berman and L. Trevillyan,
+”Logic Synthesis Through Local Transformations”, IBM J. RES. DEVELOP. Vol. 25 NO. 4 July 1981.
+[19] L. H. Goldstein, ”Controllability / Observability Analysis of Digital
+Circuits”, IEEE Transactions on Circuit and Systems, Vol. CAS-26, No.
+9, 1979, pp 685-693.
+[20] S. C. Seth, V. D. Agrawal, ”A new model for Computation of Probabilistic testability in combinational circuits”, Integration, The VLSI Journal
+7(1989) pp 49-75, 1989.
+[21] S. Yang, ”Logic Synthesis and Optimization Benchmarks User Guide,”
+Technical Report 1991 IWLS-UG-Saeyang, MCNC, Research Triangle
+Park, NC, January 1991, p. 45.
 
 

@@ -1,385 +1,1001 @@
 Sparse Latent Space Policy Search
 Kevin Sebastian Luck
-Arizona State University Interactive Robotics Lab AZ 85281 Tempe, USA mail@kevin-luck.net
 
 Joni Pajarinen
-Aalto University Intelligent Robotics Group 02150 Espoo, Finland Joni.Pajarinen@aalto.fi
 
 Erik Berger
-Technical University Bergakademie Freiberg Institute of Computer Science 09599 Freiberg, Germany erik.berger@informatik.tu-freiberg.de
+
+Arizona State University
+Interactive Robotics Lab
+AZ 85281 Tempe, USA
+mail@kevin-luck.net
+
+Aalto University
+Intelligent Robotics Group
+02150 Espoo, Finland
+Joni.Pajarinen@aalto.fi
+
+Technical University Bergakademie Freiberg
+Institute of Computer Science
+09599 Freiberg, Germany
+erik.berger@informatik.tu-freiberg.de
 
 Ville Kyrki
-Aalto University Intelligent Robotics Group 02150 Espoo, Finland ville.kyrki@aalto.fi Abstract
-Computational agents often need to learn policies that involve many control variables, e.g., a robot needs to control several joints simultaneously. Learning a policy with a high number of parameters, however, usually requires a large number of training samples. We introduce a reinforcement learning method for sampleefficient policy search that exploits correlations between control variables. Such correlations are particularly frequent in motor skill learning tasks. The introduced method uses Variational Inference to estimate policy parameters, while at the same time uncovering a lowdimensional latent space of controls. Prior knowledge about the task and the structure of the learning agent can be provided by specifying groups of potentially correlated parameters. This information is then used to impose sparsity constraints on the mapping between the high-dimensional space of controls and a lowerdimensional latent space. In experiments with a simulated bi-manual manipulator, the new approach effectively identifies synergies between joints, performs efficient low-dimensional policy search, and outperforms state-of-the-art policy search methods.
 
 Heni Ben Amor
-Arizona State University Interactive Robotics Lab AZ 85281 Tempe, USA hbenamor@asu.edu in a lower-dimensional latent space for control which, in turn, reduces cognitive effort and training time during skill acquisition. The existence of synergies has been reported in a variety of human motor tasks, e.g., grasping (Santello, Flanders, and Soechting 1998), walking (Wang, O'Dwyer, and Halaki 2013), or balancing (Torres-Oviedo and Ting 2010). Recently, various synergy-inspired strategies have been put forward to improve the efficiency of RL for motor skill acquisition (Bitzer, Howard, and Vijayakumar 2010; Kolter and Ng 2007). Typically, these approaches use dimensionality reduction as a pre-processing step in order to extract a lower-dimensional latent space of control variables. However, extracting the latent space using standard dimensionality reduction techniques requires a significantly large training set of (approximate) solutions, prior simulations, or human demonstrations. Even if such data exists, it may drastically bias the search by limiting it to the subspace of initially provided solutions. In our previous work, we introduced an alternative approach called latent space policy search that tightly integrates RL and dimensionality reduction (Luck et al. 2014). Using an expectation-maximization (EM) framework (Dempster, Laird, and Rubin 1977) we presented a latent space policy search algorithm that iteratively refines both the estimates of the low-dimensional latent space, as well as the policy parameters. Only samples produced during the search process were used. In this paper, we propose a different kind of latent space policy search approach, which similarly to our previous work combines RL and dimensionality reduction, but which also allows for prior structural knowledge to be included. Our method is based on the Variational Bayes (VB) (Neumann 2011; van de Meent et al. 2015) framework. Variational Bayes is a Bayesian generalization of the expectationmaximization algorithm, which returns a distribution over optimal parameters instead of a single point estimate. It is a powerful framework for approximating integrals that would otherwise be intractable. Our RL algorithm exploits these properties in order to (1) perform efficient policy search, (2) infer the low-dimensional latent space of the task, and
+
+Aalto University
+Intelligent Robotics Group
+02150 Espoo, Finland
+ville.kyrki@aalto.fi
+
+Arizona State University
+Interactive Robotics Lab
+AZ 85281 Tempe, USA
+hbenamor@asu.edu
+
+Abstract
+Computational agents often need to learn policies that
+involve many control variables, e.g., a robot needs to
+control several joints simultaneously. Learning a policy with a high number of parameters, however, usually requires a large number of training samples. We
+introduce a reinforcement learning method for sampleefficient policy search that exploits correlations between
+control variables. Such correlations are particularly frequent in motor skill learning tasks. The introduced
+method uses Variational Inference to estimate policy
+parameters, while at the same time uncovering a lowdimensional latent space of controls. Prior knowledge
+about the task and the structure of the learning agent
+can be provided by specifying groups of potentially
+correlated parameters. This information is then used to
+impose sparsity constraints on the mapping between
+the high-dimensional space of controls and a lowerdimensional latent space. In experiments with a simulated bi-manual manipulator, the new approach effectively identifies synergies between joints, performs efficient low-dimensional policy search, and outperforms
+state-of-the-art policy search methods.
 
 Introduction
-Reinforcement learning (RL) is a promising approach to automated motor skill acquisition (Peters et al. 2011). Instead of a human hand-coding specific controllers, an agent autonomously explores the task at hand through trial-and-error and learns necessary movements. Yet, reinforcement learning of motor skills is also considered to be a challenging problem, since it requires sample-efficient learning in highdimensional state and action spaces. A possible strategy to address this challenge can be found in the human motor control literature (Bernstein 1967). Research on human motor control provides evidence for motor synergies; joint coactivations of a set of muscles from a smaller number of neural commands. The reduction in involved parameters results
-Copyright c 2016, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved.
+Reinforcement learning (RL) is a promising approach to automated motor skill acquisition (Peters et al. 2011). Instead
+of a human hand-coding specific controllers, an agent autonomously explores the task at hand through trial-and-error
+and learns necessary movements. Yet, reinforcement learning of motor skills is also considered to be a challenging
+problem, since it requires sample-efficient learning in highdimensional state and action spaces. A possible strategy to
+address this challenge can be found in the human motor
+control literature (Bernstein 1967). Research on human motor control provides evidence for motor synergies; joint coactivations of a set of muscles from a smaller number of neural commands. The reduction in involved parameters results
+c 2016, Association for the Advancement of Artificial
+Copyright 
+Intelligence (www.aaai.org). All rights reserved.
 
-Time Group 1 Group 2 Group 3 Group 4 Time
+in a lower-dimensional latent space for control which, in
+turn, reduces cognitive effort and training time during skill
+acquisition. The existence of synergies has been reported
+in a variety of human motor tasks, e.g., grasping (Santello,
+Flanders, and Soechting 1998), walking (Wang, O’Dwyer,
+and Halaki 2013), or balancing (Torres-Oviedo and Ting
+2010).
+Recently, various synergy-inspired strategies have been
+put forward to improve the efficiency of RL for motor
+skill acquisition (Bitzer, Howard, and Vijayakumar 2010;
+Kolter and Ng 2007). Typically, these approaches use dimensionality reduction as a pre-processing step in order to
+extract a lower-dimensional latent space of control variables.
+However, extracting the latent space using standard dimensionality reduction techniques requires a significantly large
+training set of (approximate) solutions, prior simulations,
+or human demonstrations. Even if such data exists, it may
+drastically bias the search by limiting it to the subspace of
+initially provided solutions. In our previous work, we introduced an alternative approach called latent space policy
+search that tightly integrates RL and dimensionality reduction (Luck et al. 2014). Using an expectation-maximization
+(EM) framework (Dempster, Laird, and Rubin 1977) we
+presented a latent space policy search algorithm that iteratively refines both the estimates of the low-dimensional latent space, as well as the policy parameters. Only samples
+produced during the search process were used.
+In this paper, we propose a different kind of latent space
+policy search approach, which similarly to our previous
+work combines RL and dimensionality reduction, but which
+also allows for prior structural knowledge to be included.
+Our method is based on the Variational Bayes (VB) (Neumann 2011; van de Meent et al. 2015) framework. Variational Bayes is a Bayesian generalization of the expectationmaximization algorithm, which returns a distribution over
+optimal parameters instead of a single point estimate. It is a
+powerful framework for approximating integrals that would
+otherwise be intractable. Our RL algorithm exploits these
+properties in order to (1) perform efficient policy search,
+(2) infer the low-dimensional latent space of the task, and
+
+Time
+Time
+
+Group 1
+Group 2
+Group 3
+Group 4
 
 Samples
 
-Figure 1: The main idea of Group Factor Policy Search: A number of variables, for example the joints of an arm or leg of a NAO robot, form one group. Given several of such groups for the action vector (left matrix) the transformation matrix W can be divided in several submatrices corresponding to those groups. Subsequently each factor, given by a column in W, encodes information for all groups, e.g. four in the example given above. Factors may be non-zero for all groups, for a subset of groups, for exactly one group or zero for all groups. In the figure, grey areas correspond to non-zero values and white areas to zero values in the sparse transformation matrix. The transformation matrix is multiplied by the latent variables given by ~ = (~ ~t , � � � , z ~T ) distributed by z ~t  N (0, trace((st , t)(st , t)T )I). Z z1 , � � � , z (3) incorporate prior structural information. Prior knowledge about locality of synergies can be included by specifying distinct groups of correlated sub-components. Often such prior knowledge about groups of variables, e.g. coactivated joints and limbs, is readily available from the mechanical structure of a system. Structural prior knowledge is also common in other application domains. For example, in a wireless network the network topology defines receiver groups (Sagduyu and Ephremides 2004). Our approach draws inspiration and incorporates ideas from Factor Analysis, in particular Group Factor Analysis (Klami et al. 2015), as can be seen in Fig. 1. Groups of variables, e.g., robot joints grouped into arms and legs, are provided as prior structural knowledge by a user. A factorized control policy is then learned through RL, which includes a transformation matrix W. The transformation matrix holds factors that describe dependencies between either all of the groups or a subset of them. The individual factors can be regarded as synergies among the joints of the robot. We will show that the resulting algorithm effectively ties together prior structural knowledge, latent space identification, and policy search in a coherent way.
+Figure 1: The main idea of Group Factor Policy Search: A number of variables, for example the joints of an arm or leg of
+a NAO robot, form one group. Given several of such groups for the action vector (left matrix) the transformation matrix W
+can be divided in several submatrices corresponding to those groups. Subsequently each factor, given by a column in W,
+encodes information for all groups, e.g. four in the example given above. Factors may be non-zero for all groups, for a subset
+of groups, for exactly one group or zero for all groups. In the figure, grey areas correspond to non-zero values and white areas
+to zero values in the sparse transformation matrix. The transformation matrix is multiplied by the latent variables given by
+Z̃ = (z̃1 , · · · , z̃t , · · · , z̃T ) distributed by z̃t ∼ N (0, trace(φ(st , t)φ(st , t)T )I).
+(3) incorporate prior structural information. Prior knowledge about locality of synergies can be included by specifying distinct groups of correlated sub-components. Often
+such prior knowledge about groups of variables, e.g. coactivated joints and limbs, is readily available from the mechanical structure of a system. Structural prior knowledge
+is also common in other application domains. For example,
+in a wireless network the network topology defines receiver
+groups (Sagduyu and Ephremides 2004).
+Our approach draws inspiration and incorporates ideas
+from Factor Analysis, in particular Group Factor Analysis (Klami et al. 2015), as can be seen in Fig. 1. Groups
+of variables, e.g., robot joints grouped into arms and legs,
+are provided as prior structural knowledge by a user. A factorized control policy is then learned through RL, which includes a transformation matrix W. The transformation matrix holds factors that describe dependencies between either
+all of the groups or a subset of them. The individual factors
+can be regarded as synergies among the joints of the robot.
+We will show that the resulting algorithm effectively ties
+together prior structural knowledge, latent space identification, and policy search in a coherent way.
 
-E [r = 1] =
+Policy Search
+Policy search methods try to find an optimal policy for an
+agent which acts in an uncertain world with an unknown
+world model. At each time step t the agent executes an action at in state st and moves to the next state st+1 with probability p(st+1 |st , at ). After executing a certain number of
+actions, the agent receives a reward feedback given by an
+unknown reward function based on the performed execution
+trace (or trajectory/history) τ = (s1 , a1 , . . . , sT , aT , sT +1 ).
+The overall objective in policy search is to maximize the expected reward over trajectories and policy parameters θ. For
+bounded rewards, maximizing expected reward is equivalent
+to maximizing the probability of a binary reward r (Toussaint and Storkey 2006):
 
-p(, )p(r = 1|)dd,
+ZZ
+Eτ [r = 1] =
+
+p(τ, θ)p(r = 1|τ)dθdτ,
 
 (1)
 
-where the probability of the trajectory p(, ) contains the (stochastic) policy, r is a binary variable indicating maximum reward, and p(r = 1|)  exp {-c ()} (Toussaint 2009) is the conditional probability of receiving maximum expected reward given a cost function. Assuming the Markov property and the independence of actions, the probability of a trajectory can be written as
+where the probability of the trajectory p(τ, θ) contains the
+(stochastic) policy, r is a binary variable indicating maximum reward, and p(r = 1|τ) ∝ exp {−c (τ)} (Toussaint
+2009) is the conditional probability of receiving maximum
+expected reward given a cost function.
+Assuming the Markov property and the independence of
+actions, the probability of a trajectory can be written as
+p(τ, θ) = p(θ)p(s1 )
+
 T
+Y
 
-p(, ) = p()p(s1 )
-t=1
-
-p(st+1 |st , at ) (at |st , ).
+p(st+1 |st , at )π(at |st , θ).
 
 (2)
 
-Policy Search
-Policy search methods try to find an optimal policy for an agent which acts in an uncertain world with an unknown world model. At each time step t the agent executes an action at in state st and moves to the next state st+1 with probability p(st+1 |st , at ). After executing a certain number of actions, the agent receives a reward feedback given by an unknown reward function based on the performed execution trace (or trajectory/history)  = (s1 , a1 , . . . , sT , aT , sT +1 ). The overall objective in policy search is to maximize the expected reward over trajectories and policy parameters . For bounded rewards, maximizing expected reward is equivalent to maximizing the probability of a binary reward r (Toussaint and Storkey 2006):
+t=1
 
-The stochastic policy  (at |st , ) depends on the parameters  for which we additionally introduce prior distributions p(). This formulation will subsequently be used for structuring the policy model. The prior distributions may also depend on hyperparameters � for reasons of clarity, however, we will omit any such parameters below. Furthermore, we assume that the initial state distribution p(s1 ) and transition dynamics p(st+1 |st , at ) are unknown but fixed. Thus, they will cancel out as constant values.
+The stochastic policy π(at |st , θ) depends on the parameters θ for which we additionally introduce prior distributions
+p(θ). This formulation will subsequently be used for structuring the policy model. The prior distributions may also depend on hyperparameters – for reasons of clarity, however,
+we will omit any such parameters below. Furthermore, we
+assume that the initial state distribution p(s1 ) and transition
+dynamics p(st+1 |st , at ) are unknown but fixed. Thus, they
+will cancel out as constant values.
 
 Group Factor Policy Search
-We will now introduce a new policy search method, called Group Factor Policy Search (GrouPS ), that uncovers the latent space on-the-fly based on prior structural information. In this section, we discuss how to incrementally improve the policy and the actual form of the new policy model. We parameterize the policy using Group Factor Analysis (Klami et al. 2015) in order to utilize prior information about the parameters and their correlations. Since our policy is a linear stochastic model with prior distributions, we first present a novel general Variational Inference framework for policy search that takes priors into account. Subsequently, we discuss how the policy is parameterized, and finally show
+We will now introduce a new policy search method, called
+Group Factor Policy Search (GrouPS ), that uncovers the latent space on-the-fly based on prior structural information.
+In this section, we discuss how to incrementally improve the
+policy and the actual form of the new policy model. We parameterize the policy using Group Factor Analysis (Klami
+et al. 2015) in order to utilize prior information about the
+parameters and their correlations. Since our policy is a linear stochastic model with prior distributions, we first present
+a novel general Variational Inference framework for policy search that takes priors into account. Subsequently, we
+discuss how the policy is parameterized, and finally show
 
-the policy model update equations for Group Factor Policy Search which we derive using the introduced Variational Inference method.
+the policy model update equations for Group Factor Policy
+Search which we derive using the introduced Variational Inference method.
 
 Variational Inference for Policy Search
-In each iteration our new policy search method samples a distribution over trajectories pold () using the current policy, and based on pold () finds a new policy which maximizes a lower bound on the expected reward. This is repeated until convergence. In order to find a new policy based on samples from the old one, we introduce the sampling distribution pold () and the approximated parameter distribution q () (defined later) into Equation 1. By applying the log-function and using Jensen's inequality (Kober and Peters 2009; Bishop 2006, Eq. (1.115)) we derive the lower bound log  p(, ) p(r = 1|)dd pold ()q () p(, ) p(r = 1|)dd. pold ()q () log pold ()q () (3) pold ()q ()
 
-Input: Reward function R (�) and initializations of parameters. Choose number of latent dimension n. Set fixed hyper-parameters ~  a , b ~ , a , b ,  2 and define groupings.
-1 2 3 4 5 6
+1
 
-7 8 9 10 11 12 13 14 15 16 17 18
-
-while reward not converged do for h=1:H do # Sample H rollouts for t=1:T do at = Wi Z + M + E with Z  N (0, I) and E  N (0,  ~), (m) where  ~ = ~m I Execute action at Observe and store reward R () Initialization of q-distribution while not converged do Update q (M) with Eq. (16) Update q (W) with Eq. (19) ~ with Eq. (22) Update q Z Update q () with Eq. (12) Update q ( ~) with Eq. (25) M = Eq(M) [M] W = Eq(W) [W]  = Eq() []  ~ = Eq( ~] ~ ) [ Result: Linear weights M for the feature vector , representing the final policy. The columns of W represents the factors of the latent space.
-
-Since pold () was generated using the old policy it does not depend on  and we can simplify the lower bound to pold ()q () log = const +   � log   p ()
-t=1
-
-p(, ) pold ()q ()
-
-p(r = 1|)dd
-
-19 20
-
-pold ()q ()
-T
-
- (at |, st ) q ()
-
-   p(r = 1|)dd, 
-
+In each iteration our new policy search method samples a
+distribution over trajectories pold (τ) using the current policy,
+and based on pold (τ) finds a new policy which maximizes a
+lower bound on the expected reward. This is repeated until
+convergence.
+In order to find a new policy based on samples from the
+old one, we introduce the sampling distribution pold (τ) and
+the approximated parameter distribution q(θ) (defined later)
+into Equation 1. By applying the log-function and using
+Jensen’s inequality (Kober and Peters 2009; Bishop 2006,
+Eq. (1.115)) we derive the lower bound
+ZZ
+p(τ, θ)
+log
+pold (τ)q(θ)
+p(r = 1|τ)dθdτ
+pold (τ)q(θ)
+
+
+ZZ
+p(τ, θ)
+≥
+p(r = 1|τ)dθdτ.
+pold (τ)q(θ) log
+pold (τ)q(θ)
+(3)
+Since pold (τ) was generated using the old policy it does not
+depend on θ and we can simplify the lower bound to
+
+
+ZZ
+p(τ, θ)
+p(r = 1|τ)dθdτ
+pold (τ)q(θ) log
+pold (τ)q(θ)
+ZZ
+= const +
+pold (τ)q(θ)
 (4)
+
+
+T
+Q
+p (θ)
+π(at |θ, st )
+
+
+t=1
+
+ p(r = 1|τ)dθdτ,
+· log 
+
+q(θ)
+where the constant term can be ignored for the maximization
+Q
+of this term. By assuming the factorization q(θ) = qi (θi )
+for the parameters and applying the Variational Bayes approach, we get the approximated distributions of the parameters:
+Z Y
+log qj (θj ) = const +
+qi (θi )
+θ−j i6=j
 
-Algorithm 1: Outline of the Group Factor Policy Search (GrouPS) algorithm. et al. 2015). The main idea of GFA is to introduce prior distributions for the parameters, in particular a prior for a structured transformation matrix W. The transformation matrix, responsible for mapping between a low-dimensional subspace and the original high-dimensional space, is forced to be sparse and constructed using prior knowledge about grouping of the dimensions, that is, W is a concatenation of transform matrices W(m) for each group m. For example, if the dimensions of a vector represent the joints of a legged robot, we can group joints belonging to the same leg into the same group (see e.g. Fig. 1). Applying the idea of Group Factor Analysis for directed sampling leads to a linear model, i.e. a stochastic policy at
-(m)
+Z
+pold (τ) log
 
-where the constant term can be ignored for the maximization of this term. By assuming the factorization q () = qi (i ) for the parameters and applying the Variational Bayes approach, we get the approximated distributions of the parameters: log qj (j ) = const +
-- j T i=j
-
-qi (i ) (5) p(r = 1|) R dd-j ,
-
-pold () log
+T
+Y
 t=1
 
- (at , |st )
+Input: Reward function R (·) and initializations of
+parameters. Choose number of latent
+dimension n. Set fixed hyper-parameters
+aτ̃ , bτ̃ , aα , bα , σ 2 and define groupings.
 
-where the parameter vector -j contains all parameters except j . The normalization constant R is given by the integral R= pold ()p(r = 1|)d. (6)
+(5)
 
-= W(m) Zt + M(m) + Et
-(m)
+p(r = 1|τ)
+π(at , θ|st )
+dτdθ−j ,
+b
+R
 
-(m)
-
- (st , t) ,
-
-(7)
+where the parameter vector θ−j contains all parameters exb is given by the intecept θj . The normalization constant R
+gral
+Z
+b = pold (τ)p(r = 1|τ)dτ.
+R
+(6)
 
 Formulation of Group Factor Policy Search
-In order to identify sets of correlated variables during policy search, we use a linear stochastic policy of a form similar to the model used in Group Factor Analysis (GFA) (Klami
+In order to identify sets of correlated variables during policy
+search, we use a linear stochastic policy of a form similar
+to the model used in Group Factor Analysis (GFA) (Klami
 
-where, for group m, the action at  RDm �1 is a linear projection of a feature vector  (st , t)  Rp�1 . Each dimension of the feature vector is given by a basis function, which may depend on the current state and/or time. In the remainder of the paper, we will write  instead of  (s, t) for simplicity, even though there is an implicit dependency
+2
+3
+4
+5
+6
 
-of  on the current state of a trajectory. W(m)  RDm �l is a transformation matrix mapping from the l-dimensional subspace to the original space. Each entry of the latent matrix Zt  Rl�p is distributed according to a standard normal distribution where N (0, 1), M(m)  RDm �p is the mean (m) matrix, and the entries of the noise matrix Et  RDm �p -1 are distributed by N (0,  ~m ). We can derive a stochastic policy from the model defined in Equation 7. Since Zt   N (0, trace(T )I) (8) Figure 2: Graphical model in Plate notation for Group Factor Policy Search. The basis functions (st , t) as well as the (m) action vector at are observed. Equation 9 shows the de(m) ~t depend on the pendencies for at . The latent variables z feature vector as stated in Equation (8) . The parameter m might either be given by a Gamma distribution as stated in Equation (12) or by a log-linear model with dependencies on parameters U and V. The hyper-parameters a and b are fixed and set to a small positive value. The prior distributions given above will lead to three kind of factors: (1) factors which are nonzero for only one group, (2) factors which are nonzero for several groups or (3) factors which are zero. In addition to the standard GFA prior distributions above, we introduce further ~ such that all prior distribuprior distributions for M and z tions are given with M  N Mold ,  2 I , m,k  G (a , b ) , ~  N 0, Tr T I , z
-~   ~m  G a , b~ .
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
 
-holds (see e.g. (Luck et al. 2014)), we can substitute Zt  by ~t  Rl�1 resulting in the policy the random variable z  (at |, st ) = 
+while reward not converged do
+for h=1:H do # Sample H rollouts
+for t=1:T do
+at = Wi Zφ + Mφ + Eφ
+with Z ∼ N (0, I) and E ∼ N (0, τ̃ ),
+where τ̃ (m) = τ̃m I
+Execute action at
+Observe and store reward R (τ)
+Initialization of q-distribution
+while not converged do
+Update q (M) with Eq. (16)
+Update q (W)
+  with Eq. (19)
+Update q Z̃ with Eq. (22)
+
+Update q (α) with Eq. (12)
+Update q (τ̃ ) with Eq. (25)
+M = Eq(M) [M]
+W = Eq(W) [W]
+α = Eq(α) [α]
+τ̃ = Eq(τ̃ ) [τ̃ ]
+
+20
+
+Result: Linear weights M for the feature vector φ,
+representing the final policy. The columns
+of W represents the factors of the latent
+space.
+Algorithm 1: Outline of the Group Factor Policy
+Search (GrouPS) algorithm.
+et al. 2015). The main idea of GFA is to introduce prior
+distributions for the parameters, in particular a prior for
+a structured transformation matrix W. The transformation
+matrix, responsible for mapping between a low-dimensional
+subspace and the original high-dimensional space, is forced
+to be sparse and constructed using prior knowledge about
+grouping of the dimensions, that is, W is a concatenation of
+transform matrices W(m) for each group m. For example,
+if the dimensions of a vector represent the joints of a legged
+robot, we can group joints belonging to the same leg into the
+same group (see e.g. Fig. 1).
+Applying the idea of Group Factor Analysis for directed
+sampling leads to a linear model, i.e. a stochastic policy
+
+
+(m)
+(m)
+at = W(m) Zt + M(m) + Et
+φ (st , t) ,
+(7)
+(m)
+
+where, for group m, the action at
+∈ RDm ×1 is a linear
+projection of a feature vector φ (st , t) ∈ Rp×1 . Each dimension of the feature vector is given by a basis function,
+which may depend on the current state and/or time. In the
+remainder of the paper, we will write φ instead of φ (s, t)
+for simplicity, even though there is an implicit dependency
+
+of φ on the current state of a trajectory. W(m) ∈ RDm ×l
+is a transformation matrix mapping from the l-dimensional
+subspace to the original space. Each entry of the latent matrix Zt ∈ Rl×p is distributed according to a standard normal
+distribution where N (0, 1), M(m) ∈ RDm ×p is the mean
+(m)
+matrix, and the entries of the noise matrix Et ∈ RDm ×p
+−1
+are distributed by N (0, τ̃m ).
+We can derive a stochastic policy from the model defined
+in Equation 7. Since
+Zt φ ∼ N (0, trace(φφT )I)
+
+(8)
+
+holds (see e.g. (Luck et al. 2014)), we can substitute Zt φ by
+the random variable z̃t ∈ Rl×1 resulting in the policy
+π(at |θ, st ) =
+
+ 
+
+
+
 M
-
-N
-m=1
-
-m) a( t
-
-W
-
-(m)
-
-~t + M z
-
-(m)
-
-Tr T ,  ~m
-
- I .
-
+Tr φφT
+Y
+
 (9)
+(m)
+I .
+N at W(m) z̃t + M(m) φ,
+τ̃m
+
+m=1
+If we take a closer look at the latent space given by Wz̃t
+we first find that the length of each factor is determined by
+kφ(st , t)k22 . Secondly, a factor may be non-zero only for
+one or a subset of groups as can be seen in Fig. 1. This leads
+to a sparse transformation matrix and specialized factors and
+dimensions.
+As mentioned before, the form of our linear model in
+Equation 7 above is based on Group Factor Analysis. While
+GFA typically maps a vector from the latent space to the
+high-dimensional space, we map here a matrix from the latent space to the original space and then use this matrix as
+a linear policy on the feature vectors. GFA does not apply
+factor analysis (see e.g. (Harman 1976)) on each group of
+variables separately, but instead introduces a sparsity prior
+on the transformation matrix W thereby forcing correlations
+between groups:
+p (W|α) =
 
-~t If we take a closer look at the latent space given by Wz we first find that the length of each factor is determined by (st , t) 2 2 . Secondly, a factor may be non-zero only for one or a subset of groups as can be seen in Fig. 1. This leads to a sparse transformation matrix and specialized factors and dimensions. As mentioned before, the form of our linear model in Equation 7 above is based on Group Factor Analysis. While GFA typically maps a vector from the latent space to the high-dimensional space, we map here a matrix from the latent space to the original space and then use this matrix as a linear policy on the feature vectors. GFA does not apply factor analysis (see e.g. (Harman 1976)) on each group of variables separately, but instead introduces a sparsity prior on the transformation matrix W thereby forcing correlations between groups:
-M K Dm -1 , N wd,k 0, m,k m=1 k=1 d=1 (m)
+K D
+M Y
+m
+Y
+Y
 
-Fig. 2 shows a graphical model of Group Factor Policy Search, given by the distributions stated above. Instead of ~t is used, which depends on (st , t) Z the latent variable z given a state and a point in time.
-
-p ( W |) =
+
+
+
+(m) 
+−1
+,
+N wd,k 0, αm,k
 
 (10)
 
+m=1 k=1 d=1
+
+Figure 2: Graphical model in Plate notation for Group Factor Policy Search. The basis functions φ(st , t) as well as the
+(m)
+action vector at are observed. Equation 9 shows the de(m)
+pendencies for at . The latent variables z̃t depend on the
+feature vector as stated in Equation (8) . The parameter αm
+might either be given by a Gamma distribution as stated in
+Equation (12) or by a log-linear model with dependencies
+on parameters U and V.
+The hyper-parameters aα and bα are fixed and set to a small
+positive value. The prior distributions given above will lead
+to three kind of factors: (1) factors which are nonzero for
+only one group, (2) factors which are nonzero for several
+groups or (3) factors which are zero. In addition to the standard GFA prior distributions above, we introduce further
+prior distributions for M and z̃ such that all prior distributions are given with
+
+
+ 
+
+M ∼ N Mold , σ 2 I ,
+z̃ ∼ N 0, Tr φφT I ,
+
+αm,k ∼ G (aα , bα ) ,
+τ̃m ∼ G aτ̃ , bτ̃ .
+Fig. 2 shows a graphical model of Group Factor Policy
+Search, given by the distributions stated above. Instead of
+Z the latent variable z̃t is used, which depends on φ(st , t)
+given a state and a point in time.
+
 Derivation of Update Equations
-~ ~ We assume fixed hyper-parameters a , b , a and b for the distributions which we determine using the Variational Inference method presented earlier, assuming a factorization of the q-distributions
 
-with M being number of groups, Dm the number of dimensions of the m-th group and K the number of factors, i.e. number of columns of W. The precision  is given by a log-linear model with log  = UVT + �u 1T + 1�T v, (11)
+with M being number of groups, Dm the number of dimensions of the m-th group and K the number of factors, i.e.
+number of columns of W. The precision α is given by a
+log-linear model with
 
-~ )q (W) q ( q () = q (Z ~) q (M) q ()
-T
+We assume fixed hyper-parameters aα , bα , aτ̃ and bτ̃ for
+the distributions which we determine using the Variational
+Inference method presented earlier, assuming a factorization
+of the q-distributions
+
+log α = UVT + µu 1T + 1µT
+v,
+
+q (θ) = q(Z̃)q (W) q (τ̃ ) q (M) q (α)
+
+(11)
+
+where U ∈ RM ×R , V ∈ RK×R and µu ∈ RM as well as
+µv ∈ RK model the mean profile. R defines the rank of the
+linear model and is chosen R  min (M, K). However, for
+the special case of R = min (M, K) the precision is given
+by a simple gamma distribution (Klami et al. 2015)
+
+α
+q (αm,k ) = G aα
+(12)
+m , bm,k
+with parameters
+Dm
+,
+2
+
+
+1
+(m) T (m)
+α
+= b + Eq(W) wk
+wk
+.
+2
+α
+aα
+m =a +
+
+bα
+m,k
+
+(13)
+(14)
 
 (15)
 
-where U  RM �R , V  RK �R and �u  RM as well as �v  RK model the mean profile. R defines the rank of the linear model and is chosen R min (M, K ). However, for the special case of R = min (M, K ) the precision is given by a simple gamma distribution (Klami et al. 2015)
- q (m,k ) = G a m , bm,k
-
-(12)
-
-with parameters
- a m =a +
-
-Dm , 2
-
-(13) (14)
-
-~) = and additionally the assumption q (Z q (~ zt ) with ~ :,t = z ~t . Z By using the factorization given above and the Variational Inference rule for deriving the parameter distribution in Equation (5), we can derive the approximated parameter distributions, which maximize the expected reward. The approximated distribution for the mean matrix is given by a multiplicative normal distribution
-M Dm
-
-b m,k
-
-1 (m) T (m) = b + Eq(W) wk wk . 2
-
+T
+Q
+and additionally the assumption q(Z̃) =
+q(z̃t ) with
+Z̃:,t = z̃t .
+By using the factorization given above and the Variational Inference rule for deriving the parameter distribution
+in Equation (5), we can derive the approximated parameter
+distributions, which maximize the expected reward.
+The approximated distribution for the mean matrix is
+given by a multiplicative normal distribution
 
 qM (M) =
-m=1 j =1
 
+M D
+m
+Y
+Y
+m=1 j=1
+
+
 N
 
-mj,:
+
 
-(m) T
+(m) T 
+M
+mj,: µM
+mj , Σj
 
-M �M mj , j
-
+
 (16)
 
-where the mean and covariance parameters in dependency of the group and dimension are given by M j =  -2 I +   p ( r = 1 |  )   R -1 E m ] ~ [~ (17) and �M mj =  M j moldj,: T + M � j � 2
+where the mean and covariance parameters in dependency
+of the group and dimension are given by
+ΣM
+j
+
+−2
+
+= σ I+
+
+
+−1
 T
+T
+X
+p(r
+=
+1|τ)
+φφ
+
+
+ Eτ̃ [τ̃m ]
+Ep(τ) 
+b
+R
+Tr φφT
 
 and
-Z �Z t = t �   T (m) (m) (m) M E a - M  W W t   .  -1 T Tr  E m ] m=1 ~ [~ ~ ~
-
+Z̃
+µZ̃
+t = Σt ·
+
+iT 
+
+h
+(m)
+(m)
+(m)
+M E
+a
+−
+M
+φ
+W
+X
+W
+t
+
+
+
+
+.
+
+−1
 T
+Tr φφ Eτ̃ [τ̃m ]
+m=1
 
 (24)
 
-Ep()
-
-T Tr T
-
 t=1
 
-Unlike the other distributions, the precision is given by a multiplicative gamma distribution q ) = ~ (~ 1 1 ~ ~ ~ G  ~m |a + Dm T, b + b 2 2 m m=1
-M
-
-(25)
-
-Ep()
-
- p(r = 1|) R
-
- at,j - Ew wj,:
-
-(m)
-
-(m)
-
-Ez zt ] ~ [~
--1
-
- 
-
-t=1
-
-Tr T E m ] ~ [~
-
-with one fixed parameter and one variable parameter. Esti~ mation of the parameter b m is the most complex and computationally expensive operation given by
-~ b m = Ep()
-
-(18) with mj,: given by the j -th row of M. The q-distribution for the transformation matrix is similarly given by
-M Dm
-
-p(r = 1|) R M
-(m)
-
+(17)
+and
 T
-
-Tr T
+M moldj,:
++ ΣM
+µM
+=
+Σ
+·
+mj
+j ·
+j
+σ2
+
+h
+i
+
+
+(m)
+T φ a(m) − E
+Ez̃ [z̃t ]
+X
+w wj,:
+t,j
+p(r
+=
+1|τ)
+
+
+
+Ep(τ) 
+−1
+b
+R
+Tr φφT E [τ̃ ]
 t=1
 
--1
+τ̃
 
-at
+m
 
-(m) T (m) at
-
--
-
-(m) T 2at EM T
-
-
-T
-
-qW (W) =
-m=1 j =1
-
-N
-
-(m) T W wj,: |�W mj , m
-
+(18)
+with mj,: given by the j-th row of M.
+The q-distribution for the transformation matrix is similarly given by
+
+
+M D
+m
+Y
+Y
+(m) T W
+W
 (19)
+N wj,: |µmj , Σm
+qW (W) =
+m=1 j=1
 
-+ 2Ez zt ] EW W(m) ~ [~ - 2at
-(m) T
-
-EM M(m) 
-
-with the mean and covariance parameters W m =  
-t=1 T
-
-EW W(m) Ez zt ] ~ [~
+with the mean and covariance parameters
+
+
+p(r = 1|τ)
+W
+Σm = Ep(τ)
+b
+R
+
+−1
+
+
 T
+X
+Ez̃ z̃t z̃T
+
+¯ m,K  ,
+
+ t
++ ᾱ
+−1
+T
+Tr
+φφ
+E
+[τ̃
+]
+t=1
+τ̃ m
 
-Ep()
+(20)
 
-p(r = 1|) R -1
--1
-
-+ T EM M(m) M(m)  (20) , � m,K  + + Tr EW W(m) W(m) Covz zt ] ~ [~ zt ] EW W(m) W(m) Ez +E z zt ] ~ [~ ~ [~
-T T T
-
-~t z ~T Ez ~ z t Tr T E m ] ~ [~
-
-. (26)
+Unlike the other distributions, the precision is given by a
+multiplicative gamma distribution
+
+
+M
+Y
+1
+1 0
+qτ̃ (τ̃ ) =
+G τ̃m |aτ̃ + Dm T, bτ̃ + bτ̃m
+(25)
+2
+2
+m=1
+with one fixed parameter and one variable parameter. Esti0
+mation of the parameter bτ̃m is the most complex and computationally expensive operation given by
+"
+T
+−1 
+p(r = 1|τ) X 
+(m) T (m)
+T
+τ̃ 0
+Tr φφ
+at
+at
+bm = Ep(τ)
+b
+R
+t=1
+h
+i
+(m) T
+− 2at
+EM M(m) φ
+h
+iT
+h
+i
+T
++ 2Ez̃ [z̃t ] EW W(m) EM M(m) φ
+h
+i
+(m) T
+− 2at
+EW W(m) Ez̃ [z̃t ]
+h
+i
+T
++ φT EM M(m) M(m) φ
+
+h
+
+i
+T
++ Tr EW W(m) W(m) Covz̃ [z̃t ]
+h
+i
+i
+T
+T
++Ez̃ [z̃t ] EW W(m) W(m) Ez̃ [z̃t ] .
+(26)
 
 and
-W �W mj = m � Ep() T (m)
+"
 
-p(r = 1|) R
-(m) T
+p(r = 1|τ)
+b
+R
+
+h
+i 
+(m)
+(m)
+T#
+T
+at,j − EM mj,: φ Ez̃ [z̃t ]
+X
+
+
+.
+−1
+T
+Tr
+φφ
+Eτ̃ [τ̃m ]
+t=1
 
 Algorithm
-(21) . Algorithm 1 summarizes all update steps for performing Group Factor Policy Search. The reward function R (�), number n of latent dimensions, and a set of hyperparameters need to be provided by the user.
 
-at,j - EM mj,:
+W
+µW
+mj = Σm · Ep(τ)
 
-zt ]  Ez ~ [~
--1
+(21)
 
-t=1
-
-Tr T E m ] ~ [~
-
-� m,K ) = The diagonal matrix  � m,K is given by diag ( (m,1 , m,2 , � � � , m,K ). The distribution for the latent ~ depends on the trajectory and time. Hence the variables Z ~ of a multireward can be seen as a probabilistic weight R plicative normal distribution. However, since we assume in~h dependent latent variables z t we can ignore the reward and get
-H T
-
-Evaluation
-For evaluations and experiments the expectation Ep() [�] used above in Eq.(16-20,25) was approximated by a sample mean, H 1 f (i ) (27) Ep() [f ()]  H i=1 as proposed in (Kober and Peters 2009), where i is the ith of the H realized trajectories and f () a function value, vector or matrix for i and will be replaced by the parameter approximations given above.
-
-~ qZ ~ Z =
-
-~ R
-t=1
-
-N
-
-~ ~ Z Z ~h z t |�t , t
-
+¯ m,K is given by diag (ᾱ
+¯ m,K ) =
+The diagonal matrix ᾱ
+(αm,1 , αm,2 , · · · , αm,K ). The distribution for the latent
+variables Z̃ depends on the trajectory and time. Hence the
+reward can be seen as a probabilistic weight R̃ of a multiplicative normal distribution. However, since we assume independent latent variables z̃ht we can ignore the reward and
+get
+H
+T
+  Y
+
+
+Y
+Z̃
+qZ̃ Z̃ =
+R̃
+N z̃ht |µZ̃
 ,
-
+Σ
+,
 (22)
+t
+t
+t=1
 
-with time-dependent parameters Z t =
-M ~
+with time-dependent parameters
+ 
+−1
+Z̃
+Σt = Tr φφT
+I+
+h
 
-Tr T
 T
 
--1
+Algorithm 1 summarizes all update steps for performing
+Group Factor Policy Search. The reward function R (·),
+number n of latent dimensions, and a set of hyperparameters need to be provided by the user.
 
-I+ -1  , (23)
+Evaluation
+For evaluations and experiments the expectation Ep(τ) [·]
+used above in Eq.(16-20,25) was approximated by a sample
+mean,
+H
+1 X
+f (τi )
+(27)
+Ep(τ) [f (τ)] ≈
+H i=1
+as proposed in (Kober and Peters 2009), where τi is the ith of the H realized trajectories and f (τ) a function value,
+vector or matrix for τi and will be replaced by the parameter
+approximations given above.
 
 Setup of the Evaluation
-For the comparison between the above presented GrouPS algorithm and previous policy search algorithms, a simulated task of a bi-manual robot operating in a planar task space was used. Each of the two arms (see Fig. 3) has six degreesof-freedom and the same base for the first joint. The initial
+i −1
 
-EW W(m) W(m)
--1 Tr T E ~m ~m 
+(m)
+M E
+W(m)
+X
+W W
+
+
+ −1  
+T
+Eτ̃m τ̃m
+m=1 Tr φφ
 
-m=1
+(23)
+,
 
-Figure 3: Two simulated arms with six degrees-of-freedom and the same base in their initial position. Each end effector has a desired position for each time step, s shown by the green and red dots. The final position at time step 25 is given by the coordinate (0, 4). The numbers represent the joints with l for left and r for right.
-180 160 140
-1 Group POWER NAC 2 Groups PePPEr 4 Groups
+For the comparison between the above presented GrouPS algorithm and previous policy search algorithms, a simulated
+task of a bi-manual robot operating in a planar task space
+was used. Each of the two arms (see Fig. 3) has six degreesof-freedom and the same base for the first joint. The initial
+
+Figure 3: Two simulated arms with six degrees-of-freedom
+and the same base in their initial position. Each end effector
+has a desired position for each time step, s shown by the
+green and red dots. The final position at time step 25 is given
+by the coordinate (0, 4). The numbers represent the joints
+with l for left and r for right.
+180
+1 Group
+POWER
+NAC
+2 Groups
+PePPEr
+4 Groups
+
+160
 
 Sum. Distances
 
-120 100 80 60 40 20 0
+140
+120
+100
+80
+60
+40
 
-physical robotic experiments (Kober and Peters 2011). PePPEr is also based on EM and incorporates policy search and dimensionality reduction, but without priors and thus without a structured transformation matrix. For comparison with PePPEr and PoWER the GrouPS algorithm was evaluated in three different configurations: (1) One group which contains all joints of both arms, (2) two groups, where each group contains the joints of one arm and (3) four groups with two groups per arm and joints 1-4 in one and joints 5-6 in the second group. The hyper-parameters of GrouPS were set to ~ ~ a = b = 1000, a = b = 1 and  2 = 100. No optimizations of the hyper-parameters were performed. Furthermore, to prevent early convergence and collapsing of the distributions due to small sample sizes the parameter W and  ~ are resized after each iteration by a factor of 1.5. The same is done after  each iteration for PePPEr. However, the factor was set to 1.09 since higher numbers lead to divergence in the parameters of the algorithm with unstable and divergent results. PePPEr was implemented as presented in (Luck et al. 2014) and in each iteration 20 inner iterations for the optimizations of the parameters were used. The same setup was used for GrouPS and for both algorithms the number of latent dimensions were set to six. The static variance parameter for PoWER as presented in (Kober and Peters 2009) and the initial variance of the other algorithms were all set to 101.5 , also for NAC with learning parameter set to 0.5. In each iteration, we sampled 30 trajectories and evaluated the trajectories based on the reward function
+physical robotic experiments (Kober and Peters 2011). PePPEr is also based on EM and incorporates policy search and
+dimensionality reduction, but without priors and thus without a structured transformation matrix. For comparison with
+PePPEr and PoWER the GrouPS algorithm was evaluated in
+three different configurations: (1) One group which contains
+all joints of both arms, (2) two groups, where each group
+contains the joints of one arm and (3) four groups with two
+groups per arm and joints 1-4 in one and joints 5-6 in the
+second group. The hyper-parameters of GrouPS were set to
+aτ̃ = bτ̃ = 1000, aα = bα = 1 and σ 2 = 100. No optimizations of the hyper-parameters were performed. Furthermore,
+to prevent early convergence and collapsing of the distributions due to small sample sizes the parameter W and τ̃ are
+resized after each iteration by a factor of 1.5. The same is
+done after √
+each iteration for PePPEr. However, the factor
+was set to 1.09 since higher numbers lead to divergence
+in the parameters of the algorithm with unstable and divergent results. PePPEr was implemented as presented in (Luck
+et al. 2014) and in each iteration 20 inner iterations for the
+optimizations of the parameters were used. The same setup
+was used for GrouPS and for both algorithms the number
+of latent dimensions were set to six. The static variance parameter for PoWER as presented in (Kober and Peters 2009)
+and the initial variance of the other algorithms were all set
+to 101.5 , also for NAC with learning parameter set to 0.5. In
+each iteration, we sampled 30 trajectories and evaluated the
+trajectories based on the reward function
+R(τ) =
+
+20
+0
+
 25
+X
 
-R() =
+exp (− k effl (at ) − posl (t) k2 )
+
 t=1
-0 200 400 600 800 1000
+0
 
-exp (- � exp (-
+200
 
-effl (at ) - posl (t) effr (at ) - posr (t)
+400
 
-2) 2) ,
+600
+
+800
+
+· exp (− k effr (at ) − posr (t) k2 ) ,
+
+1000
+
+Iterations
+
+Figure 4: Comparison between PePPEr, PoWER, Natural
+Actor-Critic and three instances of the GrouPS algorithm on
+the presented simulated task. Values correspond to the summarized distances between each end effector and its desired
+position given the current policy for the iteration. The mean
+value as well as the standard deviations are shown.
+configuration of the arms is presented in Fig. 3 as well as
+the desired positions for each end effector (tip of an arm).
+At each of the 25 time steps we give a different goal position for each arm’s end effector, starting from the left for the
+left arm and starting from the right for the right arm, with
+the same final position at (0, 4) for both arms. In this task,
+the 12 dimensions of the action vector a represent the joint
+angles for each arm. For the basis functions eleven isotropic
+Gaussian distributions were used with φi (t) = N (t|µφ
+i , 3)
+for t ∈ {1, 2, . . . , 24, 25}. In total, 132 parameters have to
+be estimated given M ∈ R12×11 .
+As reference algorithms PoWER (Kober and Peters
+2009), Natural Actor-Critic (NAC) (Peters and Schaal 2008)
+and PePPEr (Luck et al. 2014) were chosen: NAC is a policy
+gradient method while PoWER is an efficient policy search
+method based on expectation maximization (EM). PoWER
+has been experimentally validated in both simulated and
 
 (28)
 
-Iterations
-
-Figure 4: Comparison between PePPEr, PoWER, Natural Actor-Critic and three instances of the GrouPS algorithm on the presented simulated task. Values correspond to the summarized distances between each end effector and its desired position given the current policy for the iteration. The mean value as well as the standard deviations are shown. configuration of the arms is presented in Fig. 3 as well as the desired positions for each end effector (tip of an arm). At each of the 25 time steps we give a different goal position for each arm's end effector, starting from the left for the left arm and starting from the right for the right arm, with the same final position at (0, 4) for both arms. In this task, the 12 dimensions of the action vector a represent the joint angles for each arm. For the basis functions eleven isotropic Gaussian distributions were used with i (t) = N (t|� i , 3) for t  {1, 2, . . . , 24, 25}. In total, 132 parameters have to be estimated given M  R12�11 . As reference algorithms PoWER (Kober and Peters 2009), Natural Actor-Critic (NAC) (Peters and Schaal 2008) and PePPEr (Luck et al. 2014) were chosen: NAC is a policy gradient method while PoWER is an efficient policy search method based on expectation maximization (EM). PoWER has been experimentally validated in both simulated and
-
-where the function effl (at ) returns the position of the left end effector given the action vector and posl (t) the corresponding desired goal position for time point t. effr (at ) and posr (t) return the actual and desired positions, respectively, for the right end effector. Then the 15 best trajectories are chosen for the computation of the parameters for each algorithm as described in (Kober and Peters 2009).
+where the function effl (at ) returns the position of the left
+end effector given the action vector and posl (t) the corresponding desired goal position for time point t. effr (at ) and
+posr (t) return the actual and desired positions, respectively,
+for the right end effector. Then the 15 best trajectories are
+chosen for the computation of the parameters for each algorithm as described in (Kober and Peters 2009).
 
 Results
-Fig. 4 depicts the results of the explained experiment. For each algorithm ten different runs were executed and both mean and standard deviation computed. As can be seen in the figure, PePPEr outperforms both PoWER and NAC, as well as our method in case only one group spanning all variables is used. However, using two groups (one for each arm) already leads to comparable performance. Finally, the GrouPS algorithm with 4 different groups significantly outperforms the comparison methods.
+Fig. 4 depicts the results of the explained experiment. For
+each algorithm ten different runs were executed and both
+mean and standard deviation computed. As can be seen in
+the figure, PePPEr outperforms both PoWER and NAC, as
+well as our method in case only one group spanning all
+variables is used. However, using two groups (one for each
+arm) already leads to comparable performance. Finally, the
+GrouPS algorithm with 4 different groups significantly outperforms the comparison methods.
 
 Importance of the Choice of Groups
-In order to investigate the effect of choosing joint groups we conducted an additional experiment. Our working hypothesis throughout the paper is that structural information about inherent groups of correlated variables will improve the search. Conversely, if we provide wrong in-
+In order to investigate the effect of choosing joint groups
+we conducted an additional experiment. Our working hypothesis throughout the paper is that structural information about inherent groups of correlated variables will improve the search. Conversely, if we provide wrong in-
 
-180 160 140
-Swap1 Swap2 Swap3 4 Groups
+180
+Swap1
+Swap2
+Swap3
+4 Groups
+
+160
 
 Sum. Distances
 
-120 100 80 60 40 20 0
+140
+120
+100
+80
+60
+40
+20
+0
 
 0
 
@@ -395,47 +1011,170 @@ Sum. Distances
 
 Iterations
 
-Figure 7: Final policy found by the GrouPS algorithm after 100 iterations. A high reward is given if the head as well as the left foot of the robot are high above the ground. sult corroborates our assumption that a proper selection of groups can ameliorate the performance of the policy search algorithm.
+Figure 5: Comparison between the original chosen four
+groups and three permutations of the Groups. Values correspond to the summarized distance between each end effector
+and its desired position for each time step given the current
+policy for the iteration.
+180
+Swap4
+Swap5
+4 Groups
 
-Figure 5: Comparison between the original chosen four groups and three permutations of the Groups. Values correspond to the summarized distance between each end effector and its desired position for each time step given the current policy for the iteration.
-180 160 140
-Swap4 Swap5 4 Groups
+160
+
+Sum. Distances
+
+140
+120
+100
+80
+60
+40
+20
+0
+
+0
+
+200
+
+400
+
+600
+
+800
+
+1000
+
+Iterations
+
+Figure 6: Comparison between the original grouping and
+two other variants with a different splitting point. Again, the
+values represent the summarized distances and shaded ares
+corresponds to the standard deviation given ten executions.
+formation about groupings the performance of the algorithm should deteriorate. To evaluate this hypothesis,
+we took the original partitioning of the joints into four
+groups and swapped two, later three pairs of joints randomly. As described above, the original group partitioning
+is {(1l, 2l, 3l, 4l), (5l, 6l), (1r, 2r, 3r, 4r), (5r, 6r)}.
+Performing two random swaps between the left and
+right side results in {(1l, 2l, 2r, 4l), (5l, 5r), (1r, 3l, 3r, 4r)
+, (6l, 6r)} (Fig. 6, Swap4). For three swaps the resulting partition is {(1l, 6r, 2r, 4l), (3r, 6l), (1r, 3l, 5l, 4r), (5r, 2l)}
+(Fig. 6, Swap5). Furthermore, three other groupings with
+different splitting points were evaluated: {(1l, 2l),
+(3l, 4l, 5l, 6l), (1r, 2r), (3r, 4r, 5r, 6r)} (Fig. 5, Swap1),
+{(1l, 2l), (3l, 4l), (5l, 6l), (1r, 2r), (3r, 4r), (5r, 6r)} (Fig.
+5, Swap2) and {(1l, 2l, 3l), (4l, 5l, 6l), (1r, 2r, 3r),
+(4r, 5r, 6r)} (Fig. 5, Swap3). The result of executing
+GrouPS with these groupings can be seen in Fig. 5 and
+Fig. 6. All new groupings (resulting from above swaps)
+are clearly outperformed by the original partition. This re-
+
+Figure 7: Final policy found by the GrouPS algorithm after
+100 iterations. A high reward is given if the head as well as
+the left foot of the robot are high above the ground.
+sult corroborates our assumption that a proper selection of
+groups can ameliorate the performance of the policy search
+algorithm.
 
 Experiment: Lifting a Leg
-To test the GrouPS algorithm in experiments following the real world closely, we reproduced the experiment stated in (Luck et al. 2014): We simulate a NAO robot (Gouaillier et al. 2008) using the V-REP framework (Rohmer, Singh, and Freese 2013) in the task of lifting its left leg without falling. The same reward function was used as presented in (Luck et al. 2014, Eq. (22)) with parameters  = 5,  = 10,  = 10 and max = 6. The V-REP framework (Rohmer, Singh, and Freese 2013) allows for simulations with high physical accuracy by utilizing the bullet physics library. In this experiment, the actions represent the 26 joint velocities for each of the 15 points in time. Again, for feature functions Gaussian distributions were used and the same parameters for GrouPS were chosen like given in the evaluation above. We ran GrouPS for 100 iterations. In each iteration, we used a set of 20 samples, of which ten were randomly selected from the set of 20 in the previous iteration and ten generated by the current policy. We used ten best samples out of this set of 20 for computing the new policy parameters. The groups were created in such a manner that the joints of each arm or leg form a single group as well as the joints of the head. The results are given in Fig. 7, where we find that the GrouPS algorithm is able to find a satisfactory solution even with a relatively small number of samples: the head and left leg of the NAO robot are at high positions corresponding to a high reward.
-
-Sum. Distances
-
-120 100 80 60 40 20 0
-
-0
-
-200
-
-400
-
-600
-
-800
-
-1000
-
-Iterations
-
-Figure 6: Comparison between the original grouping and two other variants with a different splitting point. Again, the values represent the summarized distances and shaded ares corresponds to the standard deviation given ten executions. formation about groupings the performance of the algorithm should deteriorate. To evaluate this hypothesis, we took the original partitioning of the joints into four groups and swapped two, later three pairs of joints randomly. As described above, the original group partitioning is {(1l, 2l, 3l, 4l), (5l, 6l), (1r, 2r, 3r, 4r), (5r, 6r)}. Performing two random swaps between the left and right side results in {(1l, 2l, 2r, 4l), (5l, 5r), (1r, 3l, 3r, 4r) , (6l, 6r)} (Fig. 6, Swap4). For three swaps the resulting partition is {(1l, 6r, 2r, 4l), (3r, 6l), (1r, 3l, 5l, 4r), (5r, 2l)} (Fig. 6, Swap5). Furthermore, three other groupings with different splitting points were evaluated: {(1l, 2l), (3l, 4l, 5l, 6l), (1r, 2r), (3r, 4r, 5r, 6r)} (Fig. 5, Swap1), {(1l, 2l), (3l, 4l), (5l, 6l), (1r, 2r), (3r, 4r), (5r, 6r)} (Fig. 5, Swap2) and {(1l, 2l, 3l), (4l, 5l, 6l), (1r, 2r, 3r), (4r, 5r, 6r)} (Fig. 5, Swap3). The result of executing GrouPS with these groupings can be seen in Fig. 5 and Fig. 6. All new groupings (resulting from above swaps) are clearly outperformed by the original partition. This re-
+To test the GrouPS algorithm in experiments following the
+real world closely, we reproduced the experiment stated in
+(Luck et al. 2014): We simulate a NAO robot (Gouaillier
+et al. 2008) using the V-REP framework (Rohmer, Singh,
+and Freese 2013) in the task of lifting its left leg without
+falling. The same reward function was used as presented in
+(Luck et al. 2014, Eq. (22)) with parameters α = 5, β = 10,
+γ = 10 and λmax = 6. The V-REP framework (Rohmer,
+Singh, and Freese 2013) allows for simulations with high
+physical accuracy by utilizing the bullet physics library. In
+this experiment, the actions represent the 26 joint velocities
+for each of the 15 points in time. Again, for feature functions
+Gaussian distributions were used and the same parameters
+for GrouPS were chosen like given in the evaluation above.
+We ran GrouPS for 100 iterations. In each iteration, we
+used a set of 20 samples, of which ten were randomly selected from the set of 20 in the previous iteration and ten
+generated by the current policy. We used ten best samples
+out of this set of 20 for computing the new policy parameters. The groups were created in such a manner that the joints
+of each arm or leg form a single group as well as the joints of
+the head. The results are given in Fig. 7, where we find that
+the GrouPS algorithm is able to find a satisfactory solution
+even with a relatively small number of samples: the head and
+left leg of the NAO robot are at high positions corresponding
+to a high reward.
 
 Conclusion and Future Work
-In this paper, we introduced a novel algorithm for reinforcement learning in low-dimensional latent spaces. To this end, we derived a Variational Inference framework for policy search that takes prior structural information into account. The resulting policy search algorithm can efficiently learn new policy parameters, while also uncovering the underlying latent space of solutions, and incorporating prior knowledge about groups of correlated parameters. In experiments using motor skill learning tasks, we showed that the introduced GrouPS algorithm efficiently learns new motor skills. It significantly outperformed state-of-the-art policy
+In this paper, we introduced a novel algorithm for reinforcement learning in low-dimensional latent spaces. To this
+end, we derived a Variational Inference framework for policy search that takes prior structural information into account. The resulting policy search algorithm can efficiently
+learn new policy parameters, while also uncovering the underlying latent space of solutions, and incorporating prior
+knowledge about groups of correlated parameters. In experiments using motor skill learning tasks, we showed that the
+introduced GrouPS algorithm efficiently learns new motor
+skills. It significantly outperformed state-of-the-art policy
 
-search methods, whenever prior information about structural groups was provided. So far, the dimensionality of the latent space needs to be provided as a parameter to the reinforcement learning algorithm. We plan to investigate automatic adjustments of the dimensionality using current rewards. In this paper, we focused on intra-group correlations. In future work, we plan to investigate correlations among extracted group factors, e.g., correlations between arms and legs.
+search methods, whenever prior information about structural
+groups was provided.
+So far, the dimensionality of the latent space needs to be
+provided as a parameter to the reinforcement learning algorithm. We plan to investigate automatic adjustments of the
+dimensionality using current rewards. In this paper, we focused on intra-group correlations. In future work, we plan to
+investigate correlations among extracted group factors, e.g.,
+correlations between arms and legs.
 
 Acknowledgments
-J.Pajarinen and V.Kyrki were supported by the Academy of Finland, decision 271394.
+J.Pajarinen and V.Kyrki were supported by the Academy of
+Finland, decision 271394.
 
 References
-Bernstein, N. A. 1967. The co-ordination and regulation of movements. Pergamon Press. Bishop, C. M. 2006. Pattern recognition and machine learning. Springer. Bitzer, S.; Howard, M.; and Vijayakumar, S. 2010. Using dimensionality reduction to exploit constraints in reinforcement learning. In Proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 3219�3225. IEEE. Dempster, A. P.; Laird, N. M.; and Rubin, D. B. 1977. Maximum Likelihood from Incomplete Data via the EM Algorithm. Journal of the Royal Statistical Society. Series B (Methodological) 39(1):1�38. Gouaillier, D.; Hugel, V.; Blazevic, P.; Kilner, C.; Monceaux, J.; Lafourcade, P.; Marnier, B.; Serre, J.; and Maisonnier, B. 2008. The nao humanoid: a combination of performance and affordability. arXiv preprint arXiv:0807.3223. Harman, H. H. 1976. Modern factor analysis. University of Chicago Press. Klami, A.; Virtanen, S.; Leppaaho, E.; and Kaski, S. 2015. Group factor analysis. IEEE Transactions on Neural Networks and Learning Systems 26(9):2136�2147. Kober, J., and Peters, J. 2009. Policy search for motor primitives in robotics. In Advances in Neural Information Processing Systems (NIPS), 849�856. Kober, J., and Peters, J. 2011. Policy search for motor primitives in robotics. Machine Learning 84(1):171�203. Kolter, J. Z., and Ng, A. Y. 2007. Learning omnidirectional path following using dimensionality reduction. In Proceedings of the Robotics: Science and Systems (R:SS) conference. The MIT Press. Luck, K. S.; Neumann, G.; Berger, E.; Peters, J.; and Ben Amor, H. 2014. Latent space policy search for robotics. In Proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 1434� 1440. IEEE. Neumann, G. 2011. Variational inference for policy search in changing situations. In Proceedings of the 28th International Conference on Machine Learning (ICML), 817�824. Peters, J., and Schaal, S. 2008. Natural actor-critic. Neurocomputing 71(7):1180�1190.
+Bernstein, N. A. 1967. The co-ordination and regulation of
+movements. Pergamon Press.
+Bishop, C. M. 2006. Pattern recognition and machine learning. Springer.
+Bitzer, S.; Howard, M.; and Vijayakumar, S. 2010. Using
+dimensionality reduction to exploit constraints in reinforcement learning. In Proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS),
+3219–3225. IEEE.
+Dempster, A. P.; Laird, N. M.; and Rubin, D. B. 1977.
+Maximum Likelihood from Incomplete Data via the EM Algorithm. Journal of the Royal Statistical Society. Series B
+(Methodological) 39(1):1–38.
+Gouaillier, D.; Hugel, V.; Blazevic, P.; Kilner, C.; Monceaux, J.; Lafourcade, P.; Marnier, B.; Serre, J.; and Maisonnier, B. 2008. The nao humanoid: a combination of performance and affordability. arXiv preprint arXiv:0807.3223.
+Harman, H. H. 1976. Modern factor analysis. University of
+Chicago Press.
+Klami, A.; Virtanen, S.; Leppaaho, E.; and Kaski, S. 2015.
+Group factor analysis. IEEE Transactions on Neural Networks and Learning Systems 26(9):2136–2147.
+Kober, J., and Peters, J. 2009. Policy search for motor primitives in robotics. In Advances in Neural Information Processing Systems (NIPS), 849–856.
+Kober, J., and Peters, J. 2011. Policy search for motor primitives in robotics. Machine Learning 84(1):171–203.
+Kolter, J. Z., and Ng, A. Y. 2007. Learning omnidirectional
+path following using dimensionality reduction. In Proceedings of the Robotics: Science and Systems (R:SS) conference. The MIT Press.
+Luck, K. S.; Neumann, G.; Berger, E.; Peters, J.; and
+Ben Amor, H. 2014. Latent space policy search for
+robotics. In Proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 1434–
+1440. IEEE.
+Neumann, G. 2011. Variational inference for policy search
+in changing situations. In Proceedings of the 28th International Conference on Machine Learning (ICML), 817–824.
+Peters, J., and Schaal, S. 2008. Natural actor-critic. Neurocomputing 71(7):1180–1190.
 
-Peters, J.; M� ulling, K.; Kober, J.; Nguyen-Tuong, D.; and Kr� omer, O. 2011. Towards motor skill learning for robotics. In Robotics Research. Springer. 469�482. Rohmer, E.; Singh, S. P.; and Freese, M. 2013. V-REP: A versatile and scalable robot simulation framework. In Proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 1321�1326. IEEE. Sagduyu, Y. E., and Ephremides, A. 2004. The problem of medium access control in wireless sensor networks. IEEE Wireless Communications 11(6):44�53. Santello, M.; Flanders, M.; and Soechting, J. 1998. Postural hand synergies for tool use. The Journal of Neuroscience 18(23). Torres-Oviedo, G., and Ting, L. H. 2010. Subject-specific muscle synergies in human balance control are consistent across different biomechanical contexts. Journal of Neurophysiology 103(6):3084�3098. Toussaint, M., and Storkey, A. 2006. Probabilistic inference for solving discrete and continuous state Markov Decision Processes. In Proceedings of the 23rd International Conference on Machine Learning (ICML), 945�952. Toussaint, M. 2009. Robot trajectory optimization using approximate inference. In Proceedings of the 26th annual International Conference on Machine Learning (ICML), 1049�1056. ACM. van de Meent, J.-W.; Tolpin, D.; Paige, B.; and Wood, F. 2015. Black-box policy search with probabilistic programs. arXiv preprint arXiv:1507.04635. Wang, X.; O'Dwyer, N.; and Halaki, M. 2013. A review on the coordinative structure of human walking and the application of principal component analysis. Neural Regeneration Research 8(7):662�670.
+Peters, J.; Mülling, K.; Kober, J.; Nguyen-Tuong, D.; and
+Krömer, O. 2011. Towards motor skill learning for robotics.
+In Robotics Research. Springer. 469–482.
+Rohmer, E.; Singh, S. P.; and Freese, M. 2013. V-REP: A
+versatile and scalable robot simulation framework. In Proceedings of the IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 1321–1326. IEEE.
+Sagduyu, Y. E., and Ephremides, A. 2004. The problem of
+medium access control in wireless sensor networks. IEEE
+Wireless Communications 11(6):44–53.
+Santello, M.; Flanders, M.; and Soechting, J. 1998. Postural
+hand synergies for tool use. The Journal of Neuroscience
+18(23).
+Torres-Oviedo, G., and Ting, L. H. 2010. Subject-specific
+muscle synergies in human balance control are consistent
+across different biomechanical contexts. Journal of Neurophysiology 103(6):3084–3098.
+Toussaint, M., and Storkey, A. 2006. Probabilistic inference
+for solving discrete and continuous state Markov Decision
+Processes. In Proceedings of the 23rd International Conference on Machine Learning (ICML), 945–952.
+Toussaint, M. 2009. Robot trajectory optimization using
+approximate inference. In Proceedings of the 26th annual
+International Conference on Machine Learning (ICML),
+1049–1056. ACM.
+van de Meent, J.-W.; Tolpin, D.; Paige, B.; and Wood, F.
+2015. Black-box policy search with probabilistic programs.
+arXiv preprint arXiv:1507.04635.
+Wang, X.; O’Dwyer, N.; and Halaki, M. 2013. A review on
+the coordinative structure of human walking and the application of principal component analysis. Neural Regeneration
+Research 8(7):662–670.
 
 All in-text references underlined in blue are linked to publications on ResearchGate, letting you access and read them immediately.
 

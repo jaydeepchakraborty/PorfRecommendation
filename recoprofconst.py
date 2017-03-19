@@ -22,9 +22,22 @@ import wordcloud
 import matplotlib.pyplot as plt
 
 
+import subprocess
+import os
+
+import time
+
+
+import numpy as np
+
+from sklearn.metrics.pairwise import cosine_similarity
+from scipy import sparse
+
+
 
 
 prof_lst_file_nm = "data/faculty_list.txt"
 prof_topic_file_path = "data/latenteq/"
 prof_pdf_path = "data/papers/"
-prof_topic_vis_file_path = "data/topicvisual/"
+prof_topic_vis_path = "data/topicvisual/"
+prof_topic_dist_path = "data/topicdist/"

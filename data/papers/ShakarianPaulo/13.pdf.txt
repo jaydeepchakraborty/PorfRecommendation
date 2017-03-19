@@ -1,40 +1,199 @@
 MIST: Missing Person Intelligence Synthesis Toolkit
-Elham Shaabani, Hamidreza Alvari, and Paulo Shakarian
-Arizona State University Tempe, AZ 85281
+Elham Shaabani, Hamidreza Alvari, and
+Paulo Shakarian∗
+Arizona State University
+Tempe, AZ 85281
 
-J.E. Kelly Snyder kelly@findmegroup.org
-Find Me Group Chandler, AZ 85249
+J.E. Kelly Snyder
+Find Me Group
+Chandler, AZ 85249
+
+kelly@findmegroup.org
 
 {shaabani, halvari, shak}@asu.edu
 
 ABSTRACT
-Each day, approximately 500 missing persons cases occur that go unsolved/unresolved in the United States. The nonprofit organization known as the Find Me Group (FMG), led by former law enforcement professionals, is dedicated to solving or resolving these cases. This paper introduces the Missing Person Intelligence Synthesis Toolkit (MIST) which leverages a data-driven variant of geospatial abductive inference. This system takes search locations provided by a group of experts and rank-orders them based on the probability assigned to areas based on the prior performance of the experts taken as a group. We evaluate our approach compared to the current practices employed by the Find Me Group and found it significantly reduces the search area leading to a reduction of 31 square miles over 24 cases we examined in our experiments. Currently, we are using MIST to aid the Find Me Group in an active missing person case.
-
-the experts taken as a group. We evaluate our approach compared to the current practices employed by the FMG and found it significantly reduces the search area. In 24 cases examined in our experiments (on real-world data provided by FMG), we found our approach to be able to reduce total search area by a total of 31 square miles for standard searches and by 19 square miles when dog team assets obtain a detection. This reduction is significant for the following reasons: � Reduction in time to locate missing persons. In cases where baseline provided 20 square miles or more (the most difficult cases), we achieved reduction in search area of 7 to 56 square miles. As 3-5 square miles are searched on a typical day (terrain dependent), such a reduction can potentially increase the chance of a missing person being found alive. � Reduction in direct costs. During a search, FMG spends approximately $2200 per day. In all tests, our approach reduced the search area in the majority of cases which can be interpreted as a reduction in direct costs. � Reduction in indirect costs. FMG relies extensively on volunteers to augment searches. During searches, these individuals often lose earnings from their day job or small business. As many volunteers also perform consulting or other services to law enforcement, longer searches lead to loss of revenue and opportunity. In one case, a volunteer estimated a loss of $15K. Again, our approach leads to a consistent reduction in search area - hence reducing these indirect costs. Specifically, we contribute an extension to geospatial abduction [24] that leverages historical data of individual experts. We also create new algorithms to learn parameters of a geospatial abduction model from data based on integer programming. We then evaluate these algorithms on realworld data provided by the FMG under a variety of different settings. This approach learns pattern of each reporter independently and is able to overcome outliers if any. It also does well on the limited data. This work has prepared us in our ongoing deployment of the software. At the time of this writing, we have provided results of MIST to support an active case with FMG. Figure 1 shows an example output of MIST where it rank-orders search locations. FMG is currently using this information to support their operations. They found the result consistent with their experiences.
+Each day, approximately 500 missing persons cases occur
+that go unsolved/unresolved in the United States. The nonprofit organization known as the Find Me Group (FMG),
+led by former law enforcement professionals, is dedicated to
+solving or resolving these cases. This paper introduces the
+Missing Person Intelligence Synthesis Toolkit (MIST) which
+leverages a data-driven variant of geospatial abductive inference. This system takes search locations provided by a
+group of experts and rank-orders them based on the probability assigned to areas based on the prior performance of
+the experts taken as a group. We evaluate our approach
+compared to the current practices employed by the Find Me
+Group and found it significantly reduces the search area leading to a reduction of 31 square miles over 24 cases we
+examined in our experiments. Currently, we are using MIST
+to aid the Find Me Group in an active missing person case.
 
 Keywords
-Geospatial abduction; abductive inference; law enforcement; missing person
+Geospatial abduction; abductive inference; law enforcement;
+missing person
 
 1.
 
 INTRODUCTION
 
-Each day, approximately 500 missing persons cases occur that go unsolved/unresolved in the United States. The nonprofit organization known as the Find Me Group (FMG), led by former law enforcement professionals, is dedicated to solving or resolving these cases. This non-profit operates with limited resources - so it must use its volunteer assets in a highly efficient manner. This paper introduces the Missing Person Intelligence Synthesis Toolkit (MIST) which leverages a data-driven variant of geospatial abductive inference [24]. This system takes search locations provided by a group of experts and rank-orders them based on the probability assigned to areas based on the prior performance of
- U.S. Provisional Patent 62/345,193. Contact shak@asu.edu for licensing information.
+Each day, approximately 500 missing persons cases occur
+that go unsolved/unresolved in the United States. The nonprofit organization known as the Find Me Group (FMG),
+led by former law enforcement professionals, is dedicated
+to solving or resolving these cases. This non-profit operates with limited resources - so it must use its volunteer assets in a highly efficient manner. This paper introduces the
+Missing Person Intelligence Synthesis Toolkit (MIST) which
+leverages a data-driven variant of geospatial abductive inference [24]. This system takes search locations provided by
+a group of experts and rank-orders them based on the probability assigned to areas based on the prior performance of
+∗
+U.S. Provisional Patent 62/345,193. Contact shak@asu.edu for
+licensing information.
 
-Figure 1: Mapping of ordered grids by MIST (green squares) and current searched area by FMG (red square). The rest of the paper is organized as follows. In Section 2, we present the background of the missing person problem. Next, we provide the technical preliminaries. We discuss our data-driven extension in Section 4. In Section 5, we detail our algorithmic approach. We introduce our dataset and conduct data analysis in Section 6. Next, we discuss the experimental results in Section 7. We review the related work in Section 8. We conclude the paper presenting future research directions.
+the experts taken as a group. We evaluate our approach
+compared to the current practices employed by the FMG
+and found it significantly reduces the search area. In 24
+cases examined in our experiments (on real-world data provided by FMG), we found our approach to be able to reduce
+total search area by a total of 31 square miles for standard
+searches and by 19 square miles when dog team assets obtain
+a detection. This reduction is significant for the following
+reasons:
+• Reduction in time to locate missing persons.
+In cases where baseline provided 20 square miles or
+more (the most difficult cases), we achieved reduction
+in search area of 7 to 56 square miles. As 3-5 square
+miles are searched on a typical day (terrain dependent), such a reduction can potentially increase the
+chance of a missing person being found alive.
+• Reduction in direct costs. During a search, FMG
+spends approximately $2200 per day. In all tests, our
+approach reduced the search area in the majority of
+cases which can be interpreted as a reduction in direct
+costs.
+• Reduction in indirect costs. FMG relies extensively on volunteers to augment searches. During searches,
+these individuals often lose earnings from their day job
+or small business. As many volunteers also perform
+consulting or other services to law enforcement, longer
+searches lead to loss of revenue and opportunity. In
+one case, a volunteer estimated a loss of $15K. Again,
+our approach leads to a consistent reduction in search
+area - hence reducing these indirect costs.
+Specifically, we contribute an extension to geospatial abduction [24] that leverages historical data of individual experts. We also create new algorithms to learn parameters
+of a geospatial abduction model from data based on integer
+programming. We then evaluate these algorithms on realworld data provided by the FMG under a variety of different
+settings. This approach learns pattern of each reporter independently and is able to overcome outliers if any. It also
+does well on the limited data. This work has prepared us
+in our ongoing deployment of the software. At the time of
+this writing, we have provided results of MIST to support
+an active case with FMG. Figure 1 shows an example output of MIST where it rank-orders search locations. FMG is
+currently using this information to support their operations.
+They found the result consistent with their experiences.
 
-important related crime is homicide. Many missing persons and human trafficking victims are found deceased due to this crime. This work represents initial progress in aiding toward crimes of this nature as well. In this paper, we formulate the problem of "finding missing person" with respect to information provided by FMG's experts, formally as a variant of the geospatial abduction problem (GAP) [22]. To account for the key nuances of "finding missing person" problem though, we extended the GAP framework to better suite this domain. In particular, we extend the GAP formalism with a data driven model accounting for the previous performance of experts aiding in the missing person cases. We list the unique characteristics of our framework here. Later in the next section, we provide our technical approach to each. 1. Explanation Size. One key difference "finding missing person" problem has from other GAP instances, is that the explanation (the result of a GAP inference algorithm) only consists of a single related location (i.e., the location of the missing person) corresponding to the phenomenon under study. This differs from returning a set of k locations in the previously-introduced GAP formalisms. Consequently, here, an explanation will consist of a single point, which in turn led us to explore a non-deterministic version of the original explanation. 2. Distance Constraints. In the original GAP formalism, each observed geospatial phenomenon is related to unobserved "partner" points through a distance constraint - (, ) where  is the minimum distance between an observation and partner and  is the maximum distance. As described, this pair of constraints was the same for all observations. However, in the missing persons problem, each observation corresponds to a different domain expert - and hence has a different (, ) constraint pair. Further, we study how this is best learned from data, as well as "soften" the constraint - assigning a probability of the partner point being less than , between distances  and  , and greater than distance  from an observation. 3. Uncertainty. As we learn the (, ) distance constraints for each observation and associate corresponding probabilities from historical data, it makes sense that the inference step is treated probabilistically which differs from the original deterministic GAP framework. Further, this enables us to rank the potential partner locations (again, as an explanation consists of one point, ranking search locations is more useful in a practical sense). 4. Independent Observations. In the original GAP framework, independence amongst the observations was not an assumption in the framework. However, FMG compartmentalizes the information from their law enforcement experts from one another in a manner to obtain independent reporting. Hence, we make this assumption in this paper and it is supported by our experimental results. FMG currently uses a simple heuristic to rank-order potential search locations for a missing person (we describe this
+Figure 1: Mapping of ordered grids by MIST (green squares)
+and current searched area by FMG (red square).
+The rest of the paper is organized as follows. In Section 2,
+we present the background of the missing person problem.
+Next, we provide the technical preliminaries. We discuss
+our data-driven extension in Section 4. In Section 5, we
+detail our algorithmic approach. We introduce our dataset
+and conduct data analysis in Section 6. Next, we discuss
+the experimental results in Section 7. We review the related
+work in Section 8. We conclude the paper presenting future
+research directions.
 
 2.
 
 BACKGROUND
 
-Missing persons cases have been on the rise in the USA for the past twenty years. Currently, approximately 4000 people go missing each and every day. Approximately 3500 of those cases are solved or resolved (i.e., cases solved by only providing accurate information to the authorities and without physical involvement), which leaves an astounding number of victims that are never located. In the case of missing adults 13 years of age and older, the police are not required or obligated to conduct an investigation or search unless there are extenuating circumstances such as suicide, a potential for violence, medical reasons, etc. This leaves families and friends without professional assistance in locating their loved ones. The Find Me Group (FMG) was founded by retired U.S. Drug Enforcement Agency (DEA) Special Agent J.E. "Kelly" Snyder in 2002. The group consists of current and retired law enforcement officers with a widerange of investigative expertise, including but not limited to linguistics, handwriting analysis, body language, missing person/homicide experience and search-and-rescue field management skills. The FMG has trained experts/sources that provide detailed location information where missing individuals can be found. Many of these experts have the ability to provide GPS coordinates to locate missing persons with a varying levels of success. The FMG focus/goal is to provide accurate location information in a timely manner and minimize the potential of finding the victim deceased. Thirty canine handlers certified in tracking, scent and cadaver complements the FMG and has led to many instances where the person in questions was located. Equally disturbing nationwide is the rise in human trafficking, which aligns within the missing person category. This type of crime has long-term and devastating results. The work of this paper is also the first step toward an allencompassing methodology of identifying locations of missing persons who were victims of human trafficking. Another
+Missing persons cases have been on the rise in the USA
+for the past twenty years. Currently, approximately 4000
+people go missing each and every day. Approximately 3500
+of those cases are solved or resolved (i.e., cases solved by
+only providing accurate information to the authorities and
+without physical involvement), which leaves an astounding
+number of victims that are never located. In the case of
+missing adults 13 years of age and older, the police are not
+required or obligated to conduct an investigation or search
+unless there are extenuating circumstances such as suicide, a
+potential for violence, medical reasons, etc. This leaves families and friends without professional assistance in locating
+their loved ones. The Find Me Group (FMG) was founded
+by retired U.S. Drug Enforcement Agency (DEA) Special
+Agent J.E. “Kelly” Snyder in 2002. The group consists of
+current and retired law enforcement officers with a widerange of investigative expertise, including but not limited
+to linguistics, handwriting analysis, body language, missing person/homicide experience and search-and-rescue field
+management skills. The FMG has trained experts/sources
+that provide detailed location information where missing individuals can be found. Many of these experts have the
+ability to provide GPS coordinates to locate missing persons
+with a varying levels of success. The FMG focus/goal is to
+provide accurate location information in a timely manner
+and minimize the potential of finding the victim deceased.
+Thirty canine handlers certified in tracking, scent and cadaver complements the FMG and has led to many instances
+where the person in questions was located.
+Equally disturbing nationwide is the rise in human trafficking, which aligns within the missing person category.
+This type of crime has long-term and devastating results.
+The work of this paper is also the first step toward an allencompassing methodology of identifying locations of missing persons who were victims of human trafficking. Another
 
-later in Section 5). Once ranked, FMG leverages a variety of assets. Figure 2 depicts a recently searched area for a case. It represents a screen shot of the tracks from the GPS units that the dogs wear as well as the handheld units that the searchers wear. This shows several dog tracks and the human tracks. The green, dark blue, magenta represent three dogs, the grey and red represent two human searchers. The teal track is a trailing dog, ascertaining a direction of travel. The straight lines tend to be humans and the rapidly changing direction lines are dogs as they grid around the humans. Figure 3 shows real-world examples of how the FMG practices in an undisclosed location.
+important related crime is homicide. Many missing persons
+and human trafficking victims are found deceased due to this
+crime. This work represents initial progress in aiding toward
+crimes of this nature as well.
+In this paper, we formulate the problem of “finding missing person” with respect to information provided by FMG’s
+experts, formally as a variant of the geospatial abduction
+problem (GAP) [22]. To account for the key nuances of
+“finding missing person” problem though, we extended the
+GAP framework to better suite this domain. In particular,
+we extend the GAP formalism with a data driven model accounting for the previous performance of experts aiding in
+the missing person cases. We list the unique characteristics
+of our framework here. Later in the next section, we provide
+our technical approach to each.
+1. Explanation Size. One key difference “finding missing person” problem has from other GAP instances, is
+that the explanation (the result of a GAP inference algorithm) only consists of a single related location (i.e.,
+the location of the missing person) corresponding to
+the phenomenon under study. This differs from returning a set of k locations in the previously-introduced
+GAP formalisms. Consequently, here, an explanation
+will consist of a single point, which in turn led us to
+explore a non-deterministic version of the original explanation.
+2. Distance Constraints. In the original GAP formalism, each observed geospatial phenomenon is related
+to unobserved “partner” points through a distance constraint - (α,β) where α is the minimum distance between an observation and partner and β is the maximum distance. As described, this pair of constraints
+was the same for all observations. However, in the
+missing persons problem, each observation corresponds
+to a different domain expert - and hence has a different (α,β) constraint pair. Further, we study how this
+is best learned from data, as well as “soften” the constraint - assigning a probability of the partner point
+being less than α, between distances α and β, and
+greater than distance β from an observation.
+3. Uncertainty. As we learn the (α,β) distance constraints for each observation and associate corresponding probabilities from historical data, it makes sense
+that the inference step is treated probabilistically which differs from the original deterministic GAP framework. Further, this enables us to rank the potential
+partner locations (again, as an explanation consists of
+one point, ranking search locations is more useful in a
+practical sense).
+4. Independent Observations. In the original GAP
+framework, independence amongst the observations was
+not an assumption in the framework. However, FMG
+compartmentalizes the information from their law enforcement experts from one another in a manner to
+obtain independent reporting. Hence, we make this
+assumption in this paper and it is supported by our
+experimental results.
+FMG currently uses a simple heuristic to rank-order potential search locations for a missing person (we describe this
 
-in [23] and later extended in [24, 21, 20, 19]. More formally, each GAP consists of three major elements [22]: (1) observations: a set of observations that explain the locations associated with the event under study (e.g., in this application, the locations reported by the domain experts), (2) distance constraints: a pair (,  )  R corresponding to lower and upper bounds on the distances between observation and partner location and, (3) feasibility predicate: this allows to specify whether an area on the map is a potential location for a partner. Next, we present the notations and definitions used throughout the paper, and review the geospatial abduction framework of [22]. In the next section, we describe specialized extensions that were necessary to study our problem. First, without loss of generality, we assume throughout the paper that a map (resp. space) is represented by a discrete two dimensional grid of size M � N , defined as follows: Definition 3.1. (Space). Given natural numbers M , N , the space S is the set [1, . . . , M ] � [1, . . . , N ]. Associated with the space is a distance function d : S � S  R+ that satisfies the normal distance axioms: d(pi , pi ) = 0, d(pi , pj ) = d(pj , pi ), and d(pi , pj )  d(pi , pq ) + d(pq , pj ). Note that we use o to represent the observer (source of information) and po to represent the location he/she reported (which differs slightly from the original framework). From these observations (reports), the corresponding unobserved phenomenon is the actual location of the missing person. In the original framework, the explanation consisted of geographic locations that were located at least distance  and no more than distance  away from each observation. In this work, we generalize this notion by providing , pair for each observer - denoted o ,o . Definition 3.2. (Feasibility Function). A feasibility function feas is defined as feas : S  {True, False}. A key use for the feasibility function here is for an initial reduction of the search space by the FMG. This is due to the fact that missing person reports often span a large area and an initial reduction is necessary for practical reasons. An obvious future direction would be to utilize a probabilistic variant of the feasibility function - which would assign a prior probability to a location for a missing person. However, in this application, it is unclear where such a distribution would come from. Further, as the search space is relatively large when compared to FMG resources, the deterministic version of this definition is more appropriate for operational reasons. Due to resource constraints and the generally large areas over which reports are spread, FMG typically only searches areas for which there is a report. As we shall describe in Section 5, they search a 1 � 1 mile square surrounding a location reported by an observer. As such is the case, we shall assume the following feasibility function throughout this paper: feas(p) = True False if p  O otherwise (1)
+later in Section 5). Once ranked, FMG leverages a variety of assets. Figure 2 depicts a recently searched area for
+a case. It represents a screen shot of the tracks from the
+GPS units that the dogs wear as well as the handheld units
+that the searchers wear. This shows several dog tracks and
+the human tracks. The green, dark blue, magenta represent
+three dogs, the grey and red represent two human searchers.
+The teal track is a trailing dog, ascertaining a direction of
+travel. The straight lines tend to be humans and the rapidly
+changing direction lines are dogs as they grid around the humans. Figure 3 shows real-world examples of how the FMG
+practices in an undisclosed location.
+
+in [23] and later extended in [24, 21, 20, 19]. More formally, each GAP consists of three major elements [22]: (1)
+observations: a set of observations that explain the locations associated with the event under study (e.g., in this
+application, the locations reported by the domain experts),
+(2) distance constraints: a pair (α, β) ∈ R corresponding to
+lower and upper bounds on the distances between observation and partner location and, (3) feasibility predicate: this
+allows to specify whether an area on the map is a potential
+location for a partner.
+Next, we present the notations and definitions used throughout the paper, and review the geospatial abduction framework of [22]. In the next section, we describe specialized
+extensions that were necessary to study our problem. First,
+without loss of generality, we assume throughout the paper
+that a map (resp. space) is represented by a discrete two
+dimensional grid of size M × N , defined as follows:
+Definition 3.1. (Space). Given natural numbers M ,
+N , the space S is the set [1, . . . , M ] × [1, . . . , N ].
 
 Figure 2: Screen shot of the tracks from the GPS units.
 
@@ -42,258 +201,930 @@ Figure 2: Screen shot of the tracks from the GPS units.
 
 TECHNICAL PRELIMINARIES
 
-In this section, we briefly explain geospatial abductive inference [24], and introduce our new (introduced in this paper) data-driven probabilistic extension. We show how this extension was used to address the unique characteristics of the missing person location problem. In general, abduction or abductive inference [12] refers to a type of logic or reasoning to derive plausible explanations for a given set of facts [13]. Abduction has been extensively studied in medicine [13, 14], fault diagnosis [3], belief revision [11], database updates [8, 4] and AI planning [5]. Two major existing theories of abduction include logic-based abduction [6] and set-covering abduction [2]. Though none of the above papers takes into account spatial inference, [25] presents a logical formalism dealing with objects' spatial occupancy, while [18] describes the construction of a qualitative spatial reasoning system based on sensor data from a mobile robot. Geospatial abduction problem (GAP) [22], on the other hand, refers to the problem of identifying unobserved partner locations (i.e., the location of a missing person) that best explain a set of observed phenomenon with known geographic locations. Geospatial abduction was first introduced
+In this section, we briefly explain geospatial abductive inference [24], and introduce our new (introduced in this paper) data-driven probabilistic extension. We show how this
+extension was used to address the unique characteristics of
+the missing person location problem.
+In general, abduction or abductive inference [12] refers to
+a type of logic or reasoning to derive plausible explanations
+for a given set of facts [13]. Abduction has been extensively
+studied in medicine [13, 14], fault diagnosis [3], belief revision [11], database updates [8, 4] and AI planning [5]. Two
+major existing theories of abduction include logic-based abduction [6] and set-covering abduction [2]. Though none of
+the above papers takes into account spatial inference, [25]
+presents a logical formalism dealing with objects’ spatial occupancy, while [18] describes the construction of a qualitative spatial reasoning system based on sensor data from a
+mobile robot.
+Geospatial abduction problem (GAP) [22], on the other
+hand, refers to the problem of identifying unobserved partner locations (i.e., the location of a missing person) that
+best explain a set of observed phenomenon with known geographic locations. Geospatial abduction was first introduced
 
 (a)
 
 (b)
 
-Figure 3: (a) Picture of the search area taken from the plane. (b) Search team.
+Figure 3: (a) Picture of the search area taken from the plane.
+(b) Search team.
 
-Unless otherwise noted, we shall assume the above function is used for feasibility and hence the subset of the space considered will be the points in O. We now come to the important definition of an explanation. Intuitively, for a given set of points {p1 , . . . , p|O| }
+Associated with the space is a distance function d : S ×
+S → R+ that satisfies the normal distance axioms: d(pi , pi ) =
+0, d(pi , pj ) = d(pj , pi ), and d(pi , pj ) ≤ d(pi , pq ) + d(pq , pj ).
+Note that we use o to represent the observer (source of information) and po to represent the location he/she reported
+(which differs slightly from the original framework). From
+these observations (reports), the corresponding unobserved
+phenomenon is the actual location of the missing person.
+In the original framework, the explanation consisted of geographic locations that were located at least distance α and
+no more than distance β away from each observation. In
+this work, we generalize this notion by providing α,β pair
+for each observer - denoted αo ,βo .
+Definition 3.2. (Feasibility Function). A feasibility
+function feas is defined as feas : S → {True, False}.
+A key use for the feasibility function here is for an initial
+reduction of the search space by the FMG. This is due to the
+fact that missing person reports often span a large area and
+an initial reduction is necessary for practical reasons. An
+obvious future direction would be to utilize a probabilistic
+variant of the feasibility function - which would assign a prior
+probability to a location for a missing person. However, in
+this application, it is unclear where such a distribution would
+come from. Further, as the search space is relatively large
+when compared to FMG resources, the deterministic version
+of this definition is more appropriate for operational reasons.
+Due to resource constraints and the generally large areas
+over which reports are spread, FMG typically only searches
+areas for which there is a report. As we shall describe in
+Section 5, they search a 1 × 1 mile square surrounding a
+location reported by an observer. As such is the case, we
+shall assume the following feasibility function throughout
+this paper:
+(
+True
+if p ∈ O
+feas(p) =
+(1)
+False otherwise
+Unless otherwise noted, we shall assume the above function is used for feasibility and hence the subset of the space
+considered will be the points in O.
+We now come to the important definition of an explanation. Intuitively, for a given set of points {p1 , . . . , p|O| }
 
-reported by observers in O, an explanation is a set of points E such that every point in this set is feasible and for every observation, there is a point in E that is at least  units away from the observation, but no more than  units from the observation. Definition 3.3. ((, ) Explanation). Suppose O is the set of observations, E is a finite set of points in S , and 0  ,   1 are two real numbers. E is said to be an (,  ) explanation of O iff: � p  E implies that feas(p) = True, i.e., all points in E are feasible. � (o  O)(p  E )   d(p, o)   , i.e., every observation is neither too close nor too far from some point in E . Thus, an (, ) explanation is a set of points. Each point must be feasible and every observation must have an analogous point in the explanation which is neither too close nor too far. Again, we note that here an explanation will consist of a single point - the location of the missing person. Hence, this deterministic definition of an explanation will not suffice as in practice there will often not exist an explanation for a given problem instance. As such is the case, we extended this framework using a data-driven approach.
-
-Note that in the remainder of this section, we will use one distance constraint ( ) for sake of brevity - though this idea can be extended for multiple distance constraints (as per characteristic 2 from Section 2). In fact, we leverage multiple distance constraints in our optimization procedure for parameter selection introduced later. Hence, by distance primacy, we have the following relationships. P r(Pp |
-oO
-
-Oo = po ) = P r(Pp |
-oO
-
-R p,po )
-
-(2)
-
-By Bayes' Theorem, this is equivalent to the following. P r(Pp ) � P r( P r(
- oO Rp,po |Pp )  oO Rp,po )
-
-(3)
-
-However, by characteristic 4, we assume that the observers report information independently, which gives us the following. P r(Pp ) � P r(
-oO oO
-
-P r(R p,po |Pp ) R p,po )
-
-(4)
+reported by observers in O, an explanation is a set of points
+E such that every point in this set is feasible and for every
+observation, there is a point in E that is at least α units
+away from the observation, but no more than β units from
+the observation.
+Definition 3.3. ((α,β) Explanation). Suppose O is
+the set of observations, E is a finite set of points in S, and
+0 ≤ α, β ≤ 1 are two real numbers. E is said to be an (α, β)
+explanation of O iff:
+• p ∈ E implies that feas(p) = True, i.e., all points in E
+are feasible.
+• (∀o ∈ O)(∃p ∈ E) α ≤ d(p, o) ≤ β, i.e., every observation is neither too close nor too far from some point
+in E.
+Thus, an (α,β) explanation is a set of points. Each point
+must be feasible and every observation must have an analogous point in the explanation which is neither too close nor
+too far.
+Again, we note that here an explanation will consist of a
+single point - the location of the missing person. Hence, this
+deterministic definition of an explanation will not suffice as in practice there will often not exist an explanation for
+a given problem instance. As such is the case, we extended
+this framework using a data-driven approach.
 
 4.
 
 DATA-DRIVEN EXTENSIONS
 
-In this section, we describe our data-driven probabilistic extension to the original GAP formalism. The framework extensions in this section were not previously introduced and are new in this paper. In order to do so, we first introduce some preliminary notation. For point p  S , the random variable Pp denotes that the missing person was found at point p, so this is either true or false. We will use Pp as shorthand for Pp = True. For observer o  O the random variable Oo can be assigned to one of the points in p. Based on this notation, we define an explanation distribution. Definition 4.1 (Explanation Distribution). Given a set of observers O and a set of reported locations by each observer p1 , . . . , po , . . . , p|O| , an explanation distribution is a probability distribution over all points in S - directly addressing characteristic 3 of this application (see Section 2). This distribution assigns the probability of a missing person being located at each point conditioned on the observers reporting their respective locations. Formally, it is written as P r(Pp | oO Oo = po ). The key intuition is that if we are able to compute an explanation distribution, we can then rank-order points in the space by probability - and hence conserve search resources. Note that the explanation distribution is over all points implying that there is precisely one location. While generalizations that allow for more than one location are possible in such a probabilistic framework, we keep the size at one due to the first characteristic of our problem (as described in Section 2). In this paper, we make an assumption of distance primacy meaning the distance constraints (o , o ) relate the Pp with oO Oo = po . Hence, we introduce another random vario able, R p,p which is true if d(p, p )  o and false otherwise.
+In this section, we describe our data-driven probabilistic
+extension to the original GAP formalism. The framework
+extensions in this section were not previously introduced and
+are new in this paper. In order to do so, we first introduce
+some preliminary notation. For point p ∈ S, the random
+variable Pp denotes that the missing person was found at
+point p, so this is either true or false. We will use Pp as
+shorthand for Pp = True. For observer o ∈ O the random
+variable Oo can be assigned to one of the points in p. Based
+on this notation, we define an explanation distribution.
+Definition 4.1 (Explanation Distribution). Given
+a set of observers O and a set of reported locations by each
+observer p1 , . . . , po , . . . , p|O| , an explanation distribution
+is a probability distribution over all points in S - directly addressing characteristic 3 of this application (see Section 2).
+This distribution assigns the probability of a missing person
+being located at each point conditioned on the observers reporting V
+their respective locations. Formally, it is written as
+P r(Pp | o∈O Oo = po ).
+The key intuition is that if we are able to compute an explanation distribution, we can then rank-order points in the
+space by probability - and hence conserve search resources.
+Note that the explanation distribution is over all points implying that there is precisely one location. While generalizations that allow for more than one location are possible
+in such a probabilistic framework, we keep the size at one
+due to the first characteristic of our problem (as described
+in Section 2).
+In this paper, we make an assumption of distance primacy
+meaning
+the distance constraints (αo , βo ) relate the Pp with
+V
+o∈O Oo = po . Hence, we introduce another random vari0
+o
+able, Rβp,p
+0 which is true if d(p, p ) ≤ βo and false otherwise.
 
-Due to our application, we will not consider the prior probability P r(Pp ) as each missing person case occurs in a different geographic location - and due to the wide range of cases that span multiple countries, data supporting a realistic, informed prior is highly sparse. As such, we consider a uninformed prior. Further, for notational simplicity, we shall  use the notation  o for the quantity P r (Rp,po = True|Pp = True). Therefore, we can rank points in the space based on the explanation distribution by simply considering their log-likelihood computed as follows: log( o) +
-oO d(p,po ) oO d(p,po )>
+Note that in the remainder of this section, we will use one
+distance constraint (β) for sake of brevity - though this idea
+can be extended for multiple distance constraints (as per
+characteristic 2 from Section 2). In fact, we leverage multiple distance constraints in our optimization procedure for
+parameter selection introduced later. Hence, by distance
+primacy, we have the following relationships.
+^
+^ β
+P r(Pp |
+Oo = po ) = P r(Pp |
+Rp,po )
+(2)
+o∈O
 
-log(1 -  o)
+o∈O
 
+By Bayes’ Theorem, this is equivalent to the following.
+V
+P r(Pp ) × P r( o∈O Rβp,po |Pp )
+(3)
+V
+P r( o∈O Rβp,po )
+However, by characteristic 4, we assume that the observers
+report information independently, which gives us the following.
+Q
+P r(Pp ) × o∈O P r(Rβp,po |Pp )
+(4)
+V
+P r( o∈O Rβp,po )
+Due to our application, we will not consider the prior probability P r(Pp ) as each missing person case occurs in a different geographic location - and due to the wide range of
+cases that span multiple countries, data supporting a realistic, informed prior is highly sparse. As such, we consider a
+uninformed prior. Further, for notational simplicity, we shall
+use the notation ρβo for the quantity P r(Rβp,po = True|Pp =
+True). Therefore, we can rank points in the space based
+on the explanation distribution by simply considering their
+log-likelihood computed as follows:
+X
+X
+log(ρβo ) +
+log(1 − ρβo )
 (5)
+o∈O
+d(p,po )≤β
 
-Hence, the inference step for this problem is straightforward provided we know the values  and  o for each observer o  O (or similar parameters if considering more than one distance constraint). If we know the value  we can then compute  o based on a corpus of historical data concerning the accuracy of reporter o. Given a corpus of previous cases for the observer Co where the found location was pc and the location reported by the observer was pc o , we can compute  o as follows:  o = |{c  Co s.t. d(pc , pc o )   }| |C o | (6)
+o∈O
+d(p,po )>β
 
-Hence, we also adjust  o to account for volume of the reporter's history to provide the effect of regularization. Considering o as the portion of total number of cases in which observer o has participated, to the total number of cases, and as a non-negative parameter, we define , as follows: o , =  o o - � (1 - o ) (7)
+Hence, the inference step for this problem is straightforward provided we know the values β and ρβo for each
+observer o ∈ O (or similar parameters if considering more
+than one distance constraint). If we know the value β we
+can then compute ρβo based on a corpus of historical data
+concerning the accuracy of reporter o. Given a corpus of
+previous cases for the observer Co where the found location
+was pc and the location reported by the observer was pco , we
+can compute ρβo as follows:
+ρβo =
 
-The situation is further complicated with multiple distance constraints. We propose an optimization approach to this problem in the next section.
+|{c ∈ Co s.t. d(pc , pco ) ≤ β}|
+|Co |
+
+(6)
+
+Hence, we also adjust ρβo to account for volume of the reporter’s history to provide the effect of regularization. Considering ηo as the portion of total number of cases in which
+observer o has participated, to the total number of cases,
+and  as a non-negative parameter, we define ρβ,
+as follows:
+o
+ρβ,
+= ρβo −  × (1 − ηo )
+o
+
+(7)
+
+The situation is further complicated with multiple distance constraints. We propose an optimization approach to
+this problem in the next section.
 
 5.
 
 ALGORITHMIC APPROACH
 
-In this section, we present our algorithmic approach to special case of geospatial abductive inference. First, we ex-
+In this section, we present our algorithmic approach to
+special case of geospatial abductive inference. First, we ex-
 
 plain the method that FMG currently uses. Then, we provide our proposed optimization approach to solve the problem.
 
-also minimize the following quantity: F2 =
-cC oO p{S\pc }  [o ]   (p, pc o ) � log o � Xo,
+also minimize the following quantity:
+XX X
+X h
+0
+F2 =
+δβ (p, pco ) × log ρoβ × Xo,β
+c∈C o∈O p∈{S\pc } β∈[βo ]
 
 5.1
 
 Existing Method
 
-The FMG uses the following method to explore the missing person location. Given the reported locations provided by different observers, FMG initially creates a search area (grid) as follows. First, they draw building blocks (or boxes) of size 1�1 mile centered at each reported location (note that depending on the situation, these boxes may overlap). Then, they search the entire grid in the following order. First, they search the larger areas created of the overlapping boxes, and if the missing person was not found, they explore the remaining boxes in the order of the observers' history (how well they did in the past). The whole process is repeated by extending the size of boxes to 2�2 miles, if the missing person was not located. Note that, we use the same grid in our proposed methods.
+0
 
- + (1 -  (p, pc o )) � log(1 - o ) � Xo,
-
-(13)
-
-Therefore, the objective function we seek to optimize is L1 = max(F1 - F2 ) (14)
-
-Theorem 5.1. Number of variables in single-distance constraint integer program is O(avg(|Co |) � |O|). We extend the previous formulation by allowing the objective function to find a pair of distance constraints for each reporter. We have experimentally found diminishing returns on performance (and in many cases increased complexity) with more than two constraints. This will give us the double distance constraint integer program as follows: F1 =
-cC oO [o ] [o ]   c c , , + 1 -  (pc , pc o ) �  (p , po ) � log o - o , (1 -  (pc , pc o )) � log 1 - o ,  (pc , pc � Xo,, o ) � log o
+The FMG uses the following method to explore the missing person location. Given the reported locations provided
+by different observers, FMG initially creates a search area
+(grid) as follows. First, they draw building blocks (or boxes)
+of size 1×1 mile centered at each reported location (note that
+depending on the situation, these boxes may overlap). Then,
+they search the entire grid in the following order. First, they
+search the larger areas created of the overlapping boxes, and
+if the missing person was not found, they explore the remaining boxes in the order of the observers’ history (how
+well they did in the past). The whole process is repeated
+by extending the size of boxes to 2×2 miles, if the missing
+person was not located. Note that, we use the same grid in
+our proposed methods.
 
 5.2
 
 Proposed Methods
 
-As described, for simplicity, we first elaborate on the required steps to calculate the best o for each observer. Then, we extend the idea for multiple distance constraints. Let [o ] be the set of possible error radii. Note that for Co cases where observer reported a location, there are at most |Co | possible values for o . Hence, our goal is to select as a set of these distance constraints - one for each observer. We do this through an integer program - where for each observer o  O and each associated distance constraint o  [o ] we have an indicator variable Xo,o that is 1 if we use that value and zero otherwise. We shall refer to this as the single constraint integer program. Hence, we find an assignment of values to these indicator variables in order to maximize the following quantity: F1 =
-cC oO  [o ]  (1 -  (pc , pc o )) � log(1 - o ) � Xo,
+As described, for simplicity, we first elaborate on the required steps to calculate the best βo for each observer. Then,
+we extend the idea for multiple distance constraints. Let
+[βo ] be the set of possible error radii. Note that for Co cases
+where observer reported a location, there are at most |Co |
+possible values for βo . Hence, our goal is to select as a set
+of these distance constraints - one for each observer. We do
+this through an integer program - where for each observer
+o ∈ O and each associated distance constraint βo ∈ [βo ]
+we have an indicator variable Xo,βo that is 1 if we use that
+value and zero otherwise. We shall refer to this as the single
+constraint integer program. Hence, we find an assignment of
+values to these indicator variables in order to maximize the
+following quantity:
+XX X h
+F1 =
+δβ (pc , pco ) × log ρβo × Xo,β +
 
-� Xo,, +
++ (1 − δβ (p, pco )) × log(1 − ρoβ ) × Xo,β
 
-� Xo,,
+(1 − δβ (p
 
-subject to the following constraints: Xo,,  {0, 1} o,
-, [o ]
+, pco ))
 
-Xo,,  1
+× log(1 −
 
-Likewise, we use the following objective function, to avoid bias toward selecting the largest  's. L2 = max(F1 - F2 ) where F2 is defined as follows: (15)
+ρβo )
 
- (p
+× Xo,β
 
+i
+
+(8)
+
+subject to the following constraints:
+∀Xo,β ∈ {0, 1}
+∀o,
+
+X
+
+(13)
+
+Therefore, the objective function we seek to optimize is
+L1 = max(F1 − F2 )
+
+(14)
+
+Theorem 5.1. Number of variables in single-distance constraint integer program is O(avg(|Co |) · |O|).
+We extend the previous formulation by allowing the objective function to find a pair of distance constraints for each
+reporter. We have experimentally found diminishing returns
+on performance (and in many cases increased complexity)
+with more than two constraints. This will give us the double
+distance constraint integer program as follows:
+XX X X h
+F10 =
+δα (pc , pco ) × log ρα,
+× Xo,α,β
+o
+c∈C o∈O α∈[βo ]β∈[βo ]
+β≥α
+
+
+
+
+
+α,
+× Xo,α,β +
++ 1 − δα (pc , pco ) × δβ (pc , pco ) × log ρβ,
+o − ρo
+
+
+i
+(1 − δβ (pc , pco )) × log 1 − ρβ,
+× Xo,α,β
+o
+subject to the following constraints:
+
+∀o,
+
+∀Xo,α,β ∈ {0, 1}
+X
+Xo,α,β ≤ 1
+α,β∈[βo ]
+
+Likewise, we use the following objective function, to avoid
+bias toward selecting the largest β’s.
+L2 = max(F10 − F20 )
+where
+
+c∈C o∈O β∈[βo ]
 c
 
-, pc o)
+i
 
-�
+F20 =
 
-log  o
+F20
 
-� Xo, + (8)
+is defined as follows:
+X
 
-F2 =
-cC oO [o ] [o ]   p{S\pc }
+XX X X h
 
-,  (p, pc � Xo,, + o ) � log o
+(15)
 
-subject to the following constraints: Xo,  {0, 1} o,
- [o ]
+0
 
-c 1 -  (p, pc o ) �  (p, po )�
+δα (p, pco ) × log ρoα, × Xo,α,β +
 
-(9) (10)
+c
+c∈C o∈O α∈[βo ]β∈[βo ] p∈{S\p }
+β≥α
 
-log(o, - o, ) � Xo,, +
-, 1 -  (p, pc o ) � log 1 - o
+
+
+1 − δα (p, pco ) × δβ (p, pco )×
+(9)
 
-Xo,  1
+Xo,β ≤ 1
 
-� Xo,,
+(10)
 
-(16)
-
-Xo, = k
-o  [o ]
+Xo,β = k
 
 (11)
 
-Theorem 5.2. Number of variables in double distance constraint integer program is O(avg(|Co |)2 � |O|). While we obtained a significant reduction in the area searched by setting the cardinality constraint k = O, we found that varying it would often lead to further improvement. We gradually increased the number of observers from one to the total number of observers and each time, we learned the distance constraints for the last added observers. In this method of optimization, we may choose a specific number of points in each iteration. The number of points added with each iteration can be determined based on available resources. We also defined two heuristic to discriminate points with the same probability. In each iteration, we chose the point with highest probability. If there were more than one point,
+0
 
-where k is a cardinality that limits the number of reporters (which is set to a natural number in the range 1, . . . , |O|), and  (x, y ) is defined as:  (x, y ) = 1 0 if d(x, y )   if d(x, y ) >  (12)
+0
 
-However, this equation will result in tendency toward selecting the largest distance constraints. This has the effect of not only maximizing the probability of the locations where the missing person was found, but also can increase the probability of other locations. Intuitively, we want to
+log(ρoβ, − ρoα, ) × Xo,α,β +
+
+
+
+
+i
+0
+1 − δβ (p, pco ) × log 1 − ρoβ, × Xo,α,β
 
-we applied following heuristics: (1) we chose the points which had most of the reported locations in its 1 � 1 mile. (2) we chose the point which had the maximum summation of the priors of the reporters in its 1 � 1 mile. Algorithm 1 is a specific variant of restricted model. In this algorithm, in each iteration one point (i.e., representative of a 1 � 1 mile) is selected. Though we note that this can easily be adjusted in practice. If the area size we are able to search is larger than number of observers, we sort the representatives based on their probabilities. Then, we apply two heuristics to rank them (similar to Lines 11-19 ). Algorithm 1 Iterative Search Resource Allocation 1: procedure Opt-Point-By-Point(A, c, S , ) Train set A, Test case c 2: List R =  Output 3: for k  [1, |Oc |] do k is a constant value of the constraint 4: Find assignment of variables that optimize (15) w.r.t. (9 - 11) 5: RP  Order by (5) Ranked points RP 6: RP  RP \ R 7: Pick P  RP with largest probabilities 8: if P includes one point then 9: R=RP 10: else 11: p  Heuristic(P ) 12: R = R  { p} 13: return R Theorem 5.3. The time complexity of the algorithm (1) is O(|C |�avg(|Co |)2 � avg(|Oc |)3 ).
+(16)
 
-Table 1: Description of the dataset Name Found Status Alive Deceased Gender Male Female Age Under 13 13 to 30 30 and older Value 12 76 41 47 9 39 40
+β∈[βo ]
 
-bipolar, drowning, foul play, natural, runaway, self-inflicted, staged and undetermined. According to Figure 5, `foul play' is the dominant reason for disappearance. There are also different number of reporters for each case. The distribution of reporters with respect to the number of cases in which they participated is shown in Figure 6.
-40 Number of cases 35 30 25 20 15 10 5 International Northeast Midwest South West 0
+X X
+o
 
-6.
+β∈[βo ]
 
-MISSING PERSON DATASET
+where k is a cardinality that limits the number of reporters
+(which is set to a natural number in the range 1, . . . , |O|),
+and δβ (x, y) is defined as:
+(
+1 if d(x, y) ≤ β
+δβ (x, y) =
+(12)
+0 if d(x, y) > β
+However, this equation will result in tendency toward selecting the largest distance constraints. This has the effect of not only maximizing the probability of the locations
+where the missing person was found, but also can increase
+the probability of other locations. Intuitively, we want to
 
-Regions
+Theorem 5.2. Number of variables in double distance constraint integer program is O(avg(|Co |)2 · |O|).
+While we obtained a significant reduction in the area searched
+by setting the cardinality constraint k = O, we found that
+varying it would often lead to further improvement. We
+gradually increased the number of observers from one to the
+total number of observers and each time, we learned the
+distance constraints for the last added observers. In this
+method of optimization, we may choose a specific number
+of points in each iteration. The number of points added
+with each iteration can be determined based on available
+resources.
+We also defined two heuristic to discriminate points with
+the same probability. In each iteration, we chose the point
+with highest probability. If there were more than one point,
 
-In this section, we describe our dataset and briefly discuss the observation made from our initial data analysis.
+Table 1: Description of the dataset
+
+we applied following heuristics: (1) we chose the points
+which had most of the reported locations in its 1 × 1 mile.
+(2) we chose the point which had the maximum summation
+of the priors of the reporters in its 1 × 1 mile.
+Algorithm 1 is a specific variant of restricted model. In
+this algorithm, in each iteration one point (i.e., representative of a 1 × 1 mile) is selected. Though we note that this
+can easily be adjusted in practice. If the area size we are
+able to search is larger than number of observers, we sort
+the representatives based on their probabilities. Then, we
+apply two heuristics to rank them (similar to Lines 11-19 ).
+
+Name
+Found Status
+Alive
+Deceased
+Gender
+Male
+Female
+Age
+Under 13
+13 to 30
+30 and older
+
+Algorithm 1 Iterative Search Resource Allocation
 
 6.1
 
+30
+25
+20
+15
+10
+
 Overview
-
-Figure 4: Distribution of the cases across different regions of the US and international. For the rest of our data analysis, we need to introduce some preliminary notation. We use the random variable gA to denote if the missing person is found alive or not, so it is either true or false. We shall use P r(gA = True|o stated Alive) to denote the confidence of the observer o in reporting Alive. This confidence value shows the portion of the cases for which o has reported the missing person is Alive and he/she was found Alive, to the total number of cases for which o has reported Alive. Likewise, we compute the confidence of o in reporting Deceased. The distribution of the reporters with respect to their confidence values is demonstrated in Figure 7. According to the figure, most reporters' confidence values belong to the ranges of [0.3,0.4) for alive and [0.8,0.9) for deceased statuses. We also define the ratio rA as follows: rA = P r(gA = True|observer o stated Alive ) P r(gA = True) (17)
-
-Our dataset includes cases (i.e., missing persons), found status (alive/deceased), found location (latitude and longitude), age and reason for disappearance as well as the potential locations (latitude and longitude) associated with the reporters/experts. The description of this dataset is summarized in Table 1. Note that in some cases, we are aware of reports, but do not have the found location (pc o ). In this work, we only have 29 cases with the known found locations used for the experiments. However, for the data analysis, the entire dataset is applied.
 
 6.2
 
 Data Analysis
 
-The dataset consists of cases distributed all over the world. We split the U.S. based cases into 4 regions, west, midwest, northeast and south, according to the United States Census Bureau. We further grouped together all cities outside the U.S. into one single category, namely, international. The distribution of cases across different regions is demonstrated in Figure 4. Though we did not explicitly show in the figure, the west is dominated by Arizona and California, due to the large focus of FMG on these two states. There are several known reasons of disappearance associated with the cases in our dataset including, accidental,
+The dataset consists of cases distributed all over the world.
+We split the U.S. based cases into 4 regions, west, midwest,
+northeast and south, according to the United States Census
+Bureau. We further grouped together all cities outside the
+U.S. into one single category, namely, international. The
+distribution of cases across different regions is demonstrated
+in Figure 4. Though we did not explicitly show in the figure,
+the west is dominated by Arizona and California, due to the
+large focus of FMG on these two states.
+There are several known reasons of disappearance associated with the cases in our dataset including, accidental,
 
-This ratio demonstrates how much the observer o outperformed the prior probability P r(gA = True) on Alive. Similarly, we use rD for Deceased cases. The distributions of the reporters with respect to rA and rD are shown in Figure 8. We note that as most are found dead, it is harder for the
+West
 
-35 Number of cases 30
+South
 
-18 16 NumberofReporters
-Undetermined Self-inflicted Accidental Drowning Runaway Foul play Natural Staged Bipolar
+Midwest
 
-25 20 15 10 5 0
+International
 
-14 12 10 8 6 4 2 0 0 180 160 1 2 3 4 rA 5 6 7 8
+Northeast
+
+5
+
+MISSING PERSON DATASET
+
+Our dataset includes cases (i.e., missing persons), found
+status (alive/deceased), found location (latitude and longitude), age and reason for disappearance as well as the potential locations (latitude and longitude) associated with the
+reporters/experts. The description of this dataset is summarized in Table 1. Note that in some cases, we are aware of
+reports, but do not have the found location (pco ). In this
+work, we only have 29 cases with the known found locations
+used for the experiments. However, for the data analysis,
+the entire dataset is applied.
+
+9
+39
+40
+
+35
+
+Theorem 5.3. The time complexity of the algorithm (1)
+is O(|C|·avg(|Co |)2 · avg(|Oc |)3 ).
+
+In this section, we describe our dataset and briefly discuss
+the observation made from our initial data analysis.
+
+41
+47
+
+40
+
+0
+
+6.
+
+12
+76
+
+bipolar, drowning, foul play, natural, runaway, self-inflicted,
+staged and undetermined. According to Figure 5, ‘foul play’
+is the dominant reason for disappearance. There are also different number of reporters for each case. The distribution of
+reporters with respect to the number of cases in which they
+participated is shown in Figure 6.
+
+Number of cases
+
+1: procedure Opt-Point-By-Point(A, c, S, ρ) . Train
+set A, Test case c
+2:
+List R = ∅
+. Output
+3:
+for k ∈ [1, |Oc |] do
+. k is a constant value of the
+constraint
+4:
+Find assignment of variables that optimize (15)
+w.r.t. (9 - 11)
+5:
+RP ← Order by (5)
+. Ranked points RP
+6:
+RP ← RP \ R
+7:
+Pick P ⊆ RP with largest probabilities
+8:
+if P includes one point then
+9:
+R=R∪P
+10:
+else
+11:
+p ← Heuristic(P )
+12:
+R = R ∪ {p}
+13:
+return R
+
+Value
+
+Regions
+
+Figure 4: Distribution of the cases across different regions
+of the US and international.
+For the rest of our data analysis, we need to introduce
+some preliminary notation. We use the random variable gA
+to denote if the missing person is found alive or not, so it is
+either true or false. We shall use P r(gA = True|o stated Alive)
+to denote the confidence of the observer o in reporting Alive.
+This confidence value shows the portion of the cases for
+which o has reported the missing person is Alive and he/she
+was found Alive, to the total number of cases for which o has
+reported Alive. Likewise, we compute the confidence of o in
+reporting Deceased. The distribution of the reporters with
+respect to their confidence values is demonstrated in Figure 7. According to the figure, most reporters’ confidence
+values belong to the ranges of [0.3,0.4) for alive and [0.8,0.9)
+for deceased statuses.
+We also define the ratio rA as follows:
+rA =
+
+P r(gA = True|observer o stated Alive)
+P r(gA = True)
+
+(17)
+
+This ratio demonstrates how much the observer o outperformed the prior probability P r(gA = True) on Alive. Similarly, we use rD for Deceased cases. The distributions of the
+reporters with respect to rA and rD are shown in Figure 8.
+We note that as most are found dead, it is harder for the
+
+16	
+Number	of	Reporters	
+
+18	
+
+30
+25
+20
+15
+10
+
+Foul play
+
+Undetermined
+
+Accidental
+
+Self-inflicted
+
+Runaway
+
+Natural
+
+Bipolar
+
+0
+
+Staged
+
+5
+Drowning
+
+Number of cases
+
+35
+
+14	
+12	
+10	
+8	
+6	
+4	
+2	
+0	
+0	
+
+1	
+
+2	
+
+3	
+
+4	
+rA
+
+5	
+
+6	
+
+7	
+
+8	
+
+180	
 
 Reasons
 
-NumberofReporters
+160	
+Number	of	Reporters	
 
 Figure 5: Distribution of the cases with respect to the probable reasons.
-45 40 NumberofReporters 35 30 25 20 15 10 5 0 1 2 3 4 5 6 7 10 13 FrequencyofPar=cipa=on 15 16 17
+45	
+Number	of	Reporters	
 
-140 120 100 80 60 40 20 0 0.5 0.7 0.9 rD 1.1 1.3
+40	
+35	
+30	
 
-Figure 8: The distributions of the reporters with respect to rA and rD .
+140	
+120	
+100	
+80	
+60	
+40	
+
+25	
+
+20	
+
+20	
+
+0	
+
+15	
+
+0.5	
+
+0.7	
+
+10	
+
+0.9	
+rD
+
+1.1	
+
+1.3	
+
+5	
+0	
+1	
+
+2	
+
+3	
+
+4	
+
+5	
+6	
+7	 10	 13	
+Frequency	of	Par=cipa=on	
+
+15	
+
+16	
+
+Figure 8: The distributions of the reporters with respect to
+rA and rD .
+
+17	
+
+[0.9,	1]	
+
+[0.8,	0.9)	
+
+[0.7,	0.8)	
+
+[0.6,	0.7)	
+
+[0.5,	0.6)	
+
+[0.4,	0.5)	
+
+[0.3,	0.4)	
+
+[0.2,	0.3)	
+
+alive	
+deceased	
+
+[0.1,	0.2)	
+
+18	
+16	
+14	
+12	
+10	
+8	
+6	
+4	
+2	
+0	
+
+[0,	0.1)	
+
+Number	of	Reporters	
 
 Figure 6: Distribution of frequency of participation.
-18 16 14 12 10 8 6 4 2 0 alive deceased
 
-7.1
+Conﬁdence	
 
-Area Reduction
+Figure 7: Distribution of all reporters with respect to their
+confidence values.
 
-Confidence
-
-Figure 7: Distribution of all reporters with respect to their confidence values.
-
-reporters to outperform the prior on Deceased compared to the Alive.
+reporters to outperform the prior on Deceased compared to
+the Alive.
 
 7.
 
 EXPERIMENTAL RESULTS
 
-This section reports on the experiments conducted to validate our approach. We note that the individual cases themselves are not related - hence we are justified in using leaveone-out cross validation in our experiments. Specifically, for each case in the experiments, we learn a different model using all of the other cases. We first compare the methods for restricted (without dog) and unrestricted (with dog) searches and then discuss the sensitivity of the parameter.
+This section reports on the experiments conducted to validate our approach. We note that the individual cases themselves are not related - hence we are justified in using leaveone-out cross validation in our experiments. Specifically, for
+each case in the experiments, we learn a different model
+using all of the other cases. We first compare the methods for restricted (without dog) and unrestricted (with dog)
+searches and then discuss the sensitivity of the parameter.
 
-In this section, we examine how our approach can be used to reduce the area searched by the Find Me Group over the baseline. Figure 9 shows the reduction of area based on our approach (double distance constraint integer program with Algorithm 1 and = 0.1) when compared to the baseline. We examine this with grid squares of 1�1 miles and 2�2 miles. In the 19 cases where the missing person was located, our approach achieved area reduction in 11 cases - reducing the search area by an average by 3 square miles. In the 2 cases where our method caused the search area to increase, the increase was only 1 square mile in each case. This contrasts with the cases where the area was reduced - reducing the search area by up to 9 square miles. For the 11 cases where reduction was experienced, the average reduction was 1.63 miles (t(19) = 1.25, p <0.11). We also examined cases where the size of the grid squares was 2�2 miles. In the 19 cases, the area reduction achieved by our method was in 14 cases, and by an average by 8.5 square miles. Further, in the 6 cases, our method caused an increase in the search area, however, the increase was 3 square miles on average. Further, for the cases that baseline needs to search areas larger than 20 square miles, our approach reduced the area from 7 to 56. Our method outperformed the baseline in area reduction with an average of 4.21 mile square (t(20) = 1.19, p <0.13).
+7.1
 
-NumberofReporters
+Area Reduction
 
-[0,0.1)
-
-[0.1,0.2)
-
-[0.2,0.3)
-
-[0.3,0.4)
-
-[0.4,0.5)
-
-[0.5,0.6)
-
-[0.6,0.7)
-
-[0.7,0.8)
-
-[0.8,0.9)
-
-[0.9,1]
+In this section, we examine how our approach can be used
+to reduce the area searched by the Find Me Group over the
+baseline. Figure 9 shows the reduction of area based on our
+approach (double distance constraint integer program with
+Algorithm 1 and  = 0.1) when compared to the baseline.
+We examine this with grid squares of 1×1 miles and 2×2
+miles. In the 19 cases where the missing person was located,
+our approach achieved area reduction in 11 cases - reducing
+the search area by an average by 3 square miles. In the 2
+cases where our method caused the search area to increase,
+the increase was only 1 square mile in each case. This contrasts with the cases where the area was reduced - reducing
+the search area by up to 9 square miles. For the 11 cases
+where reduction was experienced, the average reduction was
+1.63 miles (t(19) = 1.25, p <0.11).
+We also examined cases where the size of the grid squares
+was 2×2 miles. In the 19 cases, the area reduction achieved
+by our method was in 14 cases, and by an average by 8.5
+square miles. Further, in the 6 cases, our method caused
+an increase in the search area, however, the increase was 3
+square miles on average. Further, for the cases that baseline needs to search areas larger than 20 square miles, our
+approach reduced the area from 7 to 56. Our method outperformed the baseline in area reduction with an average of
+4.21 mile square (t(20) = 1.19, p <0.13).
 
 7.2
 
 Consideration of Dog Team Detections
 
-The experiments of the previous section illustrated how our approach could reduce the search area over the baseline for standard grid settings. However, in the events that a dog
+The experiments of the previous section illustrated how
+our approach could reduce the search area over the baseline
+for standard grid settings. However, in the events that a dog
 
-18 16 14 Searched Area Searched Area 12 10 8 6 4 2 0 0 2 4 6 8 10 12 14 Cases 16 18 20 22 Baseline Algorithm 1
+18
 
-18 16 14 12 10 8 6 4 2 0 0 2 4 6 8 10 12 14 Cases 16 18 20 22 Baseline Algorithm 1
+18
+Baseline
+Algorithm 1
 
-(a) Search area with 1 � 1 mile per observation
-60 50 40 30 20 10 0 Baseline Algorithm 1
+14
 
-(a) Search area with 1 � 1 mile per observation
-60 50 40 30 20 10 0 Baseline Algorithm 1
+14
+
+12
+
+12
+
+10
+8
+6
+
+8
+6
+4
+
+2
+
+2
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+12 14
+Cases
+
+16
+
+18
+
+20
+
+0
+
+22
+
+(a) Search area with 1 × 1 mile per observation
+
+2
+
+4
+
+6
+
+8
+
+10
+
+12 14
+Cases
+
+16
+
+18
+
+20
+
+22
+
+60
+Baseline
+Algorithm 1
+
+50
+
+Baseline
+Algorithm 1
+
+50
 
 Searched Area
+
+40
+30
+20
+10
+0
+
+0
+
+(a) Search area with 1 × 1 mile per observation
+
+60
+
+Searched Area
+
+10
+
+4
+
+0
+
+Baseline
+Algorithm 1
+
+16
+
+Searched Area
+
+Searched Area
+
+16
+
+40
+30
+20
+10
 
 0
 
@@ -307,7 +1138,8 @@ Searched Area
 
 10
 
-12 14 Cases
+12 14
+Cases
 
 16
 
@@ -315,9 +1147,11 @@ Searched Area
 
 20
 
+0
+
 22
 
-Searched Area
+(b) Search area with 2 × 2 miles per observation
 
 0
 
@@ -331,7 +1165,8 @@ Searched Area
 
 10
 
-12 14 Cases
+12 14
+Cases
 
 16
 
@@ -341,31 +1176,94 @@ Searched Area
 
 22
 
-(b) Search area with 2 � 2 miles per observation
+(b) Search area with 2 × 2 miles per observation
 
-(b) Search area with 2 � 2 miles per observation
+Figure 9: Searched area until the missing person is located
+(baseline and Algorithm 1).
 
-Figure 9: Searched area until the missing person is located (baseline and Algorithm 1).
+Figure 10: Searched area with dogs allowed to explore 1 mile
+beyond the grid (baseline and Algorithm 1).
 
-Figure 10: Searched area with dogs allowed to explore 1 mile beyond the grid (baseline and Algorithm 1).
+team detects evidence of the missing person, it may lead to a
+continued search outside of the assigned grid square. These
+searches can lead to FMG personnel examining up to a mile
+outside a designated location. In this section, we consider a
+grid square settings in the last section, but also allow for an
+additional mile outside the square to mimic the effect of the
+dog search team following such a lead. Figure 10 demonstrates the reduction of area based on our approach (double
+distance constraint integer program with Algorithm 1 and
+ = 0.1) when compared to the baseline. We investigate the
+area reduction with grid squares of 1×1 miles and 2×2 miles.
+According to Figure 10a, in the 22 cases where the missing
+person was located, our approach achieved area reduction in
+12 cases - reducing the search area by 2 square miles on average. In the 2 cases where our method caused the search area
+to increase, the increase was only 3 square miles on average.
+This contrasts with the cases where the area was reduced
+- reducing the search area by up to 9 square miles. Our
+method outperformed the baseline in area reduction with
+an average of 0.86 mile square (t(22) = 0.8, p <0.22).
+We examined cases where the size of the grid squares was
+2×2 miles. In the 24 cases, the area reduction achieved by
+our method was in 21 cases, and on average by 8.85 square
+miles. In the 3 cases where our method caused the search
+area to increase, the increase was 4.3 square miles on aver-
 
-team detects evidence of the missing person, it may lead to a continued search outside of the assigned grid square. These searches can lead to FMG personnel examining up to a mile outside a designated location. In this section, we consider a grid square settings in the last section, but also allow for an additional mile outside the square to mimic the effect of the dog search team following such a lead. Figure 10 demonstrates the reduction of area based on our approach (double distance constraint integer program with Algorithm 1 and = 0.1) when compared to the baseline. We investigate the area reduction with grid squares of 1�1 miles and 2�2 miles. According to Figure 10a, in the 22 cases where the missing person was located, our approach achieved area reduction in 12 cases - reducing the search area by 2 square miles on average. In the 2 cases where our method caused the search area to increase, the increase was only 3 square miles on average. This contrasts with the cases where the area was reduced - reducing the search area by up to 9 square miles. Our method outperformed the baseline in area reduction with an average of 0.86 mile square (t(22) = 0.8, p <0.22). We examined cases where the size of the grid squares was 2�2 miles. In the 24 cases, the area reduction achieved by our method was in 21 cases, and on average by 8.85 square miles. In the 3 cases where our method caused the search area to increase, the increase was 4.3 square miles on aver-
-
-age. This contrasts with the cases with the reduced search area by up to 56 square miles. Our method outperformed the baseline in area reduction with an average of 7.2 mile square (t(24) = 1.95, p <0.05).
+age. This contrasts with the cases with the reduced search
+area by up to 56 square miles. Our method outperformed
+the baseline in area reduction with an average of 7.2 mile
+square (t(24) = 1.95, p <0.05).
 
 7.3
 
 Parameter Sensitivity
 
-We compare different values of in both double distance constraint integer programs (iterative search resource allocation and non-iterative program). The impact of changing the parameter is shown in Figure 11. To do so, we plot the fraction of area searched by our method over the baseline, against the , for both sizes of 1 � 1 and 2 � 2. We note that while the extreme values of (i.e. 0.0 and 0.5) negatively effected the performance of both approaches, we achieved relatively stable results for intermediate values - noting that the best performance was to set equal to 0.1 - which we used in the experiments. We also studied the performance of our optimization approach without algorithm 1 (i.e. prioritize locations by equation 5 after selecting the values for o through optimization of 19 with regards to Lines 9-11). The results are depicted in Figure 12. The behavior of the algorithm for different settings of were similar to that found with Algorithm 1, the reduction in search area was generally less - and in some
+We compare different values of  in both double distance
+constraint integer programs (iterative search resource allocation and non-iterative program). The impact of changing
+the parameter  is shown in Figure 11. To do so, we plot the
+fraction of area searched by our method over the baseline,
+against the , for both sizes of 1 × 1 and 2 × 2. We note that
+while the extreme values of  (i.e. 0.0 and 0.5) negatively
+effected the performance of both approaches, we achieved
+relatively stable results for intermediate values - noting that
+the best performance was to set  equal to 0.1 - which we
+used in the experiments.
+We also studied the performance of our optimization approach without algorithm 1 (i.e. prioritize locations by equation 5 after selecting the values for βo through optimization
+of 19 with regards to Lines 9-11). The results are depicted
+in Figure 12. The behavior of the algorithm for different
+settings of  were similar to that found with Algorithm 1,
+the reduction in search area was generally less - and in some
 
-1.6 Fraction of Searched Area 1.4 1.2 1.0 0.8 0.6 0.4 0.2 0.0
+1.4
 
-Without Dog With Dog Fraction of Searched Area
+1.6
 
-1.6 1.4 1.2 1.0 0.8 0.6 0.4 0.2
+Without Dog
+With Dog
+Fraction of Searched Area
 
-Without Dog With Dog
+Fraction of Searched Area
+
+1.6
+
+1.2
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0
+
+1.4
+
+Without Dog
+With Dog
+
+1.2
+1.0
+0.8
+0.6
+0.4
+0.2
 
 0.1
 
@@ -383,47 +1281,160 @@ Without Dog With Dog
 
 0.2
 
+²
+(a) Search area with 1 × 1 mile per observation (Algorithm 1)
+
+1.4
+
+Without Dog
+With Dog
+
+1.6
+
+1.2
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0
+
+0.1
+
+0.2
+
+0.4
+
+0.5
+
+(a) Search area with 1×1 mile per observation not using Algorithm
+1
+
+Fraction of Searched Area
+
+Fraction of Searched Area
+
+1.6
+
+0.3
+
+²
+
 0.3
 
 0.4
 
 0.5
 
-�
-(a) Search area with 1 � 1 mile per observation (Algorithm 1)
-1.6 Fraction of Searched Area 1.4 1.2 1.0 0.8 0.6 0.4 0.2 0.0 0.1 0.2 0.3 0.4 0.5 Without Dog With Dog Fraction of Searched Area
+²
 
-�
-(a) Search area with 1�1 mile per observation not using Algorithm 1
-1.6 1.4 1.2 1.0 0.8 0.6 0.4 0.2 0.0 0.1 0.2 0.3 0.4 0.5 Without Dog With Dog
+1.4
 
-�
-(b) Search area with 2 � 2 miles per observation (Algorithm 1)
+Without Dog
+With Dog
 
-�
-Figure 11: Fraction of total area searched across all cases with the iterative search resource allocation approach over the baseline.
-(b) Search area with 2 � 2 miles per observation not using Algorithm 1
+1.2
+1.0
+0.8
+0.6
+0.4
+0.2
+0.0
 
-Figure 12: Fraction of total area searched across all cases by the double distance constraint integer programming approach (not using Algorithm 1) over the baseline.
+0.1
 
-cases (i.e. 1x1 mile grid square with use of the dogs) it performed worse.
+0.2
+
+0.3
+
+0.4
+
+0.5
+
+²
+(b) Search area with 2 × 2 miles per observation (Algorithm 1)
+
+Figure 11: Fraction of total area searched across all cases
+with the iterative search resource allocation approach over
+the baseline.
+
+(b) Search area with 2 × 2 miles per observation not using Algorithm 1
+
+Figure 12: Fraction of total area searched across all cases
+by the double distance constraint integer programming approach (not using Algorithm 1) over the baseline.
+
+cases (i.e. 1x1 mile grid square with use of the dogs) it
+performed worse.
 
 8.
 
 RELATED WORK
 
-Recently, there has been some work [19, 20, 21, 23, 9] dealing with geospatial abductive inference introduced in [24]. In [19] for example, authors studied the case of geospatial abduction where there is an explicit adversary who is interested in ensuring that the agent does not detect the partner locations in an attempt to simulating the real-world scenario of insurgents who conduct IED (improvised explosive device) attacks. Another work [20], has adopted geospatial abduction to develop a software tool which applies geospatial abduction to the environment of Afghanistan, to look for insurgent high-value targets, supporting insurgent operations. The work of [21] introduced a variant of the GAPs called region-based GAPs (RGAPs) which deals with the multiple possible definitions of the subregions of the map. Finally, spatial cultural abductive reasoning engine which solves spatial abductive problems was developed in [23]. Aside from introducing GAP, the work of [24] demonstrated the accuracy of proposed framework on real-world dataset of insurgent IED attacks against US forces in Iraq. Further, the work of [9], proposed a technique to reduce the computational cost of point-based GAPs. They presented an exact algorithm for the natural optimization problem of pointbased GAPs. Geospatial abduction problems are related to facility location [26] and sensor placement problems [10] in that they identify a set of geo-locations to optimize a
+Recently, there has been some work [19, 20, 21, 23, 9] dealing with geospatial abductive inference introduced in [24].
+In [19] for example, authors studied the case of geospatial
+abduction where there is an explicit adversary who is interested in ensuring that the agent does not detect the partner
+locations in an attempt to simulating the real-world scenario of insurgents who conduct IED (improvised explosive
+device) attacks. Another work [20], has adopted geospatial
+abduction to develop a software tool which applies geospatial
+abduction to the environment of Afghanistan, to look for insurgent high-value targets, supporting insurgent operations.
+The work of [21] introduced a variant of the GAPs called
+region-based GAPs (RGAPs) which deals with the multiple
+possible definitions of the subregions of the map. Finally,
+spatial cultural abductive reasoning engine which solves spatial abductive problems was developed in [23]. Aside from
+introducing GAP, the work of [24] demonstrated the accuracy of proposed framework on real-world dataset of insurgent IED attacks against US forces in Iraq. Further, the
+work of [9], proposed a technique to reduce the computational cost of point-based GAPs. They presented an exact
+algorithm for the natural optimization problem of pointbased GAPs. Geospatial abduction problems are related
+to facility location [26] and sensor placement problems [10]
+in that they identify a set of geo-locations to optimize a
 
-cost or reward function. However, there are key differences amongst these various frameworks that arise from the difference between explanation and optimization. See [22] for further discussion on this topic. Similarly, [1] presents a specific aspect of the well-known qualification problem, namely spatial qualitative reasoning approach, which aims at investigating the possibility of an agent being present at a specific location at a certain time to carry out an action or participate in an event, given its known antecedents. This work is different from both above papers and our study, as it takes on purely logical approach to formalizing spatial qualifications, while our work and other aforementioned studies use geometric and probabilistic techniques. Further, the framework of this paper is tailored specifically for the missing person problem. Looking beyond geospatial abduction, recent research has demonstrated that GPS (positional) data could be used to learn rich models of human activity [16, 15, 17, 7]. For example, [16, 15, 17], modeled the human interactions and intentions in a fully relational multi-agent setting. They used raw GPS data from a real-world game of capture the flag and Markov logic- a statistical-relational language. Whereas [7] developed a model to simulate the behaviors associated with insurgent attacks, and their relationship with geographic locations and temporal windows. At first glance, one may think our work is similar to [10], in that they identify a set of geo-locations to optimize a
+cost or reward function. However, there are key differences
+amongst these various frameworks that arise from the difference between explanation and optimization. See [22] for
+further discussion on this topic.
+Similarly, [1] presents a specific aspect of the well-known
+qualification problem, namely spatial qualitative reasoning
+approach, which aims at investigating the possibility of an
+agent being present at a specific location at a certain time
+to carry out an action or participate in an event, given
+its known antecedents. This work is different from both
+above papers and our study, as it takes on purely logical approach to formalizing spatial qualifications, while our work
+and other aforementioned studies use geometric and probabilistic techniques. Further, the framework of this paper is
+tailored specifically for the missing person problem.
+Looking beyond geospatial abduction, recent research has
+demonstrated that GPS (positional) data could be used to
+learn rich models of human activity [16, 15, 17, 7]. For example, [16, 15, 17], modeled the human interactions and intentions in a fully relational multi-agent setting. They used
+raw GPS data from a real-world game of capture the flag and
+Markov logic- a statistical-relational language. Whereas [7]
+developed a model to simulate the behaviors associated with
+insurgent attacks, and their relationship with geographic locations and temporal windows.
+At first glance, one may think our work is similar to [10],
+in that they identify a set of geo-locations to optimize a
 
-cost or reward function. However, as described, there are key differences amongst these various frameworks that arise from the difference between explanation and optimization. [11]
+cost or reward function. However, as described, there are
+key differences amongst these various frameworks that arise
+from the difference between explanation and optimization.
+[11]
 
 9.
 
 CONCLUSION
-[12]
 
-In this paper, we have introduced the Missing Person Intelligence Synthesis Toolkit (MIST) which leverages a datadriven variant of geospatial abductive inference. MIST can rank-order the set of search locations provided by a group of experts. The experimental results showed that our approach is able to reduce the total search area by a total of 31 square miles for standard searched and by 19 square miles when dog team assets obtain a detection. This reduction will make FMG locating missing persons faster while saving in direct and indirect cost. At the time of this writing, we have initiated support to FMG with MIST for an active case. FMG will use MIST's ranking of search locations for this ongoing operation. Our future plans include utilizing a probabilistic variant of the feasibility function, applying other features such as missing person's region, age, gender to the model and extending our toolkit to be able to solve other problems such as human trafficking.
+In this paper, we have introduced the Missing Person Intelligence Synthesis Toolkit (MIST) which leverages a datadriven variant of geospatial abductive inference. MIST can
+rank-order the set of search locations provided by a group
+of experts. The experimental results showed that our approach is able to reduce the total search area by a total of 31
+square miles for standard searched and by 19 square miles
+when dog team assets obtain a detection. This reduction
+will make FMG locating missing persons faster while saving in direct and indirect cost. At the time of this writing,
+we have initiated support to FMG with MIST for an active
+case. FMG will use MIST’s ranking of search locations for
+this ongoing operation.
+Our future plans include utilizing a probabilistic variant
+of the feasibility function, applying other features such as
+missing person’s region, age, gender to the model and extending our toolkit to be able to solve other problems such
+as human trafficking.
+
+Acknowledgement
+
+[12]
 
 [13]
 
@@ -433,18 +1444,49 @@ In this paper, we have introduced the Missing Person Intelligence Synthesis Tool
 
 [16]
 
-Acknowledgement
-This work was funded by the Find Me Group.
-
 [17]
+
+This work was funded by the Find Me Group.
 
 10.
 
 REFERENCES
 
-[18]
+[1] B. Akinkunmi and P. C. Bassey. A Logic of Spatial
+Qualification Using Qualitative Reasoning Approach.
+International Journal of Artificial Intelligence &
+Applications, 4(2):45, 2013.
+[2] T. Bylander, D. Allemang, M. C. Tanner, and J. R.
+Josephson. The Computational Complexity of
+Abduction. Artif. Intell., 49(1-3):25–60, 1991.
+[3] L. Console, L. Portinale, and D. T. Dupré. Focussing
+Abductive Diagnosis. AI Commun., 4(2/3):88–97,
+1991.
+[4] L. Console, M. L. Sapino, and D. T. Dupré. The Role
+of Abduction in Database View Updating. J. Intell.
+Inf. Syst., 4(3):261–280, 1995.
+[5] S. do Lago Pereira and L. N. de Barros. Planning with
+abduction: A logical framework to explore extensions
+to classical planning. In Brazilian Symposium on
+Artificial Intelligence, pages 62–72. Springer, 2004.
+[6] T. Eiter and G. Gottlob. The complexity of
+logic-based abduction. Journal of the ACM, 42:3–42,
+1995.
+[7] S. George, X. Wang, J. Lin, B. Qu, and J.-C. Liu.
+MECH: Algorithms and Tools for Automated
+Assessment of Potential Attack Locations. Technical
+report, Texas A & M University, College Station, 2015.
+[8] A. C. Kakas and P. Mancarella. Database updates
+through abduction. In VLDB, volume 90, pages
+650–661, 1990.
+[9] A. Koutsioumpas. Abductive reasoning in 2d
+geospatial problems. In Applications of Mathematics
+and Informatics in Science and Engineering, pages
+333–347. Springer, 2014.
+[10] A. Krause, J. Leskovec, C. Guestrin, J. Vanbriesen,
+and C. Faloutsos. Efficient sensor placement
 
-[1] B. Akinkunmi and P. C. Bassey. A Logic of Spatial Qualification Using Qualitative Reasoning Approach. International Journal of Artificial Intelligence & Applications, 4(2):45, 2013. [2] T. Bylander, D. Allemang, M. C. Tanner, and J. R. Josephson. The Computational Complexity of Abduction. Artif. Intell., 49(1-3):25�60, 1991. [3] L. Console, L. Portinale, and D. T. Dupr� e. Focussing Abductive Diagnosis. AI Commun., 4(2/3):88�97, 1991. [4] L. Console, M. L. Sapino, and D. T. Dupr� e. The Role of Abduction in Database View Updating. J. Intell. Inf. Syst., 4(3):261�280, 1995. [5] S. do Lago Pereira and L. N. de Barros. Planning with abduction: A logical framework to explore extensions to classical planning. In Brazilian Symposium on Artificial Intelligence, pages 62�72. Springer, 2004. [6] T. Eiter and G. Gottlob. The complexity of logic-based abduction. Journal of the ACM, 42:3�42, 1995. [7] S. George, X. Wang, J. Lin, B. Qu, and J.-C. Liu. MECH: Algorithms and Tools for Automated Assessment of Potential Attack Locations. Technical report, Texas A & M University, College Station, 2015. [8] A. C. Kakas and P. Mancarella. Database updates through abduction. In VLDB, volume 90, pages 650�661, 1990. [9] A. Koutsioumpas. Abductive reasoning in 2d geospatial problems. In Applications of Mathematics and Informatics in Science and Engineering, pages 333�347. Springer, 2014. [10] A. Krause, J. Leskovec, C. Guestrin, J. Vanbriesen, and C. Faloutsos. Efficient sensor placement
+[18]
 
 [19]
 
@@ -458,8 +1500,66 @@ REFERENCES
 
 [24]
 
-[25] [26]
+[25]
+[26]
 
-optimization for securing large water distribution networks. Journal of Water Resources Planning and Management, 2008. M. Pagnucco. The Role of Abductive Reasoning within the Process of Belief Revision. PhD thesis, Basser Department of Computer Science, University of Sydney, 1996. C. S. Peirce. Philosophical writings of Peirce, selected and edited with an introd. by Justus Buchler. Dover Publications New York, 1955. Y. Peng and J. Reggia. Abductive inference models for diagnostic problem-solving. Symbolic computation. Springer-Verlag, New York, 1990. Y. Peng and J. A. Reggia. Plausibility of Diagnostic Hypotheses: The Nature of Simplicity. In Proceedings of the 5th National Conference on Artificial Intelligence. Philadelphia, PA, August 11-15, 1986. Volume 1: Science., pages 140�147, 1986. A. Sadilek and H. Kautz. Modeling Success, Failure, and Intent of Multi-Agent Activities Under Severe Noise. A. Sadilek and H. Kautz. Location-based Reasoning About Complex Multi-agent Behavior. J. Artif. Int. Res., 43(1):87�133, Jan. 2012. A. Sadilek and H. A. Kautz. Recognizing multi-agent activities from gps data. In AAAI, volume 39, page 109, 2010. P. Santos and M. Shanahan. Hypothesising object relations from image transitions. In ECAI, pages 292�296, 2002. P. Shakarian, J. P. Dickerson, and V. Subrahmanian. Adversarial geospatial abduction problems. ACM Transactions on Intelligent Systems and Technology (TIST), 3(2):34, 2012. P. Shakarian, M. K. Nagel, B. E. Schuetzle, and V. Subrahmanian. Abductive inference for combat: using scare-s2 to find high-value targets in afghanistan. Technical report, DTIC Document, 2011. P. Shakarian and V. Subrahmanian. Region-based Geospatial Abduction with Counter-IED Applications. In U. K. Wiil, editor, Counterterrorism and Open Source Intelligence. Springer, 2010. P. Shakarian and V. Subrahmanian. Geospatial Abduction: Principles and Practice. SpringerLink : B� ucher. Springer New York, 2011. P. Shakarian, V. Subrahmanian, and M. L. Spaino. SCARE: A Case Study with Baghdad. In Proceedings of the Third International Conference on Computational Cultural Dynamics. AAAI, 2009. P. Shakarian, V. Subrahmanian, and M. L. Spaino. GAPs: Geospatial Abduction Problems. ACM Transactions on Intelligent Systems and Technology, 2010. M. Shanahan. Noise and the Common Sense Informatic Situation for a Mobile Robot. J. F. Stollsteimer. A working model for plant numbers and locations. Journal of Farm Economics, 45(3):631�645, 1963.
+optimization for securing large water distribution
+networks. Journal of Water Resources Planning and
+Management, 2008.
+M. Pagnucco. The Role of Abductive Reasoning within
+the Process of Belief Revision. PhD thesis, Basser
+Department of Computer Science, University of
+Sydney, 1996.
+C. S. Peirce. Philosophical writings of Peirce, selected
+and edited with an introd. by Justus Buchler. Dover
+Publications New York, 1955.
+Y. Peng and J. Reggia. Abductive inference models for
+diagnostic problem-solving. Symbolic computation.
+Springer-Verlag, New York, 1990.
+Y. Peng and J. A. Reggia. Plausibility of Diagnostic
+Hypotheses: The Nature of Simplicity. In Proceedings
+of the 5th National Conference on Artificial
+Intelligence. Philadelphia, PA, August 11-15, 1986.
+Volume 1: Science., pages 140–147, 1986.
+A. Sadilek and H. Kautz. Modeling Success, Failure,
+and Intent of Multi-Agent Activities Under Severe
+Noise.
+A. Sadilek and H. Kautz. Location-based Reasoning
+About Complex Multi-agent Behavior. J. Artif. Int.
+Res., 43(1):87–133, Jan. 2012.
+A. Sadilek and H. A. Kautz. Recognizing multi-agent
+activities from gps data. In AAAI, volume 39, page
+109, 2010.
+P. Santos and M. Shanahan. Hypothesising object
+relations from image transitions. In ECAI, pages
+292–296, 2002.
+P. Shakarian, J. P. Dickerson, and V. Subrahmanian.
+Adversarial geospatial abduction problems. ACM
+Transactions on Intelligent Systems and Technology
+(TIST), 3(2):34, 2012.
+P. Shakarian, M. K. Nagel, B. E. Schuetzle, and
+V. Subrahmanian. Abductive inference for combat:
+using scare-s2 to find high-value targets in
+afghanistan. Technical report, DTIC Document, 2011.
+P. Shakarian and V. Subrahmanian. Region-based
+Geospatial Abduction with Counter-IED Applications.
+In U. K. Wiil, editor, Counterterrorism and Open
+Source Intelligence. Springer, 2010.
+P. Shakarian and V. Subrahmanian. Geospatial
+Abduction: Principles and Practice. SpringerLink :
+Bücher. Springer New York, 2011.
+P. Shakarian, V. Subrahmanian, and M. L. Spaino.
+SCARE: A Case Study with Baghdad. In Proceedings
+of the Third International Conference on
+Computational Cultural Dynamics. AAAI, 2009.
+P. Shakarian, V. Subrahmanian, and M. L. Spaino.
+GAPs: Geospatial Abduction Problems. ACM
+Transactions on Intelligent Systems and Technology,
+2010.
+M. Shanahan. Noise and the Common Sense
+Informatic Situation for a Mobile Robot.
+J. F. Stollsteimer. A working model for plant numbers
+and locations. Journal of Farm Economics,
+45(3):631–645, 1963.
 
 

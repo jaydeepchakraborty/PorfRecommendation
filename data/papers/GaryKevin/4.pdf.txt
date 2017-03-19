@@ -1,176 +1,564 @@
-An Empirical Study of Cycle Toggling Based Laplacian Solvers
-Kevin Deweese UCSB kdeweese@cs.ucsb.edu Richard Peng Georgia Tech rpeng@cc.gatech.edu John R. Gilbert UCSB gilbert@cs.ucsb.edu Hao Ran Xu MIT haoranxu510@gmail.com September 13, 2016 Gary Miller CMU glmiller@cs.cmu.edu Shen Chen Xu CMU shenchex@cs.cmu.edu
+An Empirical Study of Cycle Toggling Based Laplacian Solvers‚àó
 
 arXiv:1609.02957v1 [cs.DS] 9 Sep 2016
 
-Abstract We study the performance of linear solvers for graph Laplacians based on the combinatorial cycle adjustment methodology proposed by [KelnerOrecchia-Sidford-Zhu STOC-13]. The approach finds a dual flow solution to this linear system through a sequence of flow adjustments along cycles. We study both data structure oriented and recursive methods for handling these adjustments. The primary difficulty faced by this approach, updating and querying long cycles, motivated us to study an important special case: instances where all cycles are formed by fundamental cycles on a length n path. Our methods demonstrate significant speedups over previous implementations, and are competitive with standard numerical routines.
+Kevin Deweese‚Ä†
+UCSB
+kdeweese@cs.ucsb.edu
+Richard Peng
+Georgia Tech
+rpeng@cc.gatech.edu
 
-Figure 1: Performance profile of cycle-toggle time. The relative performance ratio of a method is its cycle-toggle time / best cycle toggle time for a single problem. This plot shows the fraction of problems that are within a distance from this relative performance ratio. The faster 1 Introduction a method converges to 1 on this plot, the better its Much progress has been made recently toward the performance relative to the others.
+John R. Gilbert
+UCSB
+gilbert@cs.ucsb.edu
+Hao Ran Xu
+MIT
+haoranxu510@gmail.com
 
-development of graph Laplacian linear solvers that run in linear times polylogarithmic time [16, 17, 18, 21, 24, 9, 15]. These methods use a combination of combinatorial, randomized, and numerical methods to obtain algorithms that provably solve any graph Laplacian linear system in time faster than sorting to constant precision.
- Partially supported by NSF Grants CCF-1637523, CCF1637564, and CCF-1637566 titled: AitF: Collaborative Research: High Performance Linear System Solvers with Focus on Graph Laplacians  Partially supported by Intel Corporation
+Gary Miller
+CMU
+glmiller@cs.cmu.edu
+Shen Chen Xu
+CMU
+shenchex@cs.cmu.edu
 
-Linear solvers for graph Laplacians have a wide range of applications. They can be used to solve problems such as image denoising, finding maximum flows in a graph, and more generally solving linear programs with an underlying graph, such as, minimum cost maximum flow and graph theoretic regression problems [5, 30, 8, 11, 20, 23, 22, 7, 19]. Many of these applications stem from the following connection through optimization: solving linear systems is equivalent to minimizing 2 norms over a suitable set. Many applications can in turn be
+September 13, 2016
 
-2 1 4 3
+Abstract
+We study the performance of linear solvers for
+graph Laplacians based on the combinatorial cycle adjustment methodology proposed by [KelnerOrecchia-Sidford-Zhu STOC-13]. The approach
+finds a dual flow solution to this linear system
+through a sequence of flow adjustments along cycles. We study both data structure oriented and
+recursive methods for handling these adjustments.
+The primary difficulty faced by this approach,
+updating and querying long cycles, motivated us to
+study an important special case: instances where
+all cycles are formed by fundamental cycles on
+a length n path. Our methods demonstrate significant speedups over previous implementations,
+and are competitive with standard numerical routines.
+
+Figure 1: Performance profile of cycle-toggle time. The
+relative performance ratio of a method is its cycle-toggle
+time / best cycle toggle time for a single problem. This
+plot shows the fraction of problems that are within a
+distance from this relative performance ratio. The faster
+1 Introduction
+a method converges to 1 on this plot, the better its
+Much progress has been made recently toward the performance relative to the others.
+
+development of graph Laplacian linear solvers that
+run in linear times polylogarithmic time [16, 17,
+18, 21, 24, 9, 15]. These methods use a combination of combinatorial, randomized, and numerical
+methods to obtain algorithms that provably solve
+any graph Laplacian linear system in time faster
+than sorting to constant precision.
+‚àó Partially supported by NSF Grants CCF-1637523, CCF1637564, and CCF-1637566 titled: AitF: Collaborative Research:
+High Performance Linear System Solvers with Focus on Graph
+Laplacians
+‚Ä† Partially supported by Intel Corporation
+
+Linear solvers for graph Laplacians have a wide
+range of applications. They can be used to solve
+problems such as image denoising, finding maximum flows in a graph, and more generally solving
+linear programs with an underlying graph, such as,
+minimum cost maximum flow and graph theoretic
+regression problems [5, 30, 8, 11, 20, 23, 22, 7, 19].
+Many of these applications stem from the following connection through optimization: solving linear
+systems is equivalent to minimizing `2 norms over
+a suitable set. Many applications can in turn be
+
+nation, or partial Cholesky factorization steps from
+the ultra-sparsification routines [29]. Recursively
+dividing the cycle set yields a recurrence of the
+form:
+T (N ) = O(N ) + 2T (N/2),
+
+2
+3
+
+1
+4
 
 5
 
 (a) Original Graph
 
-nation, or partial Cholesky factorization steps from the ultra-sparsification routines [29]. Recursively dividing the cycle set yields a recurrence of the form: T (N ) = O(N ) + 2T (N/2),
 2
-
-1 4
-
 3
 
-5
+1
+4
 
 (b) Subgraph 1,4
 
+5
+
 (c) Subgraph 2,3,5
 
-2 1 3
+2
+1
+
+3
 
 4
 
-5
-
 (d) Contraction of(b)
+
+5
 
 (e) Contraction of(c)
 
-Figure 3: Illustration of graph reduction and contraction in divide-and-conquer. 5 cycles are preselected in the original graph(a) and divided into two groups, cycles (1,4) and (2,3,5). These cycles induce subgraphs (b,c) which only include edges and vertices of the relevant cycles. These subgraphs are then path contracted (d,e) to further reduce size.
+Figure 3: Illustration of graph reduction and contraction in divide-and-conquer. 5 cycles are preselected in
+the original graph(a) and divided into two groups, cycles (1,4) and (2,3,5). These cycles induce subgraphs
+(b,c) which only include edges and vertices of the relevant cycles. These subgraphs are then path contracted
+(d,e) to further reduce size.
 
-which solves to T (N ) = O(N log N ). If we set the size of our preselected cycle set to O(n), then updating the entire set takes O(n log n) work, leading to a cost of O(log n) per update. Unfortunately, the divide-and-conquer scheme does not parallelize naturally: the second recursive call still depends on the outcome of the first one. Furthermore, the bottleneck of this routine's performance is the restriction and prolongation steps, which unlike multigrid can not be reused when we resample another set. A large part of the expense is that vertices and edges must be relabeled as the graph is reduced. Doing this in random order leads to random access of vertex and edge labels. We try to optimize this by either compressing the memory of the graph storage, or by reordering the updates within each batch. In the case that the tree is just a path, much of the vertex and edge labeling can be done implicitly, reducing the overhead. 4 Heavy Path Graphs
+which solves to T (N ) = O(N log N ). If we
+set the size of our preselected cycle set to O(n),
+then updating the entire set takes O(n log n) work,
+leading to a cost of O(log n) per update.
+Unfortunately, the divide-and-conquer scheme
+does not parallelize naturally: the second recursive
+call still depends on the outcome of the first
+one. Furthermore, the bottleneck of this routine‚Äôs
+performance is the restriction and prolongation
+steps, which unlike multigrid can not be reused
+when we resample another set. A large part of the
+expense is that vertices and edges must be relabeled
+as the graph is reduced. Doing this in random order
+leads to random access of vertex and edge labels.
+We try to optimize this by either compressing the
+memory of the graph storage, or by reordering the
+updates within each batch. In the case that the tree
+is just a path, much of the vertex and edge labeling
+can be done implicitly, reducing the overhead.
+4
 
-can further reduce the size of the graph by path contraction, condensing two edges if they are only updated when the other is updated. An example of this reduction and contraction is shown in Figure 3. This process results in several smaller graphs, where the cycles are updated, before pushing the cycle update information back up the recursive subgraph hierarchy. As this process resembles the recursive subgraph hierarchy of multigrid methods, we borrow the terms restriction and prolongation to describe the transfer of flow information up and down the hierarchy. This process is more formally captured in the following lemma.
+can further reduce the size of the graph by path
+contraction, condensing two edges if they are only
+updated when the other is updated. An example of
+this reduction and contraction is shown in Figure 3.
+This process results in several smaller graphs,
+where the cycles are updated, before pushing the
+cycle update information back up the recursive
+subgraph hierarchy. As this process resembles the
+recursive subgraph hierarchy of multigrid methods,
+we borrow the terms restriction and prolongation
+to describe the transfer of flow information up and
+down the hierarchy. This process is more formally
+captured in the following lemma.
 
-Here we introduce a class of model problems that we will use to test and analyze different cycletoggling approaches. These graphs are constructed by adding edges between vertices on a path graph. Edge resistances are selected so that the low-stretch spanning tree of the resulting graph is always the underlying path. As a consequence the edges on the path have larger edge weights than the off-path edges, so we refer to this class of graphs as heavy path graphs. An example of such a graph is shown in Figure 4.
+Heavy Path Graphs
 
-Lemma 3.1. Given a tree on n vertices, and N cycle updates, we can form a tree on 3N vertices, perform the corresponding cycle updates on them, Figure 4: An example of a heavy path graph. The solid path edges are the low-stretch spanning tree of and transfer the state back to the original graph. the graph. Furthermore, both the reduction and prolongation Our interest in these problems does not come steps take O(n) time. from any real world application. Instead we believe This procedure is identical to the greedy elimi- these are natural models to consider when studying
+Here we introduce a class of model problems that
+we will use to test and analyze different cycletoggling approaches. These graphs are constructed
+by adding edges between vertices on a path graph.
+Edge resistances are selected so that the low-stretch
+spanning tree of the resulting graph is always the
+underlying path. As a consequence the edges on
+the path have larger edge weights than the off-path
+edges, so we refer to this class of graphs as heavy
+path graphs. An example of such a graph is shown
+in Figure 4.
 
-KOSZ and other cycle-toggling algorithms. We believe that this model can be tuned to have various stretch properties along with spectral and graph separator properties, though we do not explore that in this paper. Furthermore they allow us to explore very fundamental questions about data structures and cycle-toggling implementations. This model simplifies many of the implementation issues associated with dynamic trees, as the paths are easier to handle than more general tree layouts. Specifically, we can use a static, perfectly balanced binary tree for the path. This likely has the least data structure overhead as the optimum separator of an interval is implicitly the middle. Furthermore, this allows us to store the tree in heap order, which means the tree paths can be mapped to a subinterval using bit operations, and the downward/upward propagations can be performed iteratively. 4.1 Example Models There are many possible subclasses that belong to the heavy path graph model. We introduce several subclasses here for experimentation. (1) Fixed Cycle Length-1k: These graphs are composed of a tree path with random resistances between 1 and 10,000, combined with off-tree edges between every pair (i, i + 1000), e.g. an edge between vertices 1 and 1000, between vertices 2 and 1001, and so on. (2) Fixed Cycle Length-2: These graphs are composed of a tree path with random resistances between 1 and 10,000, combined with off-tree edges between every pair (i, i + 2), e.g. an edge between vertices 1 and 3, between vertices 2 and 4, and so on. (3) Random Cycle Length: These graphs are composed of a tree path with random resistances between 1 and 1000, combined with n randomly selected off-tree edges, where n is the number of vertices. (4) 2D Mesh: These graphs embed a tree path in a 2D mesh. The tree path resistances are chosen randomly between 1 and 1000. (5) 3D Mesh, Uniform Stretch: These graphs are similar to (4) but with a 3D mesh.
+Lemma 3.1. Given a tree on n vertices, and N
+cycle updates, we can form a tree on 3N vertices,
+perform the corresponding cycle updates on them, Figure 4: An example of a heavy path graph. The
+solid path edges are the low-stretch spanning tree of
+and transfer the state back to the original graph.
+the graph.
+Furthermore, both the reduction and prolongation
+Our interest in these problems does not come
+steps take O(n) time.
+from any real world application. Instead we believe
+This procedure is identical to the greedy elimi- these are natural models to consider when studying
 
-We then consider two different ways of setting resistances on the off-tree edges on all of the models above. 1. Uniform Stretch Resistances of off-tree edges are chosen so that stretch is 1 for every cycle. 2. Exponential Stretch Resistances of off-tree edges are chosen so that cycles have stretch sampled from an exponential distribution. 5 Experiments
+KOSZ and other cycle-toggling algorithms. We believe that this model can be tuned to have various
+stretch properties along with spectral and graph
+separator properties, though we do not explore that
+in this paper. Furthermore they allow us to explore
+very fundamental questions about data structures
+and cycle-toggling implementations.
+This model simplifies many of the implementation issues associated with dynamic trees, as the
+paths are easier to handle than more general tree
+layouts. Specifically, we can use a static, perfectly
+balanced binary tree for the path. This likely has
+the least data structure overhead as the optimum
+separator of an interval is implicitly the middle.
+Furthermore, this allows us to store the tree in heap
+order, which means the tree paths can be mapped
+to a subinterval using bit operations, and the downward/upward propagations can be performed iteratively.
+4.1 Example Models There are many possible
+subclasses that belong to the heavy path graph
+model. We introduce several subclasses here for
+experimentation.
+(1) Fixed Cycle Length-1k: These graphs are
+composed of a tree path with random resistances between 1 and 10,000, combined with
+off-tree edges between every pair (i, i + 1000),
+e.g. an edge between vertices 1 and 1000, between vertices 2 and 1001, and so on.
+(2) Fixed Cycle Length-2: These graphs are
+composed of a tree path with random resistances between 1 and 10,000, combined with
+off-tree edges between every pair (i, i + 2), e.g.
+an edge between vertices 1 and 3, between vertices 2 and 4, and so on.
+(3) Random Cycle Length: These graphs are
+composed of a tree path with random resistances between 1 and 1000, combined with n
+randomly selected off-tree edges, where n is
+the number of vertices.
+(4) 2D Mesh: These graphs embed a tree path
+in a 2D mesh. The tree path resistances are
+chosen randomly between 1 and 1000.
+(5) 3D Mesh, Uniform Stretch: These graphs
+are similar to (4) but with a 3D mesh.
 
-5.1 Experimental Design We now describe empirical evaluations of the cycle-toggling implementations from Section 3 on the class of graphs described in Section 4. As we only experiment on these path models, we can use cycle-toggling methods that will only work on a path, but we also employ their more general versions that will work on any graph. The four cycle-toggling implementations are as follows: 1. BST-based data structure for general graphs 2. Path-only BST decomposition 3. Recursive divide-and-conquer for general graphs 4. Path-only recursive divide-and-conquer Additionally we implement a preconditioned conjugate gradient with diagonal scaling to compare against the cycle-toggling methods. We implemented all of these in C++ and also have a Python/Cython implementation of the general recursive method. All algorithm implementations, graph generators, and test results for this paper can be found at https://github.com/sxu/cycleToggling. We also experimented with Hoske et al.'s [14] implementation of cycle-toggling. We use all of the generators described in Section 4.1 to create different heavy path graphs with a varying total stretch. We use vertex sizes of 5 ◊ 104 , 105 , 5 ◊ 105 , and 106 . For the fixed cycle length generators, we set hop = 1000, and for the random cycle length generators, we set the number of offtree edges to 2n. To get an idea for the various stretch properties of these graphs, we list the total stretch for size 106 in Table 1. We also generate right hand side vectors b in two different ways to obtain both local and global
+We then consider two different ways of setting
+resistances on the off-tree edges on all of the models
+above.
+1. Uniform Stretch Resistances of off-tree
+edges are chosen so that stretch is 1 for every cycle.
+2. Exponential Stretch Resistances of off-tree
+edges are chosen so that cycles have stretch
+sampled from an exponential distribution.
+5
 
-Cycles log -1
+Experiments
 
-Fixed Length-1k Fixed Length-2 Random Length 2D Mesh 3D Mesh
+5.1 Experimental Design We now describe
+empirical evaluations of the cycle-toggling implementations from Section 3 on the class of graphs
+described in Section 4. As we only experiment on
+these path models, we can use cycle-toggling methods that will only work on a path, but we also employ their more general versions that will work on
+any graph. The four cycle-toggling implementations are as follows:
+1. BST-based data structure for general graphs
+2. Path-only BST decomposition
+3. Recursive divide-and-conquer for general
+graphs
+4. Path-only recursive divide-and-conquer
+Additionally we implement a preconditioned conjugate gradient with diagonal scaling to compare
+against the cycle-toggling methods. We implemented all of these in C++ and also have a
+Python/Cython implementation of the general recursive method. All algorithm implementations,
+graph generators, and test results for this paper can
+be found at https://github.com/sxu/cycleToggling.
+We also experimented with Hoske et al.‚Äôs [14] implementation of cycle-toggling.
+We use all of the generators described in Section 4.1 to create different heavy path graphs with a
+varying total stretch. We use vertex sizes of 5√ó104 ,
+105 , 5 √ó 105 , and 106 . For the fixed cycle length
+generators, we set hop = 1000, and for the random
+cycle length generators, we set the number of offtree edges to 2n. To get an idea for the various
+stretch properties of these graphs, we list the total
+stretch for size 106 in Table 1.
+We also generate right hand side vectors b in
+two different ways to obtain both local and global
 
-Uniform 1.01e6 2.00e6 2.00e6 2.00e6 3.82e6
+Exponential
+1.12e6
+1.04e7
+1.30e7
+1.08e7
+2.27e7
 
-Exponential 1.12e6 1.04e7 1.30e7 1.08e7 2.27e7
+Table 1: Total stretch for all graph models of size 106 .
+For each of the model problems in 4.1, this table shows
+the total stretch of cycles formed by adding edges to
+the underlying path. The models were generated with
+weights to create cycles with uniform stretch (all cycles
+with stretch 1), and exponential stretch(cycles with
+stretch chosen from an exponential distribution).
 
-108 107 106 105 104 103 3 10
+behaviors.
+1. Random: Randomly select x and form b =
+Lx ,
 
-Table 1: Total stretch for all graph models of size 106 . For each of the model problems in 4.1, this table shows the total stretch of cycles formed by adding edges to the underlying path. The models were generated with weights to create cycles with uniform stretch (all cycles with stretch 1), and exponential stretch(cycles with stretch chosen from an exponential distribution).
+108
+107
+
+Cycles
+log ‚àí1
+
+Fixed Length-1k
+Fixed Length-2
+Random Length
+2D Mesh
+3D Mesh
+
+Uniform
+1.01e6
+2.00e6
+2.00e6
+2.00e6
+3.82e6
+
+106
+105
+104
+103 3
+10
 
 104
-
-Total Stretch
 
 105
 
 106
+
+Total Stretch
 
 107
 
 108
 
-behaviors. 1. Random: Randomly select x and form b = Lx ,
+Figure 5: KOSZ asymptotic dependence on tree stretch.
+The number of toggles required by KOSZ is shown as a
+function of tree stretch. The reasonable slope indicates
+a lack of large hidden constants in KOSZ complexity.
 
-Figure 5: KOSZ asymptotic dependence on tree stretch. The number of toggles required by KOSZ is shown as a function of tree stretch. The reasonable slope indicates a lack of large hidden constants in KOSZ complexity.
+and every graph, the relative performance ratio
+2. (-1,1): Pick b to route 1 unit of electrical flow is the method‚Äôs average cycle-toggle time divided
+from the left endpoint of the path to the right by the lowest average cycle-toggle time over all
+endpoint.
+methods. Then to capture how a method fares
+Experiments were performed on Mirasol, a across the entire problem set, the performance
+shared memory machine at Georgia Tech, with 80 profile shows the fraction of test problems (on the
+Intel(R) Xeon(R) E7-8870 processors at 2.40GHz. y-axis) that are within a distance (on the x-axis)
+Problems were solved to a residual tolerance of from the relative performance ratio. This plot
+contains all the different model problems at every
+10‚àí5 .
+problem size tested.
+Weak scaling experiments, measuring cycle5.2 Experimental Results We first examine
+the asymptotic behavior of the cycle-toggling meth- toggle performance as graph size increases, are useods on all the test graphs. Figure 5 shows the num- ful for predicting performance on larger problems.
+ber of cycles required for convergence as a function The scaling behavior was relatively similar across
+of total stretch. This figure only involves solves the model problems so we only show one example
+using the 0-1 right hand side as this was always a in Figure 6 for the 3D Unweighted Mesh with exponential stretch.
+more difficult case.
+We examine how much time the recursive
+We omit results from the Hoske et al. implementation because we found its performance to be method spends restricting and prolonging flow in
+slower by a factor of 50 than our cycle-toggling im- the recursive hierarchy, and how much time is
+plementations. Their initialization costs are much spent doing cycle-toggles in Figure 7. Results are
+higher than solve costs, making it prohibitively ex- shown for the FixedLength-1k model with a slightly
+pensive to run on all of the test graphs in our set. wider range of problem size than the other experTo visualize the comparison of cycle-toggling iments. The solve time in this plot includes the
+implementations on all the different test graphs, we sum of the other operation timings, along with
+utilize a performance profile plot shown in Figure 1. memory allocation. We did this profiling with
+A performance profile [12] calculates, for some our Python/Cython implementation, but we beperformance metric, the relative performance ratio lieve the C++ performance is comparable.
+Figure 8 shows BST-based cycle-toggle timing
+between each solver and the best solver on every
+problem instance. In our case the metric of interest results relative to PCG results. Points below the
+is the average cycle-toggle time, so for each method line indicate cycle-toggling was faster, while points
 
-and every graph, the relative performance ratio 2. (-1,1): Pick b to route 1 unit of electrical flow is the method's average cycle-toggle time divided from the left endpoint of the path to the right by the lowest average cycle-toggle time over all endpoint. methods. Then to capture how a method fares Experiments were performed on Mirasol, a across the entire problem set, the performance shared memory machine at Georgia Tech, with 80 profile shows the fraction of test problems (on the Intel(R) Xeon(R) E7-8870 processors at 2.40GHz. y-axis) that are within a distance (on the x-axis) Problems were solved to a residual tolerance of from the relative performance ratio. This plot contains all the different model problems at every 10-5 . problem size tested. Weak scaling experiments, measuring cycle5.2 Experimental Results We first examine the asymptotic behavior of the cycle-toggling meth- toggle performance as graph size increases, are useods on all the test graphs. Figure 5 shows the num- ful for predicting performance on larger problems. ber of cycles required for convergence as a function The scaling behavior was relatively similar across of total stretch. This figure only involves solves the model problems so we only show one example using the 0-1 right hand side as this was always a in Figure 6 for the 3D Unweighted Mesh with exponential stretch. more difficult case. We examine how much time the recursive We omit results from the Hoske et al. implementation because we found its performance to be method spends restricting and prolonging flow in slower by a factor of 50 than our cycle-toggling im- the recursive hierarchy, and how much time is plementations. Their initialization costs are much spent doing cycle-toggles in Figure 7. Results are higher than solve costs, making it prohibitively ex- shown for the FixedLength-1k model with a slightly pensive to run on all of the test graphs in our set. wider range of problem size than the other experTo visualize the comparison of cycle-toggling iments. The solve time in this plot includes the implementations on all the different test graphs, we sum of the other operation timings, along with utilize a performance profile plot shown in Figure 1. memory allocation. We did this profiling with A performance profile [12] calculates, for some our Python/Cython implementation, but we beperformance metric, the relative performance ratio lieve the C++ performance is comparable. Figure 8 shows BST-based cycle-toggle timing between each solver and the best solver on every problem instance. In our case the metric of interest results relative to PCG results. Points below the is the average cycle-toggle time, so for each method line indicate cycle-toggling was faster, while points
+Path-only
+BST Decomposition
+BST-Based
 
-Path-only BST Decomposition BST-Based
+Restrict
+Prolong
 
-Path-only Recursive Recursive
+Path-only
+Recursive
+Recursive
 
-Restrict Prolong
+10‚àí5
 
-Update Solve
-
-10-5
-
-10-5
+10‚àí7
 
 Average Toggle Time(s)
 
-Average Toggle Time(s)
+10‚àí6
 
-10-6
+10‚àí7
 
-10-6
-
-10-7
-
-10-7
-
-10-8 104
-
-Path Length
+10‚àí8
+104
 
 105
 
+Path Length
+
 106
+
+Figure 6: Weak scaling of cycle-toggle performance of all
+methods on unweighted 3D mesh model problems with
+exponential stretch. Average cycle-toggle time is shown
+as a function of problem size where an upward slope
+indicates decreased performance with larger problem
+size.
+
+above the line are slower. This plot only includes
+size 106 problems using the 0-1 right hand side. A
+random right hand side plot is omitted for space as
+these problems were much easier for both solvers,
+though slightly relatively easier for PCG.
+5.3 Experimental Analysis In Figure 5 the
+cycle-toggling methods‚Äô asymptotic dependence on
+tree stretch is near constant with a slope close to
+1. Note that this plot would be linear even without
+the log axes. Concerning KOSZ practicality, it is
+highly important to see that there is not a large
+slope, which would indicate a large hidden constant
+in the KOSZ cost complexity. This plot tells us
+that with a combination of low-stretch trees and
+fast cycle update methods, dual space algorithms
+have potential. This figure also helps illustrate
+the range of problems we are using for these
+experiments. The stretch and resulting cycle cost
+both vary between four to five orders of magnitude.
+The performance profile in Figure 1 indicates
+that the data structure based cycle-toggling methods performed the best using our implementations.
+For the path-only BST decomposition, the fraction
+of problems is already at 1 for a relative performance distance of 1, meaning that this was always
+the fastest. The path-only recursive method was
 
 103
 
 104
 
-Path Length
-
 105
+
+Path Length
 
 106
 
 107
 
-Figure 6: Weak scaling of cycle-toggle performance of all methods on unweighted 3D mesh model problems with exponential stretch. Average cycle-toggle time is shown as a function of problem size where an upward slope indicates decreased performance with larger problem size.
+Figure 7: Weak scaling of cycle-toggle performance for
+the recursive solver on FixedLength-1k model problems.
+Average cycle-toggle time is shown along with its most
+expensive sub-components: restriction, solve, and prolongation. Upward slopes indicate decreasing performance with problem size.
+Uniform Stretch
+FixedLength-2
+2D Mesh
+Random
 
-Figure 7: Weak scaling of cycle-toggle performance for the recursive solver on FixedLength-1k model problems. Average cycle-toggle time is shown along with its most expensive sub-components: restriction, solve, and prolongation. Upward slopes indicate decreasing performance with problem size.
-Uniform Stretch FixedLength-2 2D Mesh Random Exp Stretch FixedLength-1k 3D Mesh
+Exp Stretch
+FixedLength-1k
+3D Mesh
+
+105
 
 Toggle Time(s)
 
-above the line are slower. This plot only includes size 106 problems using the 0-1 right hand side. A random right hand side plot is omitted for space as these problems were much easier for both solvers, though slightly relatively easier for PCG. 5.3 Experimental Analysis In Figure 5 the cycle-toggling methods' asymptotic dependence on tree stretch is near constant with a slope close to 1. Note that this plot would be linear even without the log axes. Concerning KOSZ practicality, it is highly important to see that there is not a large slope, which would indicate a large hidden constant in the KOSZ cost complexity. This plot tells us that with a combination of low-stretch trees and fast cycle update methods, dual space algorithms have potential. This figure also helps illustrate the range of problems we are using for these experiments. The stretch and resulting cycle cost both vary between four to five orders of magnitude. The performance profile in Figure 1 indicates that the data structure based cycle-toggling methods performed the best using our implementations. For the path-only BST decomposition, the fraction of problems is already at 1 for a relative performance distance of 1, meaning that this was always the fastest. The path-only recursive method was
+Average Toggle Time(s)
 
-105 104 103 102 101 100 0 10
+10‚àí5
+
+10‚àí6
+
+Update
+Solve
+
+104
+103
+102
+101
+100 0
+10
 
 101
 
 102
 
-PCG Time(s)
-
 103
+
+PCG Time(s)
 
 104
 
 105
 
-Figure 8: Comparison of BST-based data structure cycle-toggling to PCG by graph type. Points under the line indicate cycle-toggling method outperformed PCG.
+Figure 8: Comparison of BST-based data structure
+cycle-toggling to PCG by graph type. Points under the
+line indicate cycle-toggling method outperformed PCG.
 
-slower, but still typically performed better than the general implementations, being half as fast as the path-only BST method on 60% of the problems. Comparing the two general implementations, the tree data structure is within a factor 4 of the best on 80% of the problems, whereas the recursive method is only within a factor of 4 on 40% of the problems. A distance of 10 indicates performance within the same order of magnitude, which the general recursive method achieved on 80% of
+slower, but still typically performed better than
+the general implementations, being half as fast as
+the path-only BST method on 60% of the problems. Comparing the two general implementations,
+the tree data structure is within a factor 4 of the
+best on 80% of the problems, whereas the recursive method is only within a factor of 4 on 40% of
+the problems. A distance of 10 indicates performance within the same order of magnitude, which
+the general recursive method achieved on 80% of
 
-the problems, indicating that these methods are competitive with one another. The weak scaling experiments shown in Figure 6 do indicate a decrease in cycle-toggle performance as graph size increases. However, this plot is fairly optimistic, the largest performance decrease is about 2.5◊ as the graph size increases two orders of magnitude. The non steady plot for the general recursive solver probably indicates that the batch sizes were not scaled appropriately. Again, this plot is only for one of the graph models, but most of them looked very similar to this. Figure 7 helps identify the performance bottlenecks of the recursive method. The actual time spent updating cycles is less than the restriction and prolongation time. The restriction time is by far the most expensive, as it also includes time for relabeling edges and vertices. The scaling of this plot shows a stable update cost, with increasing restriction and prolongation costs. This method was designed to keep the update costs stable while increasing problem size, which seems to be case. Unfortunately the restriction and prolongation overhead costs are large and growing with problem size. Still, these operations are not highly optimized, and we wonder if we can borrow techniques from the multigrid community to speed them up. The PCG experiments in Figure 8 indicate that cycle-toggling can outperform PCG on these heavy path models, using the 0-1 right hand side. This class of problems had a wider performance gap for PCG than for the cycle-toggling routines, by about an order of magnitude. Furthermore, the graph property that causes difficulty for the solvers is different in each case; cycle-toggling has trouble on the graphs with exponential stretch, while PCG has difficulty with the fixed cycle length problems (FixedLength-2 with uniform stretch even failed). These results suggest that heavy path graphs are a good direction to explore while searching for problems which could benefit from cycle-toggling methods. 6 Discussion and Conclusion
+the problems, indicating that these methods are
+competitive with one another.
+The weak scaling experiments shown in Figure 6 do indicate a decrease in cycle-toggle performance as graph size increases. However, this plot is
+fairly optimistic, the largest performance decrease
+is about 2.5√ó as the graph size increases two orders
+of magnitude. The non steady plot for the general
+recursive solver probably indicates that the batch
+sizes were not scaled appropriately. Again, this
+plot is only for one of the graph models, but most
+of them looked very similar to this.
+Figure 7 helps identify the performance bottlenecks of the recursive method. The actual time
+spent updating cycles is less than the restriction
+and prolongation time. The restriction time is by
+far the most expensive, as it also includes time for
+relabeling edges and vertices. The scaling of this
+plot shows a stable update cost, with increasing restriction and prolongation costs. This method was
+designed to keep the update costs stable while increasing problem size, which seems to be case. Unfortunately the restriction and prolongation overhead costs are large and growing with problem size.
+Still, these operations are not highly optimized,
+and we wonder if we can borrow techniques from
+the multigrid community to speed them up.
+The PCG experiments in Figure 8 indicate that
+cycle-toggling can outperform PCG on these heavy
+path models, using the 0-1 right hand side. This
+class of problems had a wider performance gap for
+PCG than for the cycle-toggling routines, by about
+an order of magnitude. Furthermore, the graph
+property that causes difficulty for the solvers is
+different in each case; cycle-toggling has trouble
+on the graphs with exponential stretch, while PCG
+has difficulty with the fixed cycle length problems
+(FixedLength-2 with uniform stretch even failed).
+These results suggest that heavy path graphs are
+a good direction to explore while searching for
+problems which could benefit from cycle-toggling
+methods.
+6
 
-model, we experimented on problems that are are conceptually simple, but provide a range of solve behavior through varying graph structure and stretch. The recursive cycle-toggling was not as fast as the data structure approach, but was still competitive, being in the same order of magnitude on most problems. method to general graphs, exhibited competitive behaviors. Also both methods scaled reasonably with problem size. While these experiments are a good start, there are several directions we hope to continue this work. The recursive update approach is outperformed by the BST-based data structure approach in timing experiments. We hope to complement these results with floating point operation measurements. We don't claim to have optimized the graph contraction, flow restriction/prolongation, or cycle updates. Measuring the number of operations the recursive solver spends on these would help indicate fundamental performance. The heavy path graphs are a great model problem for seeing the effect path resistances have on solver behavior. They also allow us set aside the issue of finding a low stretch spanning tree to focus instead on the cost per cycle update. We plan to continue modifying these path resistances and initial vertex demands to find interesting test cases. However, for these methods to be useful in practice we must extend them to more general classes of graphs. Dual cycle-toggling Laplacian solvers have until now been considered mainly in the realm of theory. Our comparisons of these methods to PCG indicate that there are problems for which the dual methods can be useful. In the future, we plan to combine primal and dual methods, trying to get the best of both worlds. References
+Discussion and Conclusion
 
 We studied two approaches for implementing cycletoggling based solvers, data structures and recursive divide-and-conquer. Using the heavy path
 
-[1] O. Axelsson, Iterative solution methods, Cambridge University Press, New York, NY, 1994. [2] M. A. Bender, E. D. Demaine, and M. FarachColton, Cache-oblivious B-trees, IEEE FOCS, Redondo Beach, CA, 2000, pp. 399≠409. [3] E. G. Boman, K. Deweese, and J. R. Gilbert, Evaluating the dual randomized Kaczmarz Laplacian
+model, we experimented on problems that are
+are conceptually simple, but provide a range of
+solve behavior through varying graph structure and
+stretch. The recursive cycle-toggling was not as
+fast as the data structure approach, but was still
+competitive, being in the same order of magnitude
+on most problems. method to general graphs, exhibited competitive behaviors. Also both methods
+scaled reasonably with problem size.
+While these experiments are a good start, there
+are several directions we hope to continue this
+work. The recursive update approach is outperformed by the BST-based data structure approach
+in timing experiments. We hope to complement
+these results with floating point operation measurements. We don‚Äôt claim to have optimized the graph
+contraction, flow restriction/prolongation, or cycle
+updates. Measuring the number of operations the
+recursive solver spends on these would help indicate fundamental performance.
+The heavy path graphs are a great model
+problem for seeing the effect path resistances have
+on solver behavior. They also allow us set aside
+the issue of finding a low stretch spanning tree to
+focus instead on the cost per cycle update. We
+plan to continue modifying these path resistances
+and initial vertex demands to find interesting test
+cases. However, for these methods to be useful
+in practice we must extend them to more general
+classes of graphs.
+Dual cycle-toggling Laplacian solvers have until
+now been considered mainly in the realm of theory.
+Our comparisons of these methods to PCG indicate
+that there are problems for which the dual methods
+can be useful. In the future, we plan to combine
+primal and dual methods, trying to get the best of
+both worlds.
+References
+
+[1] O. Axelsson, Iterative solution methods, Cambridge University Press, New York, NY, 1994.
+[2] M. A. Bender, E. D. Demaine, and M. FarachColton, Cache-oblivious B-trees, IEEE FOCS, Redondo Beach, CA, 2000, pp. 399‚Äì409.
+[3] E. G. Boman, K. Deweese, and J. R. Gilbert, Evaluating the dual randomized Kaczmarz Laplacian
 
 [4]
 
 [5]
 
-[6] [7]
+[6]
+[7]
 
 [8]
 
@@ -192,7 +580,54 @@ We studied two approaches for implementing cycletoggling based solvers, data str
 
 [17]
 
-linear solver, Informatica, 40(1) (2016), pp. 95≠ 107. E. G. Boman, K. Deweese, and J. R. Gilbert, An empirical comparison of graph Laplacian solvers, SIAM ALENEX, Arlington, VA, 2016, pp. 174≠ 188. E. G. Boman, B. Hendrickson, and S. Vavasis, Solving elliptic finite element systems in nearlinear time with support preconditioners, SIAM J. on Numerical Anal., 46(6) (2008), pp. 3264≠3284. W. L. Briggs, V. E. Henson, and S. F. McCormick, A multigrid tutorial, SIAM, 2000. M. B. Cohen, B. T. Fasy, G. L. Miller, A. Nayyeri, R. Peng, and N. Walkington, Solving 1-Laplacians of convex simplicial complexes in nearly linear time: collapsing and expanding a topological ball, SIAM SODA, Portland, OR, 2014, pp. 204≠216. P. Christiano, J. A. Kelner, A. Madry, D. A. Spielman, and S.- H. Teng, Electrical flows, Laplacian systems, and faster approximation of maximum flow in undirected graphs, ACM STOC, San Jose, CA, 2011, pp. 273≠282. M. B. Cohen, R. Kyng, G. L. Miller, J. W. Pachocki, R. Peng, A. Rao, and S. C. Xu, Solving SDD linear systems in nearly mlog1/2 n time, ACM STOC, San Jose, CA, 2011, pp. 343≠352. T. H. Cormen, C. E. Leiserson, R. L. Rivest, and C. Stein, Introduction to algorithms, MIT Press and McGraw-Hill, 2009. H. H. Chen, A. Madry, G. L. Miller, and R. Peng, Runtime guarantees for regression problems, ITCS, Berkeley, CA, 2013, pp. 269≠282. E. D. Dolan and J. J. Mor¥ e, Benchmarking optimization software with performance profiles, Mathematical Programming, 91(2) (2002), pp. 201≠213. P. G. Doyle and J. L. Snell, Random walks and electric networks, Mathematical Association of America, 1984. D. Hoske, D. Lukarski, H. Meyerhenke, and M. Wegner, Is nearly-linear time the same in theory and practice? A case study with a combinatorial Laplacian solver, SEA, Paris, FRA, 2015, pp. 205≠ 218. R. Kyng, Y. T. Lee, R. Peng, S. Sachdeva, and D. A. Spielman, Sparsified Cholesky and multigrid solvers for connection Laplacians, Computing Research Repository, 2015, http://arxiv.org/abs/1512.01892. I. Koutis, G. L. Miller, and R. Peng, Approaching optimality for solving SDD systems, SIAM J. on Comp., 43(3) (2014), pp. 337≠354. I. Koutis, G. L. Miller, and R. Peng A Nearly-m
+linear solver, Informatica, 40(1) (2016), pp. 95‚Äì
+107.
+E. G. Boman, K. Deweese, and J. R. Gilbert, An
+empirical comparison of graph Laplacian solvers,
+SIAM ALENEX, Arlington, VA, 2016, pp. 174‚Äì
+188.
+E. G. Boman, B. Hendrickson, and S. Vavasis,
+Solving elliptic finite element systems in nearlinear time with support preconditioners, SIAM J.
+on Numerical Anal., 46(6) (2008), pp. 3264‚Äì3284.
+W. L. Briggs, V. E. Henson, and S. F. McCormick,
+A multigrid tutorial, SIAM, 2000.
+M. B. Cohen, B. T. Fasy, G. L. Miller, A. Nayyeri,
+R. Peng, and N. Walkington, Solving 1-Laplacians
+of convex simplicial complexes in nearly linear
+time: collapsing and expanding a topological ball,
+SIAM SODA, Portland, OR, 2014, pp. 204‚Äì216.
+P. Christiano, J. A. Kelner, A. Madry, D. A. Spielman, and S.- H. Teng, Electrical flows, Laplacian
+systems, and faster approximation of maximum
+flow in undirected graphs, ACM STOC, San Jose,
+CA, 2011, pp. 273‚Äì282.
+M. B. Cohen, R. Kyng, G. L. Miller, J. W.
+Pachocki, R. Peng, A. Rao, and S. C. Xu, Solving
+SDD linear systems in nearly mlog1/2 n time, ACM
+STOC, San Jose, CA, 2011, pp. 343‚Äì352.
+T. H. Cormen, C. E. Leiserson, R. L. Rivest, and
+C. Stein, Introduction to algorithms, MIT Press
+and McGraw-Hill, 2009.
+H. H. Chen, A. Madry, G. L. Miller, and R.
+Peng, Runtime guarantees for regression problems,
+ITCS, Berkeley, CA, 2013, pp. 269‚Äì282.
+E. D. Dolan and J. J. MoreÃÅ, Benchmarking optimization software with performance profiles, Mathematical Programming, 91(2) (2002),
+pp. 201‚Äì213.
+P. G. Doyle and J. L. Snell, Random walks and
+electric networks, Mathematical Association of
+America, 1984.
+D. Hoske, D. Lukarski, H. Meyerhenke, and M.
+Wegner, Is nearly-linear time the same in theory
+and practice? A case study with a combinatorial
+Laplacian solver, SEA, Paris, FRA, 2015, pp. 205‚Äì
+218.
+R. Kyng, Y. T. Lee, R. Peng, S. Sachdeva,
+and D. A. Spielman, Sparsified Cholesky
+and multigrid solvers for connection Laplacians, Computing Research Repository, 2015,
+http://arxiv.org/abs/1512.01892.
+I. Koutis, G. L. Miller, and R. Peng, Approaching
+optimality for solving SDD systems, SIAM J. on
+Comp., 43(3) (2014), pp. 337‚Äì354.
+I. Koutis, G. L. Miller, and R. Peng A Nearly-m
 
 [18]
 
@@ -210,7 +645,8 @@ linear solver, Informatica, 40(1) (2016), pp. 95≠ 107. E. G. Boman, K. Deweese, 
 
 [25]
 
-[26] [27]
+[26]
+[27]
 
 [28]
 
@@ -218,6 +654,49 @@ linear solver, Informatica, 40(1) (2016), pp. 95≠ 107. E. G. Boman, K. Deweese, 
 
 [30]
 
-log n time solver for SDD linear systems, IEEE FOCS, Palm Springs, CA, 2011, pp. 590≠598. J. A. Kelner, L. Orecchia, A. Sidford, and Z. A. Zhu, A simple, combinatorial algorithm for solving SDD systems in nearly-linear time, ACM STOC, Palo Alto, CA, 2013, pp. 911≠920. R. Kyng, A. Rao, and S. Sachdeva, Fast, provable algorithms for isotonic regression in all p -norms, NIPS, Montreal, QC, 2015, pp. 2701≠2709. Y. T. Lee, S. Rao, and N. Srivastava, A new approach to computing maximum flows using electrical flows, ACM STOC, Palo Alta, CA, 2013, pp. 755≠764. Y. T. Lee and A. Sidford, Efficient accelerated coordinate descent methods and faster algorithms for solving linear systems, IEEE FOCS, Berkeley, CA, 2013, pp. 147≠156. Y. T. Lee and A. Sidford, Path finding methods for linear  programming: solving linear programs ~ ( rank ) iterations and faster algorithms for in O maximum Flow, IEEE FOCS, Philadelphia, PA, USA, 2014, pp. 424≠433. A. Madry, Navigating central path with electrical flows: from flows to matchings, and back, IEEE FOCS, Berkeley, CA, 2013. pp 253≠262. R. Peng and D. A. Spielman, An efficient parallel solver for SDD linear systems, ACM STOC, New York, NY, USA, 2014, pp. 333≠342. M. Reid-Miller, G. L. Miller, and F. Modugno, List ranking and parallel tree contraction in J. H. Reif Synthesis of parallel algorithms, Morgan Kaufmann, San Francisco, CA, 1993, pp. 115≠194. Y. Saad, Iterative methods for sparse linear systems, SIAM, 2003. D. D. Sleator and R. E. Tarjan, A data structure for dynamic trees, J. Comp. Syst. Sci., 26(3) (1983), pp. 362≠391. D. A. Spielman and N. Srivastava, Graph sparsification by effective resistances, SIAM J. on Comp., 40(6) 2011, pp. 1913≠1926. D. A. Spielman and S.- H. Teng, Nearly linear time algorithms for preconditioning and solving symmetric, diagonally dominant linear systems, SIAM J. on Matrix Anal. and Appl., 35(3) 2014, pp. 835≠885. D. Tolliver and G. L. Miller, Graph Partitioning by Spectral Rounding: Applications in Image Segmentation and Clustering, IEEE CVPR, New York, NY, 2006, pp. 1053≠1060.
+log n time solver for SDD linear systems, IEEE
+FOCS, Palm Springs, CA, 2011, pp. 590‚Äì598.
+J. A. Kelner, L. Orecchia, A. Sidford, and Z. A.
+Zhu, A simple, combinatorial algorithm for solving
+SDD systems in nearly-linear time, ACM STOC,
+Palo Alto, CA, 2013, pp. 911‚Äì920.
+R. Kyng, A. Rao, and S. Sachdeva, Fast, provable
+algorithms for isotonic regression in all `p -norms,
+NIPS, Montreal, QC, 2015, pp. 2701‚Äì2709.
+Y. T. Lee, S. Rao, and N. Srivastava, A new approach to computing maximum flows using electrical flows, ACM STOC, Palo Alta, CA, 2013,
+pp. 755‚Äì764.
+Y. T. Lee and A. Sidford, Efficient accelerated
+coordinate descent methods and faster algorithms
+for solving linear systems, IEEE FOCS, Berkeley,
+CA, 2013, pp. 147‚Äì156.
+Y. T. Lee and A. Sidford, Path finding methods
+for linear
+‚àö programming: solving linear programs
+in OÃÉ( rank) iterations and faster algorithms for
+maximum Flow, IEEE FOCS, Philadelphia, PA,
+USA, 2014, pp. 424‚Äì433.
+A. Madry, Navigating central path with electrical
+flows: from flows to matchings, and back, IEEE
+FOCS, Berkeley, CA, 2013. pp 253‚Äì262.
+R. Peng and D. A. Spielman, An efficient parallel
+solver for SDD linear systems, ACM STOC, New
+York, NY, USA, 2014, pp. 333‚Äì342.
+M. Reid-Miller, G. L. Miller, and F. Modugno, List
+ranking and parallel tree contraction in J. H. Reif
+Synthesis of parallel algorithms, Morgan Kaufmann, San Francisco, CA, 1993, pp. 115‚Äì194.
+Y. Saad, Iterative methods for sparse linear systems, SIAM, 2003.
+D. D. Sleator and R. E. Tarjan, A data structure
+for dynamic trees, J. Comp. Syst. Sci., 26(3)
+(1983), pp. 362‚Äì391.
+D. A. Spielman and N. Srivastava, Graph sparsification by effective resistances, SIAM J. on Comp.,
+40(6) 2011, pp. 1913‚Äì1926.
+D. A. Spielman and S.- H. Teng, Nearly linear
+time algorithms for preconditioning and solving
+symmetric, diagonally dominant linear systems,
+SIAM J. on Matrix Anal. and Appl., 35(3) 2014,
+pp. 835‚Äì885.
+D. Tolliver and G. L. Miller, Graph Partitioning by Spectral Rounding: Applications in Image
+Segmentation and Clustering, IEEE CVPR, New
+York, NY, 2006, pp. 1053‚Äì1060.
 
 

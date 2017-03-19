@@ -1,129 +1,697 @@
-Analysis of On-line Routing and Spectrum Allocation in Spectrum-sliced Optical Networks
+Analysis of On-line Routing and Spectrum
+Allocation in Spectrum-sliced Optical Networks
 Shahrzad Shirazipourazad, Zahra Derakhshandeh and Arunabha Sen
-School of Computing, Informatics and Decision System Engineering Arizona State University Tempe, Arizona 85287 Email: {sshiraz1, zderakhs, asen}@asu.edu
+School of Computing, Informatics and Decision System Engineering
+Arizona State University
+Tempe, Arizona 85287
+Email: {sshiraz1, zderakhs, asen}@asu.edu
 
-Abstract--The orthogonal frequency division multiplexing (OFDM) technology provides an opportunity for efficient resource utilization in optical networks. It allows allocation of multiple sub-carriers to meet traffic demands of varying size. Utilizing OFDM technology, a spectrum efficient and scalable optical transport network called SLICE was proposed recently. The SLICE architecture enables sub-wavelength, super-wavelength resource allocation and multiple rate data traffic that results in efficient use of spectrum. However, the benefit is accompanied by additional complexities in resource allocation. In SLICE architecture, in order to minimize utilized spectrum, one has to solve the routing and spectrum allocation (RSA) problem, a generalization of the routing and wavelength allocation (RWA) problem. In this paper, we focus our attention to the on-line version of RSA problem and provide an algorithm for the ring network with a competitive ratio of min{O(log(dmax )), O(log(k))} where k is the total number of requests and dmax is the maximum demand in terms of the number of sub-carriers. Moreover, we provide a heuristic for the network with arbitrary topology and measure the effectiveness of the heuristic with extensive simulation.
+Abstract—The orthogonal frequency division multiplexing
+(OFDM) technology provides an opportunity for efficient resource utilization in optical networks. It allows allocation of
+multiple sub-carriers to meet traffic demands of varying size.
+Utilizing OFDM technology, a spectrum efficient and scalable optical transport network called SLICE was proposed recently. The
+SLICE architecture enables sub-wavelength, super-wavelength
+resource allocation and multiple rate data traffic that results
+in efficient use of spectrum. However, the benefit is accompanied
+by additional complexities in resource allocation. In SLICE
+architecture, in order to minimize utilized spectrum, one has
+to solve the routing and spectrum allocation (RSA) problem, a
+generalization of the routing and wavelength allocation (RWA)
+problem. In this paper, we focus our attention to the on-line
+version of RSA problem and provide an algorithm for the ring
+network with a competitive ratio of min{O(log(dmax )), O(log(k))}
+where k is the total number of requests and dmax is the maximum
+demand in terms of the number of sub-carriers. Moreover, we
+provide a heuristic for the network with arbitrary topology
+and measure the effectiveness of the heuristic with extensive
+simulation.
 
-I. I NTRODUCTION It is being increasingly recognized by the optical network designers that in order to meet the challenges posed by the explosive growth of the network traffic, the networks must be operated in the most innovative and efficient manner. The traditional WDM network operates at the granularity of a wavelength, which may lead to inefficient use of resources as some connection requests may not have enough traffic to utilize the full capacity of a wavelength. However such wastage of networking resources can be avoided if the optical network can be made to operate at a finer grain (i.e., subwavelength level) instead of the current practice of course grain operation (i.e., wavelength level). Recent introduction of Orthogonal Frequency Division Multiplexing (OFDM) technology in optical networks [1] offers an opportunity for operating optical networks at a much finer grain than what is currently possible. The advantages offered by the OFDM in terms of flexibility and scalability originate from the unique multicarrier nature of this technology [1]. Utilizing the OFDM technology, a spectrum efficient and scalable optical transport network called spectrum-sliced elastic optical path network (SLICE) was proposed recently [2]. Just as the ability to operate at a granularity finer than a wavelength (i.e., a sub-wavelength) will enable the network operator to manage resources more efficiently, the same is
+I. I NTRODUCTION
+It is being increasingly recognized by the optical network
+designers that in order to meet the challenges posed by the
+explosive growth of the network traffic, the networks must
+be operated in the most innovative and efficient manner. The
+traditional WDM network operates at the granularity of a
+wavelength, which may lead to inefficient use of resources
+as some connection requests may not have enough traffic
+to utilize the full capacity of a wavelength. However such
+wastage of networking resources can be avoided if the optical
+network can be made to operate at a finer grain (i.e., subwavelength level) instead of the current practice of course
+grain operation (i.e., wavelength level). Recent introduction of
+Orthogonal Frequency Division Multiplexing (OFDM) technology in optical networks [1] offers an opportunity for
+operating optical networks at a much finer grain than what
+is currently possible. The advantages offered by the OFDM in
+terms of flexibility and scalability originate from the unique
+multicarrier nature of this technology [1].
+Utilizing the OFDM technology, a spectrum efficient and
+scalable optical transport network called spectrum-sliced elastic optical path network (SLICE) was proposed recently [2].
+Just as the ability to operate at a granularity finer than a
+wavelength (i.e., a sub-wavelength) will enable the network
+operator to manage resources more efficiently, the same is
 
-true if the operator is provided with capability to operate at super-wavelength granularity. Such a capability will be useful for the network operator to meet large traffic demand. The goal of SLICE architecture is to allocate variable sized optical bandwidths that matches with the user traffic demands. It achieves that goal by slicing off spectral resources of a route and allocating only the requested amount to establish an endto-end optical path. Although the sub-wavelength (sub-carrier) level allocation capability of SLICE leads to more effective resource utilization, it also leads to additional complexities in network control and management. First, if a call requests for d sub-carriers, the network controller must allocate d consecutive sub-carriers to this request. Second, if the paths corresponding to two requests R1 and R2 share a fiber link, not only the set of carriers allocated to R1 and R2 must be disjoint, in order to avoid interference, they must be separated from each other in the spectrum domain by a few carriers, known as guard carriers or guard bands. The first and the second constraints are known as the sub-carrier consecutiveness constraint and the guardcarrier constraint respectively [3]. The introduction of the subcarrier consecutiveness constraint significantly increases the complexity of the Routing and Spectrum Assignment (RSA) problem that needs to be solved in SLICE. The RSA problem may be informally defined as follows: Given a network topology and a set of call requests with varying demands (in terms of the number of sub-carriers) find a route for each request and allocate a number of sub-carriers to each request (equal to their requested demand), so that the utilized part of the spectrum span is minimized. It may be noted that if the demand of each request is one sub-carrier, then the RSA problem reduces to the Routing and Wavelength Assignment (RWA) problem, which has been studied extensively. One can conceive of two different versions of the RSA problem - offline and on-line. In the off-line version all the requests are known ahead of time before path and spectrum allocation for any request is carried out. In the on-line version, the requests come in a sequence and path and spectrum allocation for a request has to carried out at the time of arrival of that request. Because the off-line version has the luxury of knowing all the requests, it can carry out better optimization of utilized spectrum span than its on-line counterpart. In this paper we study the on-line version of RSA problem. Previous studies on the on-line version of the RSA problem,
+true if the operator is provided with capability to operate at
+super-wavelength granularity. Such a capability will be useful
+for the network operator to meet large traffic demand. The
+goal of SLICE architecture is to allocate variable sized optical
+bandwidths that matches with the user traffic demands. It
+achieves that goal by slicing off spectral resources of a route
+and allocating only the requested amount to establish an endto-end optical path.
+Although the sub-wavelength (sub-carrier) level allocation
+capability of SLICE leads to more effective resource utilization, it also leads to additional complexities in network control
+and management. First, if a call requests for d sub-carriers, the
+network controller must allocate d consecutive sub-carriers to
+this request. Second, if the paths corresponding to two requests
+R1 and R2 share a fiber link, not only the set of carriers
+allocated to R1 and R2 must be disjoint, in order to avoid
+interference, they must be separated from each other in the
+spectrum domain by a few carriers, known as guard carriers
+or guard bands. The first and the second constraints are known
+as the sub-carrier consecutiveness constraint and the guardcarrier constraint respectively [3]. The introduction of the subcarrier consecutiveness constraint significantly increases the
+complexity of the Routing and Spectrum Assignment (RSA)
+problem that needs to be solved in SLICE. The RSA problem may be informally defined as follows: Given a network
+topology and a set of call requests with varying demands (in
+terms of the number of sub-carriers) find a route for each
+request and allocate a number of sub-carriers to each request
+(equal to their requested demand), so that the utilized part
+of the spectrum span is minimized. It may be noted that if
+the demand of each request is one sub-carrier, then the RSA
+problem reduces to the Routing and Wavelength Assignment
+(RWA) problem, which has been studied extensively. One can
+conceive of two different versions of the RSA problem - offline and on-line. In the off-line version all the requests are
+known ahead of time before path and spectrum allocation for
+any request is carried out. In the on-line version, the requests
+come in a sequence and path and spectrum allocation for a
+request has to carried out at the time of arrival of that request.
+Because the off-line version has the luxury of knowing all
+the requests, it can carry out better optimization of utilized
+spectrum span than its on-line counterpart.
+In this paper we study the on-line version of RSA problem.
+Previous studies on the on-line version of the RSA problem,
 
-[4]�[9] primarily focus on the development of efficient heuristics for the problem. The effectiveness of these heuristics are primarily evaluated through simulation. To the best of our knowledge, very little analytical results are available in the literature regarding the performance of these heuristics. In this paper we present analytical results relating to the on-line version of the RSA problem when the network topology is a ring. The performance of an on-line algorithm is measured in terms of the metric competitive ratio. In this metric, the performance of an on-line algorithm is compared with the performance of an optimal off-line algorithm that knows the sequence of requests in advance. The maximum ratio between their respective performances, taken over all sequences, is known as the competitive ratio of the algorithm [10]. In this paper, we provide an algorithm for the on-line version of the RSA problem for the ring network with a competitive ratio of min{O(log(dmax )), O(log(k ))} where k is the total number of requests, dmax = max1ik di , and di is the demand in terms of the number of sub-carriers associated with request Ri . Moreover, we provide a heuristic for the network with arbitrary topology and measure the effectiveness of the heuristic with extensive simulation. The rest of the paper is organized as follows. We discuss related works in section II. In section III we introduce definitions and notations. We present problem statement for the on-line RSA problem in section IV. Analytical results for on-line RSA in rings is presented in section V. A heuristic and experimental results for the arbitrary network topology is presented in section VI. Section VII concludes the paper. II. R ELATED W ORK Utilizing the optical OFDM technology, the SLICE architecture proposes a novel scheme for slicing off the spectral resources of a route, resulting in more efficient utilization [2]. The fact that the sub-carriers in the SLICE architecture have to be assigned in a contiguous manner, led to the formulation of the RSA problem. To the best of our knowledge, the RSA problem was originally introduced in [4], [11], [12]. Since then a few other papers, [3], [13] have also studied the RSA problem. In most of these studies [3], [12]�[14], the authors propose an integer linear program based solution and a heuristic solution for the off-line RSA problem. Based on the experimental results, the authors claim effectiveness of their heuristics. The on-line version of RSA problem has been studied in [4]�[9]. In all of these papers, the objective of the on-line RSA problem is to maximize the number of requests that can be satisfied and minimize the blocking probability. In this version of on-line RSA problem, the number of available spectrum sub-carriers is limited. The authors of these papers proposed heuristic solutions mainly by modifying the Dijkstra shortest path algorithm or using K-shortest path algorithm accompanying with the First-Fit algorithm. To the best of our knowledge none of these papers consider the objective of minimizing the utilized spectrum while satisfying all the requests. It may be the case that all the requests should be satisfied while the utilized spectrum is minimized. In this paper
+[4]–[9] primarily focus on the development of efficient heuristics for the problem. The effectiveness of these heuristics are
+primarily evaluated through simulation. To the best of our
+knowledge, very little analytical results are available in the
+literature regarding the performance of these heuristics. In
+this paper we present analytical results relating to the on-line
+version of the RSA problem when the network topology is
+a ring. The performance of an on-line algorithm is measured
+in terms of the metric competitive ratio. In this metric, the
+performance of an on-line algorithm is compared with the
+performance of an optimal off-line algorithm that knows the
+sequence of requests in advance. The maximum ratio between
+their respective performances, taken over all sequences, is
+known as the competitive ratio of the algorithm [10].
+In this paper, we provide an algorithm for the on-line version
+of the RSA problem for the ring network with a competitive
+ratio of min{O(log(dmax )), O(log(k))} where k is the total
+number of requests, dmax = max1≤i≤k di , and di is the
+demand in terms of the number of sub-carriers associated with
+request Ri . Moreover, we provide a heuristic for the network
+with arbitrary topology and measure the effectiveness of the
+heuristic with extensive simulation.
+The rest of the paper is organized as follows. We discuss
+related works in section II. In section III we introduce definitions and notations. We present problem statement for the
+on-line RSA problem in section IV. Analytical results for
+on-line RSA in rings is presented in section V. A heuristic
+and experimental results for the arbitrary network topology is
+presented in section VI. Section VII concludes the paper.
+II. R ELATED W ORK
+Utilizing the optical OFDM technology, the SLICE architecture proposes a novel scheme for slicing off the spectral
+resources of a route, resulting in more efficient utilization [2].
+The fact that the sub-carriers in the SLICE architecture have
+to be assigned in a contiguous manner, led to the formulation
+of the RSA problem. To the best of our knowledge, the
+RSA problem was originally introduced in [4], [11], [12].
+Since then a few other papers, [3], [13] have also studied
+the RSA problem. In most of these studies [3], [12]–[14], the
+authors propose an integer linear program based solution and a
+heuristic solution for the off-line RSA problem. Based on the
+experimental results, the authors claim effectiveness of their
+heuristics.
+The on-line version of RSA problem has been studied in
+[4]–[9]. In all of these papers, the objective of the on-line
+RSA problem is to maximize the number of requests that
+can be satisfied and minimize the blocking probability. In
+this version of on-line RSA problem, the number of available
+spectrum sub-carriers is limited. The authors of these papers
+proposed heuristic solutions mainly by modifying the Dijkstra
+shortest path algorithm or using K-shortest path algorithm
+accompanying with the First-Fit algorithm. To the best of
+our knowledge none of these papers consider the objective
+of minimizing the utilized spectrum while satisfying all the
+requests. It may be the case that all the requests should be
+satisfied while the utilized spectrum is minimized. In this paper
 
-we propose a new heuristic for arbitrary network graphs. We also modify the K-shortest path approach for this version of the on-line RSA and through simulations we evaluate their performance. Most of the studies both on on-line and off-line RSA do not present any analytical results for the RSA problem, even for the simplest optical network topologies such as rings. The ring topology is of particular importance in the optical domain because of its application in metro networks and in some long haul networks. A major thrust of our effort is to present analytical results for the on-line RSA for optical networks with ring structure. III. D EFINITIONS AND N OTATIONS Spectrum Slice/Interval: A number of consecutive sub-carriers from ai to bi denoted by [ai , bi ], that is allocated to a specific request Ri to establish a connection between (si , ti ) with di sub-carriers. The length of this slice is bi - ai + 1 = di . Spectrum Span/Spread: The total amount of spectrum used for allocating a slice to all the requests; If Ri , 1  i  k is allocated the spectrum interval [ai , bi ] then the spectrum span is [ min ai , max bi ].
-1ik 1ik
+we propose a new heuristic for arbitrary network graphs. We
+also modify the K-shortest path approach for this version of
+the on-line RSA and through simulations we evaluate their
+performance.
+Most of the studies both on on-line and off-line RSA do
+not present any analytical results for the RSA problem, even
+for the simplest optical network topologies such as rings. The
+ring topology is of particular importance in the optical domain
+because of its application in metro networks and in some
+long haul networks. A major thrust of our effort is to present
+analytical results for the on-line RSA for optical networks with
+ring structure.
+III. D EFINITIONS AND N OTATIONS
+Spectrum Slice/Interval: A number of consecutive sub-carriers
+from ai to bi denoted by [ai , bi ], that is allocated to a specific
+request Ri to establish a connection between (si , ti ) with di
+sub-carriers. The length of this slice is bi − ai + 1 = di .
+Spectrum Span/Spread: The total amount of spectrum used
+for allocating a slice to all the requests; If Ri , 1 ≤ i ≤ k is
+allocated the spectrum interval [ai , bi ] then the spectrum span
+is [ min ai , max bi ].
+1≤i≤k
 
-Chromatic Number: The Chromatic Number, (G), of a graph G = (V, E ) is the fewest number of colors necessary to color the nodes of the graph, such that no two adjacent nodes have the same color. Interval Chromatic Number (ICN): Consider a weighted graph G = (V, E, w) with a strictly positive integer weight w(v ) associated with each node v  V . An interval t-coloring of G = (V, E, w) is a function c from V to {1,2, . . . , t} such that c(x) + w(x) - 1  t and if both c(x)  c(y ) and (x, y )  E then c(x) + w(x) - 1 < c(y ). We can view an interval coloring c of G as assigning an interval [c(v ), . . . , c(v ) + w(v ) - 1] of w(v ) consecutive colors to each vertex v so that the intervals of colors assigned to two adjacent vertices (i.e., the pair of nodes that has an edge between them) do not overlap. If interval t-coloring is feasible for a graph G then G is said to be interval t-colorable. The interval chromatic number of G , denoted by int (G ) is the least t such that G has a interval t-coloring [15]. Interval Graph: Let F be a family of non-empty sets. The intersection graph of F is obtained by representing each set in F by a node and connecting the two nodes with an edge, if and only if the corresponding sets intersect. The intersection graph of a family of intervals on a linearly ordered set (such as the real line) is called Interval Graph. Path Intersection Graph: Consider a graph G = (V, E ) and a set of paths P = {P1 , . . . , Pk }, where each Pi is a path between a node pair (si , ti ), i, 1  i  k . A graph G = (V , E ) is a Path Intersection Graph corresponding to P , if each vertex pi  V corresponds to a path Pi  P and two nodes pi and pj in V have an edge between them, if the corresponding paths Pi and Pj in P have at least one common edge in E . IV. P ROBLEM F ORMULATION In this section we provide a formal statement of the on-line routing and spectrum allocation problem.
+1≤i≤k
 
-On-line Routing and Spectrum Allocation (RSA) Problem: A graph G = (V, E ) representing the network topology is given. The connection requests arrive in a sequence one by one where k is the total number of requests. The ith connection request is denoted by a triple Ri = (si , ti , di ), 1  i  k , where si represents a source node, ti represents a destination node, and di represents the demand between si and ti in terms of sub-carriers. Once a request Ri arrives without knowledge of the future requests, assign a path Pi from si to ti and assign a spectrum interval Ii = [ai , bi ] of length di to Pi , such that for every pair of requests i and j, j  i the intervals Ii and Ij do not overlap if the corresponding paths Pi and Pj share an edge between them in G = (V, E ). Moreover, if the paths Pi and Pj overlap, not only the corresponding intervals Ii and Ij must be non-overlapping, these two intervals must be separated by a fixed number of sub-carriers, known as the guard band. The objective is to minimize spectrum span, I = [min1ik ai , max1ik bi ]. Without loss of generality, we number the first available sub-carrier one and the rest are numbered accordingly. We note that guard-band constraint can be satisfied by increasing the demand values by guard-band value g . In other words, in an instance of RSA problem, RSA1 with guard-band g1 > 0 and requests {Ri = (si , ti , di )|1  i  k }, we can increase the demand values in each request by g1 and consider another instance of RSA, RSA2 where guard-band g2 = 0 and for every request Ri in RSA1 , request Ri = (si , ti , di + g1 ) is added to RSA2 . Then the optimal solution of RSA2 can be used to create the optimal solution of RSA1 by removing the last g1 sub-carriers from each spectrum slice assigned to each request (for the proof, reader is referred to the proof of the Observation 4 in [16]). As a result, from this point onward we assume that guard-band is zero. The RSA problem has two distinct components - the routing component and the spectrum allocation component. When routing is given and the paths for the requests are known then interval chromatic number (ICN) of the intersection graph of request paths finds the solution of the SA problem. Let G = (V , E , w) be the weighted path intersection graph of paths of all requests where V = {p1 , p2 , . . . , pk } and each node pi corresponds to the path of request Ri and the weight of pi is di ; i.e., w(pi ) = di . Let int (G ) be the ICN of graph G . In computation of int (G ), each node pi  V is assigned an interval [ai , bi ] of colors with length w(pi ) = di where the intervals of two adjacent vertices do not intersect and total number of distinct colors used is minimum. Therefore, interval [ai , bi ] can be allocated to the path Pi in G and no two paths with common edge intersect in their spectrum intervals. Hence, the spectrum span of int (G ) is sufficient for the spectrum allocation of requests in G with predefined set of paths P . Moreover, int (G ) is the minimum spectrum span needed in the SA problem; otherwise, it contradicts with int (G ) being the minimum interval chromatic number of G . It is known that computation of ICN of interval graphs is NP-complete (Problem SR2 in [17]). Fig. 1 shows an example of SA instance where the network graph is a ring with 8 nodes and requests are {R1 =
+Chromatic Number: The Chromatic Number, χ(G), of a graph
+G = (V, E) is the fewest number of colors necessary to color
+the nodes of the graph, such that no two adjacent nodes have
+the same color.
+Interval Chromatic Number (ICN): Consider a weighted graph
+G∗ = (V, E, w) with a strictly positive integer weight w(v)
+associated with each node v ∈ V . An interval t-coloring of
+G∗ = (V, E, w) is a function c from V to {1,2, . . . , t} such
+that c(x) + w(x) − 1 ≤ t and if both c(x) ≤ c(y) and (x, y) ∈
+E then c(x) + w(x) − 1 < c(y). We can view an interval
+coloring c of G∗ as assigning an interval [c(v), . . . , c(v) +
+w(v) − 1] of w(v) consecutive colors to each vertex v so
+that the intervals of colors assigned to two adjacent vertices
+(i.e., the pair of nodes that has an edge between them) do not
+overlap. If interval t-coloring is feasible for a graph G∗ then
+G∗ is said to be interval t-colorable. The interval chromatic
+number of G∗ , denoted by χint (G∗ ) is the least t such that
+G∗ has a interval t-coloring [15].
+Interval Graph: Let F be a family of non-empty sets. The
+intersection graph of F is obtained by representing each set
+in F by a node and connecting the two nodes with an edge, if
+and only if the corresponding sets intersect. The intersection
+graph of a family of intervals on a linearly ordered set (such
+as the real line) is called Interval Graph.
+Path Intersection Graph: Consider a graph G = (V, E) and
+a set of paths P = {P1 , . . . , Pk }, where each Pi is a path
+between a node pair (si , ti ), ∀i, 1 ≤ i ≤ k. A graph G0 =
+(V 0 , E 0 ) is a Path Intersection Graph corresponding to P, if
+each vertex pi ∈ V 0 corresponds to a path Pi ∈ P and two
+nodes pi and pj in V 0 have an edge between them, if the
+corresponding paths Pi and Pj in P have at least one common
+edge in E.
+IV. P ROBLEM F ORMULATION
+In this section we provide a formal statement of the on-line
+routing and spectrum allocation problem.
 
-1 8 7 2 3
+On-line Routing and Spectrum Allocation (RSA) Problem:
+A graph G = (V, E) representing the network topology is
+given. The connection requests arrive in a sequence one by one
+where k is the total number of requests. The ith connection
+request is denoted by a triple Ri = (si , ti , di ), 1 ≤ i ≤ k,
+where si represents a source node, ti represents a destination
+node, and di represents the demand between si and ti in terms
+of sub-carriers. Once a request Ri arrives without knowledge
+of the future requests, assign a path Pi from si to ti and
+assign a spectrum interval Ii = [ai , bi ] of length di to Pi ,
+such that for every pair of requests i and j, j ≤ i the intervals
+Ii and Ij do not overlap if the corresponding paths Pi and Pj
+share an edge between them in G = (V, E). Moreover, if the
+paths Pi and Pj overlap, not only the corresponding intervals
+Ii and Ij must be non-overlapping, these two intervals must
+be separated by a fixed number of sub-carriers, known as
+the guard band. The objective is to minimize spectrum span,
+I = [min1≤i≤k ai , max1≤i≤k bi ]. Without loss of generality,
+we number the first available sub-carrier one and the rest are
+numbered accordingly.
+We note that guard-band constraint can be satisfied by
+increasing the demand values by guard-band value g. In other
+words, in an instance of RSA problem, RSA1 with guard-band
+g1 > 0 and requests {Ri = (si , ti , di )|1 ≤ i ≤ k}, we can
+increase the demand values in each request by g1 and consider
+another instance of RSA, RSA2 where guard-band g2 = 0 and
+for every request Ri in RSA1 , request Ri0 = (si , ti , di + g1 )
+is added to RSA2 . Then the optimal solution of RSA2 can
+be used to create the optimal solution of RSA1 by removing
+the last g1 sub-carriers from each spectrum slice assigned to
+each request (for the proof, reader is referred to the proof of
+the Observation 4 in [16]). As a result, from this point onward
+we assume that guard-band is zero.
+The RSA problem has two distinct components - the routing
+component and the spectrum allocation component. When
+routing is given and the paths for the requests are known
+then interval chromatic number (ICN) of the intersection graph
+of request paths finds the solution of the SA problem. Let
+G0 = (V 0 , E 0 , w) be the weighted path intersection graph of
+paths of all requests where V 0 = {p1 , p2 , . . . , pk } and each
+node pi corresponds to the path of request Ri and the weight
+of pi is di ; i.e., w(pi ) = di . Let χint (G0 ) be the ICN of graph
+G0 . In computation of χint (G0 ), each node pi ∈ V 0 is assigned
+an interval [ai , bi ] of colors with length w(pi ) = di where the
+intervals of two adjacent vertices do not intersect and total
+number of distinct colors used is minimum. Therefore, interval
+[ai , bi ] can be allocated to the path Pi in G and no two paths
+with common edge intersect in their spectrum intervals. Hence,
+the spectrum span of χint (G0 ) is sufficient for the spectrum
+allocation of requests in G with predefined set of paths P.
+Moreover, χint (G0 ) is the minimum spectrum span needed in
+the SA problem; otherwise, it contradicts with χint (G0 ) being
+the minimum interval chromatic number of G0 . It is known
+that computation of ICN of interval graphs is NP-complete
+(Problem SR2 in [17]).
+Fig. 1 shows an example of SA instance where the network
+graph is a ring with 8 nodes and requests are {R1 =
 
-p1 p3 p4
+p1
 
-6 5
+1
+8
+
+2
+
+p3
+
+p4
+
+3
+
+7
+
+6
 
 4
 
+p2
+
 p5
 
-p2
+5
 
 (a)
 
 (b)
 
-Fig. 1. (a) An example of SA instance where the network graph is a ring (b) Path intersection graph G of SA instance in (a)
+Fig. 1. (a) An example of SA instance where the network graph is a ring
+(b) Path intersection graph G0 of SA instance in (a)
 
-(1, 3, 15), R2 = (1, 6, 6), R3 = (2, 5, 6), R4 = (2, 8, 6), R5 = (4, 7, 12)}. Dashed lines show the paths for the requests. Fig. 1(b) depicts G , the path intersection graph of these paths where w(p1 ) = 15, w(p2 ) = 6, w(p3 ) = 6, w(p4 ) = 6 and w(p5 ) = 12. In this example, int (G ) is 24 where the requests R1 to R5 are assigned intervals [1, 15], [13, 18], [16, 21], [19, 24] and [1, 12] respectively. V. O N - LINE ROUTING AND S PECTRUM A LLOCATION P ROBLEM IN R INGS Theorem 1: RSA problem (the off-line case) is NPComplete when the optical network topology is a Ring. Proof: If the demands of the requests in the off-line RSA instance are all equal to one, then RSA problem becomes RWA problem. In [18], it is proven that the RWA problem for optical networks with a ring topology is NP-complete. Since RWA problem is a special case of the RSA problem, it follows that the RSA problem for optical networks with a ring topology is also NP-complete. Next, we propose an on-line algorithm for RSA problem when network topology is a ring. In this algorithm, first we use cut-one-link approach and after removing one link the induced graph is a chain. In the chain for every request there exists just one path. Therefore routing is trivial. For the spectrum assignment, we use First-Fit technique that finds the first free spectrum interval fit the demand of the current request. The steps of the algorithms are explained in Algorithm 1. Algorithm 1 On-line RSA in Ring 1: Remove an edge e  E randomly; Let Gp be the induced chain; 2: while A new request arrives do 3: Find the path for the request in graph Gp ; 4: Compute the first free spectrum interval fit the demand of the current request 5: end while Theorem 2: Algorithm 1 has competitive ratio of min{O(log(dmax )), O(log(k ))} where k is total number of requests and dmax = max1ik di . Proof: In order to compute the competitive ratio we need to compare the spectrum span of Algorithm 1 with the optimal spectrum span of off-line RSA where the sequence of requests is known in advance. After removing one edge randomly from G = (V, E ) in Algorithm 1, the induced graph Gp is a chain. Let OP T and OP Tp be the optimal spectrum
+(1, 3, 15), R2 = (1, 6, 6), R3 = (2, 5, 6), R4 = (2, 8, 6), R5 =
+(4, 7, 12)}. Dashed lines show the paths for the requests. Fig.
+1(b) depicts G0 , the path intersection graph of these paths
+where w(p1 ) = 15, w(p2 ) = 6, w(p3 ) = 6, w(p4 ) = 6
+and w(p5 ) = 12. In this example, χint (G0 ) is 24 where
+the requests R1 to R5 are assigned intervals [1, 15], [13, 18],
+[16, 21], [19, 24] and [1, 12] respectively.
+V. O N - LINE ROUTING AND S PECTRUM A LLOCATION
+P ROBLEM IN R INGS
+Theorem 1: RSA problem (the off-line case) is NPComplete when the optical network topology is a Ring.
+Proof: If the demands of the requests in the off-line RSA
+instance are all equal to one, then RSA problem becomes RWA
+problem. In [18], it is proven that the RWA problem for optical
+networks with a ring topology is NP-complete. Since RWA
+problem is a special case of the RSA problem, it follows that
+the RSA problem for optical networks with a ring topology is
+also NP-complete.
+Next, we propose an on-line algorithm for RSA problem
+when network topology is a ring. In this algorithm, first we use
+cut-one-link approach and after removing one link the induced
+graph is a chain. In the chain for every request there exists
+just one path. Therefore routing is trivial. For the spectrum
+assignment, we use First-Fit technique that finds the first free
+spectrum interval fit the demand of the current request. The
+steps of the algorithms are explained in Algorithm 1.
+Algorithm 1 On-line RSA in Ring
+1: Remove an edge e ∈ E randomly; Let Gp be the induced
+chain;
+2: while A new request arrives do
+3:
+Find the path for the request in graph Gp ;
+4:
+Compute the first free spectrum interval fit the demand
+of the current request
+5: end while
+Theorem 2: Algorithm 1 has competitive ratio of
+min{O(log(dmax )), O(log(k))} where k is total number of
+requests and dmax = max1≤i≤k di .
+Proof: In order to compute the competitive ratio we need to
+compare the spectrum span of Algorithm 1 with the optimal
+spectrum span of off-line RSA where the sequence of requests
+is known in advance. After removing one edge randomly
+from G = (V, E) in Algorithm 1, the induced graph Gp
+is a chain. Let OP T and OP Tp be the optimal spectrum
 
-span in RSA problem when network graph is G and Gp , respectively, and I be the size of the spectrum computed by Algorithm 1. Clearly, the intersection graph of paths of the requests in Gp is an interval graph (a path from node i to node j in Gp can be interpreted as an interval from i to j ). Let Gp be the path intersection graph. Therefore, minimum spectrum needed to satisfy requests in Gp is equivalent to the int (Gp ). Based on the paper [10], First-Fit algorithm will have competitive ratio of min{O(log(dmax )), O(log(Gp ))} for on-line interval coloring in Gp . Also it is obvious Gp  k (i.e., chromatic number of Gp is at most as large as the number of nodes in Gp that is number of requests). Hence, we have (1) I  min{O(log(dmax )), O(log(k ))} � OP Tp . We denote the set of paths in the optimal solution of RSA (off-line) when network graph is G by POP T . The paths in POP T can be 1 2 1 partitioned into two subsets, Pe and Pe such that Pe is the set 2 of paths that include edge e and the paths in Pe do not include 1 2 edge e. Let OP Te and OP Te be the ICN of the intersection 1 2 graph of paths in Pe and Pe respectively. Then we have (2) 1 2 1 OP T  max(OP Te , OP Te ). Since all the paths in Pe have intersection in edge e, their intervals do not intersect. Clearly, 1 2 (3) OP Tp  OP Te + OP Te . The reason is that in the worst case, all requests that were routed through edge e in POP T are routed the other way in Gp and now they at most need 1 OP Te spectrum span not intersecting the spectrum allocated 2 to the paths in Pe . Therefore, using relations in (2) and (3) we have OP Tp  2OP T . Also, based on relation (1) we can conclude I  min{O(log(dmax )), O(log(k ))} � OP T . VI. A H EURISTIC AND R ESULTS FOR G ENERAL G RAPHS In this section first we present our heuristic for on-line RSA problem in general graphs. Then we present the results of our extensive simulation that demonstrate the efficacy of our heuristic for the on-line RSA problem by comparing it against (i) the optimal solution and (ii) the solution obtained by executing the heuristic based on K -shortest path and FirstFit technique. Minimum Sub-Carrier Path Heuristic (MSCP): The main idea in our heuristic is that it tries to find disjoint paths for routing the requests to increase the reuse of sub-carriers in spectrum allocation. Of this concern, we define a new weight function on the edges (fibers) of the network where weight of an edge e  E , w(e) will be largest sub-carrier number that is used in that edge. We also define the weight of a path, P from node s to node t to be maxeP {w(e)}. For each new request, M SCP selects the path with minimum weight. The minimum weight path can be computed by modifying the distance function in Dijkstra algorithm so that it considers the new weight function as the distance. After finding the path, M SCP uses First-Fit algorithm to find the first available spectrum slice with the length of the request demand in all the edges of the path. Then, M SCP updates the weight of every edge in the path to the largest sub-carrier so far used in that edge. For each request, time complexity of minimumweight path computation is O(|V |2 ) and First-Fit algorithm takes O(k |V |2 ) where k is the number of requests. Hence, time complexity of M SCP is O(k 2 |V |2 ).
+span in RSA problem when network graph is G and Gp ,
+respectively, and I be the size of the spectrum computed by
+Algorithm 1. Clearly, the intersection graph of paths of the
+requests in Gp is an interval graph (a path from node i to
+node j in Gp can be interpreted as an interval from i to j).
+Let G0p be the path intersection graph. Therefore, minimum
+spectrum needed to satisfy requests in Gp is equivalent to the
+χint (G0p ). Based on the paper [10], First-Fit algorithm will
+have competitive ratio of min{O(log(dmax )), O(log(χG0p ))}
+for on-line interval coloring in G0p . Also it is obvious χG0p ≤ k
+(i.e., chromatic number of G0p is at most as large as the number
+of nodes in G0p that is number of requests). Hence, we have (1)
+I ≤ min{O(log(dmax )), O(log(k))} · OP Tp . We denote the
+set of paths in the optimal solution of RSA (off-line) when
+network graph is G by POP T . The paths in POP T can be
+partitioned into two subsets, Pe1 and Pe2 such that Pe1 is the set
+of paths that include edge e and the paths in Pe2 do not include
+edge e. Let OP Te1 and OP Te2 be the ICN of the intersection
+graph of paths in Pe1 and Pe2 respectively. Then we have (2)
+OP T ≥ max(OP Te1 , OP Te2 ). Since all the paths in Pe1 have
+intersection in edge e, their intervals do not intersect. Clearly,
+(3) OP Tp ≤ OP Te1 + OP Te2 . The reason is that in the worst
+case, all requests that were routed through edge e in POP T
+are routed the other way in Gp and now they at most need
+OP Te1 spectrum span not intersecting the spectrum allocated
+to the paths in Pe2 . Therefore, using relations in (2) and (3)
+we have OP Tp ≤ 2OP T . Also, based on relation (1) we can
+conclude I ≤ min{O(log(dmax )), O(log(k))} · OP T .
+VI. A H EURISTIC AND R ESULTS FOR G ENERAL G RAPHS
+In this section first we present our heuristic for on-line
+RSA problem in general graphs. Then we present the results
+of our extensive simulation that demonstrate the efficacy of
+our heuristic for the on-line RSA problem by comparing it
+against (i) the optimal solution and (ii) the solution obtained
+by executing the heuristic based on K-shortest path and FirstFit technique.
+Minimum Sub-Carrier Path Heuristic (MSCP): The main
+idea in our heuristic is that it tries to find disjoint paths for
+routing the requests to increase the reuse of sub-carriers in
+spectrum allocation. Of this concern, we define a new weight
+function on the edges (fibers) of the network where weight
+of an edge e ∈ E, w(e) will be largest sub-carrier number
+that is used in that edge. We also define the weight of a path,
+P from node s to node t to be maxe∈P {w(e)}. For each
+new request, M SCP selects the path with minimum weight.
+The minimum weight path can be computed by modifying the
+distance function in Dijkstra algorithm so that it considers
+the new weight function as the distance. After finding the
+path, M SCP uses First-Fit algorithm to find the first available
+spectrum slice with the length of the request demand in all
+the edges of the path. Then, M SCP updates the weight of
+every edge in the path to the largest sub-carrier so far used
+in that edge. For each request, time complexity of minimumweight path computation is O(|V |2 ) and First-Fit algorithm
+takes O(k|V |2 ) where k is the number of requests. Hence,
+time complexity of M SCP is O(k 2 |V |2 ).
 
-K -Shortest Path Heuristic (KSP): In this heuristic, initially K shortest paths are computed between every pair of nodes in the network using [19] algorithm with O(k |V |3 ). When a request Ri arrives, for every path in the K shortest paths between si and ti we compute First-Fit algorithm to find the first available spectrum slice [ai , bi ] with the length of di . Then we select the path whose first available spectrum slice [ai , bi ] has the smallest bi . This algorithm takes O(Kk 2 |V |2 ) for satisfying all the k requests. We perform our experiments on the NSFnet (Fig. 2(a)) and the fiber network of Level-3 that spans Europe (Fig. 3(a)) [20]. We view the NSFnet and Level-3 networks as examples of a small and a large network respectively. In Fig. 2(b), we present the results obtained from ILP , M SCP and KSP when executed on the NSFnet. We find the optimal solution of the RSA problem (off-line) by solving an ILP using the software package CPLEX. Since computing the optimal solution by ILP takes considerable amount of time, we need to do this set of experiments for small number of requests. In this set of experiments, the number of requests, k , is varied from 2 to 6 with step of one. For each value of k , we generate 10 instances. In each instance we generate k requests randomly and consider them one at a time. For this set of experiments all the demand values are at most 5, (i.e., dmax  5). The average spectrum span computed by each of the three methods is shown in Fig. 2(b). It may be observed that the average spectrum span of M SCP is closest to the ILP almost in all cases. The ratio of the average spectrum span of M SCP to ILP is at most 1.28 demonstrating the closeness of the M SCP to the optimal. The results in these experiments also show that M SCP works better than KSP algorithm in almost all the cases even when number of paths in KSP is K = 3. We repeat similar experiments for larger value of k , where k = 10 and we change the value of dmax from 5 to 25. The result of these experiments is depicted in Fig. 2(c). It can be observed that spectrum span in M SCP is at least 12% smaller than the span in KSP where K = 1 and it is even smaller than the one in KSP where K = 2. When K = 3 in KSP , KSP needs smaller spectrum span than M SCP but its time complexity is at least 3 times M SCP . We perform our next set of experiments on the Level-3 network shown in Fig. 3(a). In these experiments, first, we vary k from 10 to 60 with step of 10. For a specific value of k we generate 10 instances. In all these instances, the maximum demand is limited to 10 (i.e., dmax  10). The average utilized spectrum span is shown in Fig. 3(b). These results show that M SCP efficacy with respect to utilized spectrum span is almost the same as KSP when K = 2. We also conduct experiments for the case that values of dmax is varied from 5 to 25 with step of 5, while keeping the number of requests k constant at 20. We compute the average spectrum span over 10 random instances for each value of dmax . The results are shown in Fig. 3(c). According to these results, M SCP 's performance is better than KSP when K = 2 especially for larger values of dmax . According to the last experiments we may conclude that M SCP outperforms KSP when K = 2 for larger values of dmax .
+K-Shortest Path Heuristic (KSP): In this heuristic, initially
+K shortest paths are computed between every pair of nodes
+in the network using [19] algorithm with O(k|V |3 ). When
+a request Ri arrives, for every path in the K shortest paths
+between si and ti we compute First-Fit algorithm to find the
+first available spectrum slice [ai , bi ] with the length of di .
+Then we select the path whose first available spectrum slice
+[ai , bi ] has the smallest bi . This algorithm takes O(Kk 2 |V |2 )
+for satisfying all the k requests.
+We perform our experiments on the NSFnet (Fig. 2(a)) and
+the fiber network of Level-3 that spans Europe (Fig. 3(a)) [20].
+We view the NSFnet and Level-3 networks as examples of a
+small and a large network respectively.
+In Fig. 2(b), we present the results obtained from ILP ,
+M SCP and KSP when executed on the NSFnet. We find the
+optimal solution of the RSA problem (off-line) by solving an
+ILP using the software package CPLEX. Since computing the
+optimal solution by ILP takes considerable amount of time,
+we need to do this set of experiments for small number of
+requests. In this set of experiments, the number of requests,
+k, is varied from 2 to 6 with step of one. For each value of
+k, we generate 10 instances. In each instance we generate k
+requests randomly and consider them one at a time. For this
+set of experiments all the demand values are at most 5, (i.e.,
+dmax ≤ 5). The average spectrum span computed by each of
+the three methods is shown in Fig. 2(b). It may be observed
+that the average spectrum span of M SCP is closest to the
+ILP almost in all cases. The ratio of the average spectrum
+span of M SCP to ILP is at most 1.28 demonstrating the
+closeness of the M SCP to the optimal. The results in these
+experiments also show that M SCP works better than KSP
+algorithm in almost all the cases even when number of paths
+in KSP is K = 3. We repeat similar experiments for larger
+value of k, where k = 10 and we change the value of dmax
+from 5 to 25. The result of these experiments is depicted in
+Fig. 2(c). It can be observed that spectrum span in M SCP is
+at least 12% smaller than the span in KSP where K = 1 and
+it is even smaller than the one in KSP where K = 2. When
+K = 3 in KSP , KSP needs smaller spectrum span than
+M SCP but its time complexity is at least 3 times M SCP .
+We perform our next set of experiments on the Level-3
+network shown in Fig. 3(a). In these experiments, first, we
+vary k from 10 to 60 with step of 10. For a specific value of k
+we generate 10 instances. In all these instances, the maximum
+demand is limited to 10 (i.e., dmax ≤ 10). The average utilized
+spectrum span is shown in Fig. 3(b). These results show that
+M SCP efficacy with respect to utilized spectrum span is
+almost the same as KSP when K = 2. We also conduct
+experiments for the case that values of dmax is varied from 5
+to 25 with step of 5, while keeping the number of requests
+k constant at 20. We compute the average spectrum span
+over 10 random instances for each value of dmax . The results
+are shown in Fig. 3(c). According to these results, M SCP ’s
+performance is better than KSP when K = 2 especially for
+larger values of dmax . According to the last experiments we
+may conclude that M SCP outperforms KSP when K = 2
+for larger values of dmax .
 
-8
-Average Spectrum Span
-MI WA
+50
 
-50
+NJ
+
+IL
+
+UT
+
+CA1
+
+PA
+
+NE
+CO
+MD
+
+dmax ≤ 5
+
+7
+6
+
+KSP (K=1)
+KSP (K=2)
+KSP (K=3)
+MSCP
+ILP
+
+5
+4
+
+3
 
 Average Spectrum Span
 
 NY
 
-7 6 5 4
+WA
 
-dmax  5
+Average Spectrum Span
 
-40
+8
+MI
+
+2
+
+CA2
+
+30
+KSP (K=1)
+KSP (K=2)
+KSP (K=3)
+MSCP
+
+20
+10
+0
+
+1
+
+TX
 
 k = 10
 
-CA1
+40
 
-UT NE CO
+2
 
-IL
-
-NJ PA
+GA
 
 3
-2 1 2 3 4 5 Number of requests (k) 6
-
-MD CA2 TX GA
-
-KSP (K=1) KSP (K=2) KSP (K=3) MSCP ILP 7
-
-30
-20 10 0 0 5 10 15 20 25 Maximum demand (dmax) 30 KSP (K=1) KSP (K=2) KSP (K=3) MSCP
+4
+5
+Number of requests (k)
 
 (a)
 
+6
+
+7
+
+0
+
+5
+
 (b)
+
+10
+15
+20
+25
+Maximum demand (dmax)
+
+30
 
 (c)
 
-Fig. 2. (a) The 14-node NSF Network, (b) The average spectrum span in NSF Network for different values of k where dmax  5, (c) different values of dmax where k = 10
-160 140 Average Spectrum Span 180
+Fig. 2. (a) The 14-node NSF Network, (b) The average spectrum span in NSF Network for different values of k where dmax ≤ 5, (c) different values of
+dmax where k = 10
+180
 
-dmax  10
-Average Spectrum Span
+160
 
-160 140 120 100 KSP (K=1) KSP (K=2) MSCP k = 20
+dmax ≤ 10
 
-120
-100 80 60 40
+160
+
+100
+80
 
 KSP (K=1)
-KSP (K=2) MSCP
 
-80
-60 40 20
+60
+
+KSP (K=2)
+
+40
+
+MSCP
 
 20
 0
 
+(a)
+
+120
+100
+KSP (K=1)
+KSP (K=2)
+MSCP
+
+80
+60
+40
+20
+
 0
+
+Fig. 3.
+
+k = 20
+
+140
+
+120
+
+Average Spectrum Span
+
+Average Spectrum Span
+
+140
 
 20
 
-40 60 Number of requests (k)
-
-80
-
-0 0 10 20 30 Maximum demand (dmax) 40
-
-(a) Fig. 3.
+40
+60
+Number of requests (k)
 
 (b)
 
+80
+
+0
+0
+
+10
+20
+30
+Maximum demand (dmax)
+
+40
+
 (c)
 
-(a) Level-3 network over Europe, (b) The average spectrum span in Level-3 network for dmax  10, (c) k = 20
+(a) Level-3 network over Europe, (b) The average spectrum span in Level-3 network for dmax ≤ 10, (c) k = 20
 
-VII. C ONCLUSION In this paper we study on-line version of Routing and Spectrum Allocation problem in OFDM-based optical networks. We propose an algorithm for the ring network with a competitive ratio of min{O(log(dmax )), O(log(k ))} where k is the total number of requests and dmax is the maximum demand. In addition, we provide a heuristic for networks with arbitrary topology and measure its effectiveness with extensive simulation. In future, we plan to develop efficient algorithms for on-line RSA in networks with tree and grid topologies. We also would like to extend our results to the case that different modulation models can be used. Acknowledgement The research was supported by the DTRA grant HDTRA1-09-1-0032 and the AFOSR grant FA9550-091-0120. R EFERENCES
-[1] W. Shieh, "Ofdm for flexible high-speed optical networks," Journal of Lightwave Technology, vol. 29, no. 10, pp. 1560 �1577, 2011. [2] M. Jinno, H. Takara, B. Kozicki, Y. Tsukishima, Y. Sone, and S. Matsuoka, "Spectrum-efficient and scalable elastic optical path network: architecture, benefits, and enabling technologies," IEEE Communications Magazine, vol. 47, no. 11, pp. 66 �73, 2009. [3] Y. Wang, X. Cao, and Y. Pan, "A study of the routing and spectrum allocation in spectrum-sliced elastic optical path networks," in INFOCOM, 2011, pp. 1503�1511. [4] M. Jinno, B. Kozicki, H. Takara, A. Watanabe, Y. Sone, T. Tanaka, and A. Hirano, "Distance-adaptive spectrum resource allocation in spectrumsliced elastic optical path network [topics in optical communications]," IEEE Communications Magazine, vol. 48, no. 8, pp. 138 �145, 2010. [5] K. Christodoulopoulos, I. Tomkos, and E. Varvarigos, "Dynamic bandwidth allocation in flexible ofdm-based networks," in OFC/NFOEC, 2011. [6] X. Wan, N. Hua, and X. Zheng, "Dynamic routing and spectrum assignment in spectrum-flexible transparent optical networks," IEEE/OSA Journal of Optical Communications and Networking, vol. 4, no. 8, pp. 603 �613, 2012.
+VII. C ONCLUSION
+In this paper we study on-line version of Routing and
+Spectrum Allocation problem in OFDM-based optical networks. We propose an algorithm for the ring network with
+a competitive ratio of min{O(log(dmax )), O(log(k))} where
+k is the total number of requests and dmax is the maximum
+demand. In addition, we provide a heuristic for networks with
+arbitrary topology and measure its effectiveness with extensive
+simulation. In future, we plan to develop efficient algorithms
+for on-line RSA in networks with tree and grid topologies. We
+also would like to extend our results to the case that different
+modulation models can be used.
+Acknowledgement The research was supported by the DTRA
+grant HDTRA1-09-1-0032 and the AFOSR grant FA9550-091-0120.
+R EFERENCES
+[1] W. Shieh, “Ofdm for flexible high-speed optical networks,” Journal of
+Lightwave Technology, vol. 29, no. 10, pp. 1560 –1577, 2011.
+[2] M. Jinno, H. Takara, B. Kozicki, Y. Tsukishima, Y. Sone, and S. Matsuoka, “Spectrum-efficient and scalable elastic optical path network: architecture, benefits, and enabling technologies,” IEEE Communications
+Magazine, vol. 47, no. 11, pp. 66 –73, 2009.
+[3] Y. Wang, X. Cao, and Y. Pan, “A study of the routing and spectrum allocation in spectrum-sliced elastic optical path networks,” in INFOCOM,
+2011, pp. 1503–1511.
+[4] M. Jinno, B. Kozicki, H. Takara, A. Watanabe, Y. Sone, T. Tanaka, and
+A. Hirano, “Distance-adaptive spectrum resource allocation in spectrumsliced elastic optical path network [topics in optical communications],”
+IEEE Communications Magazine, vol. 48, no. 8, pp. 138 –145, 2010.
+[5] K. Christodoulopoulos, I. Tomkos, and E. Varvarigos, “Dynamic bandwidth allocation in flexible ofdm-based networks,” in OFC/NFOEC,
+2011.
+[6] X. Wan, N. Hua, and X. Zheng, “Dynamic routing and spectrum assignment in spectrum-flexible transparent optical networks,” IEEE/OSA
+Journal of Optical Communications and Networking, vol. 4, no. 8, pp.
+603 –613, 2012.
 
-[7] T. Takagi, H. Hasegawa, K. Sato, Y. Sone, B. Kozicki, A. Hirano, and M. Jinno, "Dynamic routing and frequency slot assignment for elastic optical path networks that adopt distance adaptive modulation," in OFC/NFOEC, 2011. [8] A. Castro, L. Velasco, M. Ruiz, M. Klinkowski, J. P. Fern� andez-Palacios, and D. Careglio, "Dynamic routing and spectrum (re)allocation in future flexgrid optical networks," Compututer Networks, vol. 56, no. 12, pp. 2869�2883, 2012. [9] G. Shen and Q. Yang, "From coarse grid to mini-grid to gridless: How much can gridless help contentionless?" in OFC/NFOEC, 2011. [10] M. G. Luby, "Tight bounds for dynamic storage allocation," SIAM Journal on Discrete Mathematics, vol. 9, no. 1, pp. 155�166, Feb. 1996. [11] A. N. Patel, P. N. Ji, J. P. Jue, and T. Wang, "Routing, wavelength assignment, and spectrum allocation in transparent flexible optical wdm (fwdm) networks," in Photonics in Switching, 2010. [12] K. Christodoulopoulos, I. Tomkos, and E. A. Varvarigos, "Routing and spectrum allocation in ofdm-based optical networks with elastic bandwidth allocation," in GLOBECOM, 2010, pp. 1�6. [13] M. Klinkowski and K. Walkowiak, "Routing and spectrum assignment inspectrum sliced elastic optical path network," IEEE Communications Letters, vol. 15, no. 8, pp. 884�886, 2011. [14] K. Christodoulopoulos, I. Tomkos, and E. Varvarigos, "Elastic bandwidth allocation in flexible ofdm-based optical networks," Journal of Lightwave Technology, vol. 29, no. 9, pp. 1354 �1366, 2011. [15] H. A. Kierstead, "A polynomial time approximation algorithm for dynamic storage allocation," Discrete Mathematics, vol. 87, no. 2-3, pp. 231�237, 1991. [16] S. Shirazipourazad, C. Zhou, Z. Derakhshandeh, and A. Sen. On routing and spectrum allocation in spectrum-sliced optical networks. [Online]. Available: http://www.public.asu.edu/sshiraz1/RSA.pdf [17] M. R. Garey and D. S. Johnson, Computers and Intractability; A Guide to the Theory of NP-Completeness. W. H. Freeman & Co., 1990. [18] T. Erlebach and K. Jansen, "The complexity of path coloring and call scheduling," Theoretical Computer Science, vol. 255, no. 1-2, pp. 33�50, 2001. [19] J. Y. Yen, "Finding the k shortest loopless paths in a network," Management Science, vol. 17, no. 11, pp. 712�716, 1971. [20] Level 3 Communications, Network Map. [Online]. Available: http: //www.level3.com/en/resource-library/maps/level-3-network-map/
+[7] T. Takagi, H. Hasegawa, K. Sato, Y. Sone, B. Kozicki, A. Hirano,
+and M. Jinno, “Dynamic routing and frequency slot assignment for
+elastic optical path networks that adopt distance adaptive modulation,”
+in OFC/NFOEC, 2011.
+[8] A. Castro, L. Velasco, M. Ruiz, M. Klinkowski, J. P. Fernández-Palacios,
+and D. Careglio, “Dynamic routing and spectrum (re)allocation in future
+flexgrid optical networks,” Compututer Networks, vol. 56, no. 12, pp.
+2869–2883, 2012.
+[9] G. Shen and Q. Yang, “From coarse grid to mini-grid to gridless: How
+much can gridless help contentionless?” in OFC/NFOEC, 2011.
+[10] M. G. Luby, “Tight bounds for dynamic storage allocation,” SIAM
+Journal on Discrete Mathematics, vol. 9, no. 1, pp. 155–166, Feb. 1996.
+[11] A. N. Patel, P. N. Ji, J. P. Jue, and T. Wang, “Routing, wavelength
+assignment, and spectrum allocation in transparent flexible optical wdm
+(fwdm) networks,” in Photonics in Switching, 2010.
+[12] K. Christodoulopoulos, I. Tomkos, and E. A. Varvarigos, “Routing
+and spectrum allocation in ofdm-based optical networks with elastic
+bandwidth allocation,” in GLOBECOM, 2010, pp. 1–6.
+[13] M. Klinkowski and K. Walkowiak, “Routing and spectrum assignment
+inspectrum sliced elastic optical path network,” IEEE Communications
+Letters, vol. 15, no. 8, pp. 884–886, 2011.
+[14] K. Christodoulopoulos, I. Tomkos, and E. Varvarigos, “Elastic bandwidth allocation in flexible ofdm-based optical networks,” Journal of
+Lightwave Technology, vol. 29, no. 9, pp. 1354 –1366, 2011.
+[15] H. A. Kierstead, “A polynomial time approximation algorithm for
+dynamic storage allocation,” Discrete Mathematics, vol. 87, no. 2-3,
+pp. 231–237, 1991.
+[16] S. Shirazipourazad, C. Zhou, Z. Derakhshandeh, and A. Sen. On
+routing and spectrum allocation in spectrum-sliced optical networks.
+[Online]. Available: http://www.public.asu.edu/∼sshiraz1/RSA.pdf
+[17] M. R. Garey and D. S. Johnson, Computers and Intractability; A Guide
+to the Theory of NP-Completeness. W. H. Freeman & Co., 1990.
+[18] T. Erlebach and K. Jansen, “The complexity of path coloring and call
+scheduling,” Theoretical Computer Science, vol. 255, no. 1-2, pp. 33–50,
+2001.
+[19] J. Y. Yen, “Finding the k shortest loopless paths in a network,”
+Management Science, vol. 17, no. 11, pp. 712–716, 1971.
+[20] Level 3 Communications, Network Map. [Online]. Available: http:
+//www.level3.com/en/resource-library/maps/level-3-network-map/
 
 

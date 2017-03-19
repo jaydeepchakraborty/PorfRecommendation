@@ -1,187 +1,757 @@
-J Intell Inf Syst DOI 10.1007/s10844-015-0366-3
+J Intell Inf Syst
+DOI 10.1007/s10844-015-0366-3
 
-Click efficiency: a unified optimal ranking for online Ads and documents
-Raju Balakrishnan1 � Subbarao Kambhampati2
+Click efficiency: a unified optimal ranking for online Ads
+and documents
+Raju Balakrishnan1 · Subbarao Kambhampati2
 
-Received: 21 December 2013 / Revised: 23 March 2015 / Accepted: 12 May 2015 � Springer Science+Business Media New York 2015
+Received: 21 December 2013 / Revised: 23 March 2015 / Accepted: 12 May 2015
+© Springer Science+Business Media New York 2015
 
-Abstract Ranking of search results and ads has traditionally been studied separately. The probability ranking principle is commonly used to rank the search results while the ranking based on expected profits is commonly used for paid placement of ads. These rankings try to maximize the expected utilities based on the user click models. Recent empirical analysis on search engine logs suggests unified click models for both ranked ads and search results (documents). These new models consider parameters of (i) probability of the user abandoning browsing results (ii) perceived relevance of result snippets. However, current document and ad ranking methods do not consider these parameters. In this paper we propose a generalized ranking function--namely Click Efficiency (CE)--for documents and ads based on empirically proven user click models. The ranking considers parameters (i) and (ii) above, optimal and has the same time complexity as sorting. Furthermore, the CE ranking exploits the commonality of click models, hence is applicable for both documents and ads. We examine the reduced forms of CE ranking based upon different underlying assumptions, enumerating a hierarchy of ranking functions. Interestingly, some of the rankings in the hierarchy are currently used ad and document ranking functions; while others suggest new rankings. Thus, this hierarchy illustrates the relationships between different rankings, and clarifies the underlying assumptions. While optimality of ranking is sufficient for document ranking, applying CE ranking to ad auctions requires an appropriate pricing mechanism. We incorporate a second price based mechanism with the proposed ranking. Our analysis proves several desirable properties including revenue dominance over
+Abstract Ranking of search results and ads has traditionally been studied separately. The
+probability ranking principle is commonly used to rank the search results while the ranking
+based on expected profits is commonly used for paid placement of ads. These rankings try
+to maximize the expected utilities based on the user click models. Recent empirical analysis on search engine logs suggests unified click models for both ranked ads and search
+results (documents). These new models consider parameters of (i) probability of the user
+abandoning browsing results (ii) perceived relevance of result snippets. However, current
+document and ad ranking methods do not consider these parameters. In this paper we propose a generalized ranking function—namely Click Efficiency (CE)—for documents and
+ads based on empirically proven user click models. The ranking considers parameters (i)
+and (ii) above, optimal and has the same time complexity as sorting. Furthermore, the CE
+ranking exploits the commonality of click models, hence is applicable for both documents
+and ads. We examine the reduced forms of CE ranking based upon different underlying
+assumptions, enumerating a hierarchy of ranking functions. Interestingly, some of the rankings in the hierarchy are currently used ad and document ranking functions; while others
+suggest new rankings. Thus, this hierarchy illustrates the relationships between different
+rankings, and clarifies the underlying assumptions. While optimality of ranking is sufficient for document ranking, applying CE ranking to ad auctions requires an appropriate
+pricing mechanism. We incorporate a second price based mechanism with the proposed
+ranking. Our analysis proves several desirable properties including revenue dominance over
 
-Raju Balakrishnan raju.balakrishnan@gmail.com Subbarao Kambhampati rao@asu.edu
-1 2
+ Raju Balakrishnan
 
-Groupon., Park Blvd, Palo Alto, CA 94306, USA Computer Science and Engineering, Arizona State University, Tempe, AZ 85287, USA
+raju.balakrishnan@gmail.com
+Subbarao Kambhampati
+rao@asu.edu
+1
+
+Groupon., Park Blvd, Palo Alto, CA 94306, USA
+
+2
+
+Computer Science and Engineering, Arizona State University, Tempe, AZ 85287, USA
 
 J Intell Inf Syst
 
-Vickrey Clarke Groves (VCG) for the same bid vector and existence of a Nash equilibrium in pure strategies. The equilibrium is socially optimal, and revenue equivalent to the truthful VCG equilibrium. As a result of its generality, the auction mechanism and the equilibrium reduces to the current mechanisms including Generalized Second Price Auction (GSP) and corresponding equilibria. Furthermore, we relax the independence assumption in CE ranking and analyze the diversity ranking problem. We show that optimal diversity ranking is NP-Hard in general, and a constant time approximation algorithm is not likely. Finally our simulations to quantify the amount of increase in different utility functions conform to the results, and suggest potentially significant increase in utilities. Keywords Ad ranking � Document ranking � Diversity � Auctions � Click models
+Vickrey Clarke Groves (VCG) for the same bid vector and existence of a Nash equilibrium
+in pure strategies. The equilibrium is socially optimal, and revenue equivalent to the truthful
+VCG equilibrium. As a result of its generality, the auction mechanism and the equilibrium
+reduces to the current mechanisms including Generalized Second Price Auction (GSP) and
+corresponding equilibria. Furthermore, we relax the independence assumption in CE ranking and analyze the diversity ranking problem. We show that optimal diversity ranking is
+NP-Hard in general, and a constant time approximation algorithm is not likely. Finally our
+simulations to quantify the amount of increase in different utility functions conform to the
+results, and suggest potentially significant increase in utilities.
+Keywords Ad ranking · Document ranking · Diversity · Auctions · Click models
 
 1 Introduction
-Search engines rank results to maximize the relevance of the top documents. On the other hand, targeted ads are ranked primarily to maximize the profit from clicks. In general, users browse through ranked lists of search results or ads from top to bottom, either clicking or skipping the results, or abandoning browsing the list altogether due to impatience or satiation. The goal of the ranking is to maximize the expected relevances (or profits) of clicked results based on the click model of the users. The sort by relevance ranking suggested by Probability Ranking Principle (PRP) has been commonly used for search results for decades (Robertson 1977; Gordon and Lenk 1991). In contrast, sorting by the expected profits calculated as the product of bid amount and Click Through Rate (CTR) is popular for ranking ads (Richardson et al. 2007). Recent click models suggests that the user click behaviors for both search results and targeted ads is the same (Guo et al. 2009; Zhu et al. 2010). Considering this commonality, the only difference between the two ranking problems is the utility of entities ranked: for documents utility is the relevance and for the ads it is the cost-per-click (CPC). This suggests the possibility of a unified ranking function for search results and ads. The current segregation of document and ad ranking as separate areas does not consider this commonality. A unified approach often helps to widen the scope of the related research to these two areas, and enables applications of existing ranking function in one area on isomorphic problems in the other area as we will show below. In addition to the unified approach, the recent click models consider the following parameters: 1. Browsing Abandonment: The user may abandon browsing ranked list at any point. The likelihood of abandonment may depend on the entities the user has already seen (Zhu et al. 2010). Perceived Relevance: Perceived relevance is the user's relevance assessment viewing only the search snippet or ad impression. The decision to click or not depends on the perceived relevance, not on the actual relevance of the results (Yue et al. 2010; Clarke et al. 2007).
+Search engines rank results to maximize the relevance of the top documents. On the other
+hand, targeted ads are ranked primarily to maximize the profit from clicks. In general,
+users browse through ranked lists of search results or ads from top to bottom, either clicking or skipping the results, or abandoning browsing the list altogether due to impatience
+or satiation. The goal of the ranking is to maximize the expected relevances (or profits) of
+clicked results based on the click model of the users. The sort by relevance ranking suggested by Probability Ranking Principle (PRP) has been commonly used for search results
+for decades (Robertson 1977; Gordon and Lenk 1991). In contrast, sorting by the expected
+profits calculated as the product of bid amount and Click Through Rate (CTR) is popular
+for ranking ads (Richardson et al. 2007).
+Recent click models suggests that the user click behaviors for both search results and targeted ads is the same (Guo et al. 2009; Zhu et al. 2010). Considering this commonality, the
+only difference between the two ranking problems is the utility of entities ranked: for documents utility is the relevance and for the ads it is the cost-per-click (CPC). This suggests the
+possibility of a unified ranking function for search results and ads. The current segregation
+of document and ad ranking as separate areas does not consider this commonality. A unified approach often helps to widen the scope of the related research to these two areas, and
+enables applications of existing ranking function in one area on isomorphic problems in the
+other area as we will show below.
+In addition to the unified approach, the recent click models consider the following
+parameters:
+1.
 
 2.
 
-Though these parameters are part of the click models (Guo et al. 2009; Zhu et al. 2010) how to exploit these parameters to improve ranking is currently unknown. The current document ranking is based on the simplifying assumption that the perceived relevance is the same as the actual relevance of the document, and ignores browsing abandonment. The ad placement partially considers perceived relevance, but ignores abandonment probabilities.
+Browsing Abandonment: The user may abandon browsing ranked list at any point.
+The likelihood of abandonment may depend on the entities the user has already
+seen (Zhu et al. 2010).
+Perceived Relevance: Perceived relevance is the user’s relevance assessment viewing
+only the search snippet or ad impression. The decision to click or not depends on the
+perceived relevance, not on the actual relevance of the results (Yue et al. 2010; Clarke
+et al. 2007).
+
+Though these parameters are part of the click models (Guo et al. 2009; Zhu et al. 2010) how
+to exploit these parameters to improve ranking is currently unknown. The current document
+ranking is based on the simplifying assumption that the perceived relevance is the same as
+the actual relevance of the document, and ignores browsing abandonment. The ad placement
+partially considers perceived relevance, but ignores abandonment probabilities.
 
 J Intell Inf Syst
 
-In this paper, we propose a unified optimal ranking function--namely Click Efficiency (CE)--based on a generalized click model of the user. CE is defined as the ratio of the standalone utility generated by an entity to the sum of the abandonment probability and the click probability of that entity, where the abandonment probability is the probability for the user to leave browsing the list after seeing the entity. We show that sorting entities in the descending order of CE guarantees optimum ranking utility. We do not make assumptions on the utilities of the entities, which may be assessed relevance for documents or cost per click (CPC) charged based on the auction for ads. On plugging in the appropriate utilities-- relevance for documents and CPC for the ads--the ranking specializes to document and ad ranking. As a consequence of the generality, the proposed ranking will reduce to specific ranking problems on assumptions about user behavior. We enumerate a hierarchy of ranking functions corresponding to different assumptions on the click model. Most interestingly, some of these special cases correspond to the currently used document and ad ranking functions-- including PRP and sort by expected profit described above. Further, some of the reduced ranking functions suggest new rankings for special cases of the click model--like a click model in which the user never abandons the search, or the perceived relevance is approximated as the actual relevance. This hierarchy elucidates interconnection between different ranking functions and the assumptions behind the rankings. We believe that this will help in choosing the appropriate ranking function for a particular user click behavior. Ranking in ad placement used in conjunction with a pricing strategy to form the complete auction mechanism. Hence to apply the CE ranking on ad placement, a pricing mechanism has to be associated. We incorporate a second-price based pricing mechanism with the proposed ranking. Our analysis establishes many interesting properties of the proposed mechanism. Particularly, we state and prove the existence of a Nash Equilibrium in pure strategies. At this equilibrium, the profits of the search engine and the total revenue of the advertisers is simultaneously optimized. Like ranking, the proposed auction this is a generalized mechanism, and reduces to the existing GSP and Overture mechanisms under the same assumptions as that of the ranking. Further, the stated Nash Equilibrium is a general case of the equilibriums of these existing mechanisms. Comparing the mechanism properties with that of VCG (Vickrey 1961; Clarke 1971; Groves 1973), we show that for the same bid vector, search engine revenue for the CE mechanism is greater or equal to that of VCG. Furthermore, the revenue for the proposed equilibrium is equal to the revenue of the truthful dominant strategy equilibrium of VCG. Our analysis so far has been based on the assumption of parameter independence between the ranked entities. We relax this assumption and analyze the implications based on a specific well known problem--diversity ranking (Carterette 2010; Agrawal et al. 2009; Rafiei et al. 2010). Diversity ranking tries to maximize the collective utility of top-k ranked entities. For a ranked list, an entity will reduce residual utility of a similar entity in the list blow it. Though optimizing all the current ranking functions incorporating diversity is known to be NP-Hard (Carterette 2010), an understanding of why this is an inherently hard problem is lacking. We show that optimizing set utilities is NP-Hard even for the basic form of diversity ranking. Furthermore we extend our proof showing that a constant ratio approximation algorithm is unlikely. As a benefit of the generality of ranking, these results are applicable both for ads and documents. Although we prove the optimality of the proposed ranking, the amount by which the profit may improve is not clear. Considering the very restricted access to online experiments on ads, we performed simulations to this end. We compare the profit improvement by the CE and reduced forms to existing rankings. These experiments suggest potentially
+In this paper, we propose a unified optimal ranking function—namely Click Efficiency
+(CE)—based on a generalized click model of the user. CE is defined as the ratio of the
+standalone utility generated by an entity to the sum of the abandonment probability and the
+click probability of that entity, where the abandonment probability is the probability for the
+user to leave browsing the list after seeing the entity. We show that sorting entities in the
+descending order of CE guarantees optimum ranking utility. We do not make assumptions
+on the utilities of the entities, which may be assessed relevance for documents or cost per
+click (CPC) charged based on the auction for ads. On plugging in the appropriate utilities—
+relevance for documents and CPC for the ads—the ranking specializes to document and ad
+ranking.
+As a consequence of the generality, the proposed ranking will reduce to specific ranking
+problems on assumptions about user behavior. We enumerate a hierarchy of ranking functions corresponding to different assumptions on the click model. Most interestingly, some of
+these special cases correspond to the currently used document and ad ranking functions—
+including PRP and sort by expected profit described above. Further, some of the reduced
+ranking functions suggest new rankings for special cases of the click model—like a click
+model in which the user never abandons the search, or the perceived relevance is approximated as the actual relevance. This hierarchy elucidates interconnection between different
+ranking functions and the assumptions behind the rankings. We believe that this will help in
+choosing the appropriate ranking function for a particular user click behavior.
+Ranking in ad placement used in conjunction with a pricing strategy to form the complete
+auction mechanism. Hence to apply the CE ranking on ad placement, a pricing mechanism has to be associated. We incorporate a second-price based pricing mechanism with
+the proposed ranking. Our analysis establishes many interesting properties of the proposed
+mechanism. Particularly, we state and prove the existence of a Nash Equilibrium in pure
+strategies. At this equilibrium, the profits of the search engine and the total revenue of the
+advertisers is simultaneously optimized. Like ranking, the proposed auction this is a generalized mechanism, and reduces to the existing GSP and Overture mechanisms under the
+same assumptions as that of the ranking. Further, the stated Nash Equilibrium is a general
+case of the equilibriums of these existing mechanisms. Comparing the mechanism properties with that of VCG (Vickrey 1961; Clarke 1971; Groves 1973), we show that for the same
+bid vector, search engine revenue for the CE mechanism is greater or equal to that of VCG.
+Furthermore, the revenue for the proposed equilibrium is equal to the revenue of the truthful
+dominant strategy equilibrium of VCG.
+Our analysis so far has been based on the assumption of parameter independence between
+the ranked entities. We relax this assumption and analyze the implications based on a specific well known problem—diversity ranking (Carterette 2010; Agrawal et al. 2009; Rafiei
+et al. 2010). Diversity ranking tries to maximize the collective utility of top-k ranked entities. For a ranked list, an entity will reduce residual utility of a similar entity in the list blow
+it. Though optimizing all the current ranking functions incorporating diversity is known to
+be NP-Hard (Carterette 2010), an understanding of why this is an inherently hard problem
+is lacking. We show that optimizing set utilities is NP-Hard even for the basic form of diversity ranking. Furthermore we extend our proof showing that a constant ratio approximation
+algorithm is unlikely. As a benefit of the generality of ranking, these results are applicable
+both for ads and documents.
+Although we prove the optimality of the proposed ranking, the amount by which the
+profit may improve is not clear. Considering the very restricted access to online experiments on ads, we performed simulations to this end. We compare the profit improvement
+by the CE and reduced forms to existing rankings. These experiments suggest potentially
 
 J Intell Inf Syst
 
-significant increase in profits. We believe that these experiments will motivate further online evaluations. In summary, the contributions of the unified ranking, including both ad and document domains are: 1. 2. 3. 4. 5. Unified optimal ranking. Optimal ranking considering abandonment probabilities for documents and ads. Optimal Ranking considering perceived relevance of documents and ads. A unified hierarchy of ranking functions and enumerating optimal rankings for different click models. Analysis of general diversity ranking problem and hardness proofs.
+significant increase in profits. We believe that these experiments will motivate further online
+evaluations.
+In summary, the contributions of the unified ranking, including both ad and document
+domains are:
+1.
+2.
+3.
+4.
+5.
 
-Our contributions to ad placement are: 1. 2. 3. Design and analysis of a generalized ad auction mechanism incorporating pricing with CE ranking. Proof of the existence of a socially optimal Nash Equilibrium with optimal advertisers revenue as well as optimal search engine profit. Proof of search engine revenue dominance over VCG for equivalent bid vectors, and equilibrium revenue equivalence to the truthful VCG equilibrium.
+Unified optimal ranking.
+Optimal ranking considering abandonment probabilities for documents and ads.
+Optimal Ranking considering perceived relevance of documents and ads.
+A unified hierarchy of ranking functions and enumerating optimal rankings for different
+click models.
+Analysis of general diversity ranking problem and hardness proofs.
+
+Our contributions to ad placement are:
+1.
+2.
+3.
+
+Design and analysis of a generalized ad auction mechanism incorporating pricing with
+CE ranking.
+Proof of the existence of a socially optimal Nash Equilibrium with optimal advertisers
+revenue as well as optimal search engine profit.
+Proof of search engine revenue dominance over VCG for equivalent bid vectors, and
+equilibrium revenue equivalence to the truthful VCG equilibrium.
 
 1.1 Background
-In search and search advertising, both search results and ads are ranked to maximize utility. At a high level, search results are ranked to maximize the information content (or relevance) of the top documents to the users; whereas ads are ranked to maximize both the relevance as well as the profit to the search engines. Users generally browse through ranked search results starting from the top, either clicking or skipping the results. This browsing pattern of users is called the click model. Search and ad rankings try to maximize the utility to the users based on a click model. In addition to the standalone relevance of the results, another important aspect of ranking is the diversity of the results. Although information contained in a document may be highly relevant, if the information is similar to that in the documents above in the ranking, the document will be of little utility. To account for this factor, the mutual influence of documents or ads ranked needs to be considered to maximize total utility by a set of documents rather than individual documents. To account for this factor, diversity-sensitive ranking maximizes residual relevance of ads or documents in the context of other items in the ranked list. In search ad ranking (paid placements), ads are selected based on the user query. Generally, the click model for ads is similar to that of the search results. In the most common pay-per-click ad campaigns, advertisers pay a certain amount to the search engines whenever a user clicks on their ads. This amount is determined by a pricing mechanism. The advertisers place a bid on the queries. The ads are ranked based on the bid amounts and relevance of the ad to the query. For example, in commonly used Generalized Second Price (GSP) auction Edelman et al. (2007) ads are ranked by the product of their click rates (ratio of the number of clicks to impressions) and bid amounts. The amount the advertisers pay to the search engine need not be equal to the bid amount, but rather determined by the pricing mechanism. For example, in GSP auction, this amount is determined based the the bid amount and the click rates of the given ad and the ad placed below the given ad. Thus ranking and pricing together determines the auction mechanism of the ad placement.
+In search and search advertising, both search results and ads are ranked to maximize utility.
+At a high level, search results are ranked to maximize the information content (or relevance)
+of the top documents to the users; whereas ads are ranked to maximize both the relevance
+as well as the profit to the search engines. Users generally browse through ranked search
+results starting from the top, either clicking or skipping the results. This browsing pattern
+of users is called the click model. Search and ad rankings try to maximize the utility to the
+users based on a click model.
+In addition to the standalone relevance of the results, another important aspect of ranking
+is the diversity of the results. Although information contained in a document may be highly
+relevant, if the information is similar to that in the documents above in the ranking, the document will be of little utility. To account for this factor, the mutual influence of documents
+or ads ranked needs to be considered to maximize total utility by a set of documents rather
+than individual documents. To account for this factor, diversity-sensitive ranking maximizes
+residual relevance of ads or documents in the context of other items in the ranked list.
+In search ad ranking (paid placements), ads are selected based on the user query. Generally, the click model for ads is similar to that of the search results. In the most common
+pay-per-click ad campaigns, advertisers pay a certain amount to the search engines whenever a user clicks on their ads. This amount is determined by a pricing mechanism. The
+advertisers place a bid on the queries. The ads are ranked based on the bid amounts and
+relevance of the ad to the query. For example, in commonly used Generalized Second
+Price (GSP) auction Edelman et al. (2007) ads are ranked by the product of their click
+rates (ratio of the number of clicks to impressions) and bid amounts. The amount the
+advertisers pay to the search engine need not be equal to the bid amount, but rather determined by the pricing mechanism. For example, in GSP auction, this amount is determined
+based the the bid amount and the click rates of the given ad and the ad placed below the
+given ad. Thus ranking and pricing together determines the auction mechanism of the ad
+placement.
 
 J Intell Inf Syst
 
-The rest of this paper is organized as the follows. The next section reviews related work. Section 3 explains the click model used for our analysis. Subsequently we introduce our optimal ranking function, and discuss the intuitions and implications. In Section 5 reductions of our ranking function to several document and ad ranking functions under limiting assumptions are enumerated. Furthermore we discuss several useful special cases of our ranking and assumptions under which they are optimal. In Section 6, we incorporate a pricing strategy to design a complete auction mechanism for ads. Several useful properties are established, including the existence of a Nash equilibrium and revenue dominance over VCG. Section 7 explores the ranking considering mutual influences and proves our hardness results. We present the experiments and results in Section 8. Finally we discuss our conclusions and discuss potential future research directions.
+The rest of this paper is organized as the follows. The next section reviews related work.
+Section 3 explains the click model used for our analysis. Subsequently we introduce our
+optimal ranking function, and discuss the intuitions and implications. In Section 5 reductions of our ranking function to several document and ad ranking functions under limiting
+assumptions are enumerated. Furthermore we discuss several useful special cases of our
+ranking and assumptions under which they are optimal. In Section 6, we incorporate a pricing strategy to design a complete auction mechanism for ads. Several useful properties are
+established, including the existence of a Nash equilibrium and revenue dominance over
+VCG. Section 7 explores the ranking considering mutual influences and proves our hardness results. We present the experiments and results in Section 8. Finally we discuss our
+conclusions and discuss potential future research directions.
 
 2 Related work
-The impact of click models on ranking has been analyzed in ad-placement. In our previous paper Balakrishnan and Kambhampati (2008) we proposed an optimal ad ranking considering mutual influences. The ranking uses the same user model, but the paper considers only ad ranking, and does not include generalizations and auctions. Later Aggarwal et al. (2008) as well as Kempe and Mahdian (2008) analyzed placement of ads using a similar Markovian click model. The click model used is less detailed than our model since abandonment is not modeled separately from click probability. These two papers optimize the sum of the revenues of the advertisers. We optimize search engine profits in this paper. Nevertheless, the ranking formulation has common components with these two papers, as workshop version of this paper Balakrishnan and Kambhampati (2008) as these three papers formulated ranking based on the similar browsing models independently at almost the same time frame. But, unlike this paper, any of the other two papers do not have a pricing, auctions, or a generalized taxonomy. Edelman et al. (2007) analyze a version of GSP auction in their classic paper. They assume that the click probability at a position is a constant. We relax this assumption, and account for the influence of ads above on the click probabilities at a position. This difference gives rise to additional complexities and interesting differences in our mechanism. We show that GSP proposed by Edelman et al. is a special case of our proposed mechanism. Giotis and Karlin (2008) extend Markovian model ranking by applying GSP pricing and analyzing the equilibrium. The GSP pricing and ranking lacks the optimality and generality properties we prove in this paper. Deng and Yu (2009) extend Markovian models by suggesting a ranking and pricing schema for the search engines and prove the existence of a Nash Equilibrium. The ranking is a simpler bid based ranking (not based on CPC as in our case); and mechanism as well as equilibrium do not show optimality properties. Our paper is different from both the above works by using a more detailed model, by having optimality properties, detailed comparisons with other baseline mechanisms, and in the ability to generalize to a family of rankings. Kuminov and Tennenholtz (2009) proposed a Pay Per Action (PPA) model similar to the click models and compared the equilibrium of GSP mechanism on the model with the VCG. Ad auctions considering influence of other ads on conversion rates are analyzed by Ghosh and Sayedi (2010). Both these papers address different problems than considered in this paper. Our proposed model is a general case of the positional auctions model by Varian (2007). Positional auctions assume static click probabilities for each position independent of other
+The impact of click models on ranking has been analyzed in ad-placement. In our previous
+paper Balakrishnan and Kambhampati (2008) we proposed an optimal ad ranking considering mutual influences. The ranking uses the same user model, but the paper considers only
+ad ranking, and does not include generalizations and auctions. Later Aggarwal et al. (2008)
+as well as Kempe and Mahdian (2008) analyzed placement of ads using a similar Markovian click model. The click model used is less detailed than our model since abandonment
+is not modeled separately from click probability. These two papers optimize the sum of the
+revenues of the advertisers. We optimize search engine profits in this paper. Nevertheless,
+the ranking formulation has common components with these two papers, as workshop version of this paper Balakrishnan and Kambhampati (2008) as these three papers formulated
+ranking based on the similar browsing models independently at almost the same time frame.
+But, unlike this paper, any of the other two papers do not have a pricing, auctions, or a
+generalized taxonomy.
+Edelman et al. (2007) analyze a version of GSP auction in their classic paper. They
+assume that the click probability at a position is a constant. We relax this assumption, and
+account for the influence of ads above on the click probabilities at a position. This difference
+gives rise to additional complexities and interesting differences in our mechanism. We show
+that GSP proposed by Edelman et al. is a special case of our proposed mechanism.
+Giotis and Karlin (2008) extend Markovian model ranking by applying GSP pricing and
+analyzing the equilibrium. The GSP pricing and ranking lacks the optimality and generality
+properties we prove in this paper. Deng and Yu (2009) extend Markovian models by suggesting a ranking and pricing schema for the search engines and prove the existence of a
+Nash Equilibrium. The ranking is a simpler bid based ranking (not based on CPC as in our
+case); and mechanism as well as equilibrium do not show optimality properties. Our paper
+is different from both the above works by using a more detailed model, by having optimality properties, detailed comparisons with other baseline mechanisms, and in the ability to
+generalize to a family of rankings.
+Kuminov and Tennenholtz (2009) proposed a Pay Per Action (PPA) model similar to
+the click models and compared the equilibrium of GSP mechanism on the model with the
+VCG. Ad auctions considering influence of other ads on conversion rates are analyzed by
+Ghosh and Sayedi (2010). Both these papers address different problems than considered in
+this paper.
+Our proposed model is a general case of the positional auctions model by Varian (2007).
+Positional auctions assume static click probabilities for each position independent of other
 
 J Intell Inf Syst
 
-ads. We assume more realistic dynamic click probabilities depending on the ads above. Since we consider these externalities, our model, auction, and analysis are more complex. (e.g. monotonically increasing values and prices with positions). The existing document ranking based on PRP (Robertson 1977) claims that a retrieval order sorted on relevance leads to the largest number of relevant documents in a result set than any other policy. Gordon and Lenk (1991, 1992) identified the required assumptions for the optimality of the ranking according to PRP. Our discussion on PRP may be considered as an independent formulation of assumptions under which PRP is optimal for web ranking. There are number of user behavior studies in click models validating our assumed user model and ranking function. There are a number of position based and cascade models studied (Dupret and Piwowarski 2008; Craswell et al. 2008; Guo et al. 2009; Chapelle and Zhang 2009; Zhu et al. 2010; Xu et al. 2010; Hu et al. 2011). In particular, General Click Model (GCM) by Zhu et al. (2010) is interesting, since many other click models are special cases of GCM. Zhu et al. (2010) list assumptions under which the GCM would reduce to other click models. We will discuss the relations of our model to GCM below. Optimizing utilities of two dimensional placement of search results has been studied by Chierichetti et al. (2011). Many of the recent click models are more general than the click model used in our paper, but please note that the contribution of our paper is not the click model, but a unified optimal ranking and auction mechanism based on the click model. Along with the current click models, there has been research on evaluating perceived relevance of the search snippets (Yue et al. 2010) and ad impressions (Clarke et al. 2007). Research in this direction neatly complements our new ranking function by estimating the parameters required. Chapelle and Zhang (2009) demonstrated that separately modeling perceived and actual relevances improves relevance assessment of documents using click logs. Diversity ranking has received considerable attention recently (Agrawal et al. 2009; Rafiei et al. 2010). The objective functions used to measure diversity by prior works are known to be NP-Hard (Carterette 2010). We provide a stronger proof showing that even the basic diversity ranking problem is NP-Hard irrespective of any specific objective function, and further show that a constant ratio approximation is unlikely. To the best of our knowledge, this paper is the first unified optimal ranking and auction mechanism based on a generalized click model.
+ads. We assume more realistic dynamic click probabilities depending on the ads above.
+Since we consider these externalities, our model, auction, and analysis are more complex.
+(e.g. monotonically increasing values and prices with positions).
+The existing document ranking based on PRP (Robertson 1977) claims that a retrieval
+order sorted on relevance leads to the largest number of relevant documents in a result set
+than any other policy. Gordon and Lenk (1991, 1992) identified the required assumptions for
+the optimality of the ranking according to PRP. Our discussion on PRP may be considered
+as an independent formulation of assumptions under which PRP is optimal for web ranking.
+There are number of user behavior studies in click models validating our assumed user
+model and ranking function. There are a number of position based and cascade models
+studied (Dupret and Piwowarski 2008; Craswell et al. 2008; Guo et al. 2009; Chapelle and
+Zhang 2009; Zhu et al. 2010; Xu et al. 2010; Hu et al. 2011). In particular, General Click
+Model (GCM) by Zhu et al. (2010) is interesting, since many other click models are special
+cases of GCM. Zhu et al. (2010) list assumptions under which the GCM would reduce to
+other click models. We will discuss the relations of our model to GCM below. Optimizing
+utilities of two dimensional placement of search results has been studied by Chierichetti
+et al. (2011). Many of the recent click models are more general than the click model used
+in our paper, but please note that the contribution of our paper is not the click model, but a
+unified optimal ranking and auction mechanism based on the click model.
+Along with the current click models, there has been research on evaluating perceived
+relevance of the search snippets (Yue et al. 2010) and ad impressions (Clarke et al. 2007).
+Research in this direction neatly complements our new ranking function by estimating the
+parameters required. Chapelle and Zhang (2009) demonstrated that separately modeling perceived and actual relevances improves relevance assessment of documents using click logs.
+Diversity ranking has received considerable attention recently (Agrawal et al. 2009;
+Rafiei et al. 2010). The objective functions used to measure diversity by prior works are
+known to be NP-Hard (Carterette 2010). We provide a stronger proof showing that even
+the basic diversity ranking problem is NP-Hard irrespective of any specific objective function, and further show that a constant ratio approximation is unlikely. To the best of our
+knowledge, this paper is the first unified optimal ranking and auction mechanism based on
+a generalized click model.
 
 3 Click model
-As we mentioned above, we approach the ranking as an optimization based on the user's click model on the ads. The expected utilities are maximized based on the click model. For the optimization, we assume a basic user click model in which the web user browses the entity list in the ranked order, as shown in Fig. 1. The symbols used in this paper are explained in Table 1. At every result entity, the user may: 1. Click the result with perceived relevance C(e). We define the perceived relevance as the probability of clicking the entity ei having seen ei i.e. C(ei ) = P (click(ei )|view(ei )). Note that the Click Through Rate (CTR) defined in ad placement is the same as the perceived relevance defined here (Richardson et al. 2007). Abandon browsing the result list with abandonment probability  (ei ).  (ei ) is defined as the probability of abandoning the search at ei having seen ei . i.e.  (ei ) = P (abandonment (ei )|view(ei )). Go to the next entity with probability [1 - (C(ei ) +  (ei ))]
+As we mentioned above, we approach the ranking as an optimization based on the user’s
+click model on the ads. The expected utilities are maximized based on the click model.
+For the optimization, we assume a basic user click model in which the web user browses
+the entity list in the ranked order, as shown in Fig. 1. The symbols used in this paper are
+explained in Table 1. At every result entity, the user may:
+1.
 
 2.
 
 3.
 
-J Intell Inf Syst Table 1 Definition of the symbols e C(e)  (e) U (e) Pc (e) d R(d) a SE $(a) v(a) b(a) w(a) (a) CE(a) pi Ur (e)  A ranked entity. Perceived relevance. Abandonment probability. Utility. The click probability of the entity at position i in the ranking. A ranked document. Relevance of the document. A ranked ad. An abbreviation indicating Search Engine. Cost-Per-Click (CPC) of the ad. Private value of the ad for the advertiser. Bid for the ad. Ratio of the click probability to the sum of abandonment and click probability. Sum of abandonment and click probability (i.e. C(a) +  (a)). Proposed Click-Efficiency ranking score of the ad. Payment by the advertiser (CPC) to the search in a given mechanism. Residual utility in the context of other entities in the ranked list. Simulation constant to balance between the click and the abandonment probabilities.
+Click the result with perceived relevance C(e). We define the perceived relevance as the
+probability of clicking the entity ei having seen ei i.e. C(ei ) = P (click(ei )|view(ei )).
+Note that the Click Through Rate (CTR) defined in ad placement is the same as the
+perceived relevance defined here (Richardson et al. 2007).
+Abandon browsing the result list with abandonment probability γ (ei ). γ (ei ) is defined
+as the probability of abandoning the search at ei having seen ei . i.e. γ (ei ) =
+P (abandonment (ei )|view(ei )).
+Go to the next entity with probability [1 − (C(ei ) + γ (ei ))]
 
-The click model can be schematically represented as the flow graph shown in Fig. 1. Labels on the edges refer to the probability of the user traversing them. Each vertex in the figure corresponds to a view epoch (see below), and the flow balance holds at each vertex. Starting from the top entity, the probability of the user clicking the first ad is C(e1 ) and probability of him abandoning browsing is  (e1 ). The user goes beyond the first entity with probability 1 - (C(e1 ) +  (e1 )) and so on for the subsequent results. In this model, we assume that the parameters--C(ei ),  (ei ) and U (ei )--are functions of the entity at the current position i.e. these parameters are independent of other entities the user has already seen. We recognize that this assumption is not fully accurate, since the user's decision to click the current item or to leave the search may depend not just on the current item but rather on all the entities he has seen before in the list. We stick to the assumption for the optimal ranking analysis below, since considering mutual influence of ads may lead to combinatorial optimization problems with intractable solutions. We
+J Intell Inf Syst
+Table 1 Definition of the symbols
+e
 
-Fig. 1 Flow graph for an user browsing the first two entities. The labels are the view probabilities and ei denotes the entity at the i th position
+A ranked entity.
+
+C(e)
+
+Perceived relevance.
+
+γ (e)
+
+Abandonment probability.
+
+U (e)
+
+Utility.
+
+Pc (e)
+
+The click probability of the entity at position i in the ranking.
+
+d
+
+A ranked document.
+
+R(d)
+
+Relevance of the document.
+
+a
+
+A ranked ad.
+
+SE
+
+An abbreviation indicating Search Engine.
+
+$(a)
+
+Cost-Per-Click (CPC) of the ad.
+
+v(a)
+
+Private value of the ad for the advertiser.
+
+b(a)
+
+Bid for the ad.
+
+w(a)
+
+Ratio of the click probability to the sum of abandonment and click probability.
+
+μ(a)
+
+Sum of abandonment and click probability (i.e. C(a) + γ (a)).
+
+CE(a)
+
+Proposed Click-Efficiency ranking score of the ad.
+
+pi
+
+Payment by the advertiser (CPC) to the search in a given mechanism.
+
+Ur (e)
+
+Residual utility in the context of other entities in the ranked list.
+
+α
+
+Simulation constant to balance between the click and the abandonment probabilities.
+
+The click model can be schematically represented as the flow graph shown in Fig. 1.
+Labels on the edges refer to the probability of the user traversing them. Each vertex in the
+figure corresponds to a view epoch (see below), and the flow balance holds at each vertex.
+Starting from the top entity, the probability of the user clicking the first ad is C(e1 ) and
+probability of him abandoning browsing is γ (e1 ). The user goes beyond the first entity with
+probability 1 − (C(e1 ) + γ (e1 )) and so on for the subsequent results.
+In this model, we assume that the parameters—C(ei ), γ (ei ) and U (ei )—are functions
+of the entity at the current position i.e. these parameters are independent of other entities
+the user has already seen. We recognize that this assumption is not fully accurate, since
+the user’s decision to click the current item or to leave the search may depend not just
+on the current item but rather on all the entities he has seen before in the list. We stick
+to the assumption for the optimal ranking analysis below, since considering mutual influence of ads may lead to combinatorial optimization problems with intractable solutions. We
+
+Fig. 1 Flow graph for an user browsing the first two entities. The labels are the view probabilities and ei
+denotes the entity at the i th position
 
 J Intell Inf Syst
 
-will show that even the simplest dependence between the parameters will indeed lead to intractable optimal ranking in Section 7. Although the proposed model is intuitive enough, we would like to mention that our model is also confirmed by the recent empirical click models. For example, the General Click Model (GCM) by Zhu et al. (2010) is based on the same basic user behavior. The GCM is empirically validated for both search results and ads (Zhu et al. 2010). Furthermore, other click models are shown to be special cases of GCM. Please refer to Zhu et al. (2010) for a detailed discussion. These previous works avoid the need for separate model validation, as well as confirm the feasibility of the parameter estimation. Further, Yilmaz et al. (2010) proposes an expected browsing utility metric based on a similar user model.
+will show that even the simplest dependence between the parameters will indeed lead to
+intractable optimal ranking in Section 7.
+Although the proposed model is intuitive enough, we would like to mention that our
+model is also confirmed by the recent empirical click models. For example, the General
+Click Model (GCM) by Zhu et al. (2010) is based on the same basic user behavior. The GCM
+is empirically validated for both search results and ads (Zhu et al. 2010). Furthermore, other
+click models are shown to be special cases of GCM. Please refer to Zhu et al. (2010) for
+a detailed discussion. These previous works avoid the need for separate model validation,
+as well as confirm the feasibility of the parameter estimation. Further, Yilmaz et al. (2010)
+proposes an expected browsing utility metric based on a similar user model.
 
 4 Optimal ranking
-Based on the click model, we formally define the ranking problem and derive optimal ranking in this section. The problem may be stated as, Choose the optimal ranking Eopt = e1 , e2 , .., eN of N entities to maximize the expected utility
+Based on the click model, we formally define the ranking problem and derive optimal
+ranking in this section. The problem may be stated as,
+Choose the optimal ranking Eopt = e1 , e2 , .., eN  of N entities to maximize the
+expected utility
 N
-
+
 E(U ) =
-i =1
-
 U (ei )Pc (ei )
-
 (1)
+i=1
 
-where N is the total number of entities to be ranked. The utility function U (ei ) denotes the stand-alone utility of the entity ei to the search engine (or one who performs the ranking). This may vary depending on the specific ranking problem. For example, for ranking search results, the utility will be the relevance of document ei ; whereas for ranking ads to maximize the revenue of the search engine, the U (ei ) will be pay-per-click of ad ei . We define the specific utility function for entities as we discuss the specific ranking problems below. For the browsing model in Fig. 1, the click probability for the entity at the i th position is,
-i -1
-
+where N is the total number of entities to be ranked.
+The utility function U (ei ) denotes the stand-alone utility of the entity ei to the search
+engine (or one who performs the ranking). This may vary depending on the specific ranking problem. For example, for ranking search results, the utility will be the relevance of
+document ei ; whereas for ranking ads to maximize the revenue of the search engine, the
+U (ei ) will be pay-per-click of ad ei . We define the specific utility function for entities as
+we discuss the specific ranking problems below.
+For the browsing model in Fig. 1, the click probability for the entity at the i th position is,
 Pc (ei ) = C(ei )
-j =1
 
-1 - C(ej ) +  (ej )
+i−1
+
+
+
+
+1 − C(ej ) + γ (ej )
 
 (2)
 
-Substituting click probability Pc from (2) in (1) we get,
-N i -1
-
-E(U ) =
-i =1
-
-U (ei )C(ei )
 j =1
 
-1 - (C(ej ) +  (ej ))
+Substituting click probability Pc from (2) in (1) we get,
+E(U ) =
+
+N
+
+i=1
+
+U (ei )C(ei )
+
+i−1
+
+
+
+1 − (C(ej ) + γ (ej ))
+
+
 
 (3)
 
-The optimal ranking maximizing this expected utility can be shown to be a sorting problem with a simple ranking function: Theorem 1 The expected utility in (3) is maximum if the entities are placed in the descending order of the value of the ranking function CE , U (ei )C(ei ) (4) CE(ei ) = C(ei ) +  (ei ) Proof Sketch The proof shows that any inversion in this order will reduce the expected profit. CE function is deduced from expected profits of two placements--the CE ranked
+j =1
+
+The optimal ranking maximizing this expected utility can be shown to be a sorting
+problem with a simple ranking function:
+Theorem 1 The expected utility in (3) is maximum if the entities are placed in the
+descending order of the value of the ranking function CE,
+U (ei )C(ei )
+(4)
+CE(ei ) =
+C(ei ) + γ (ei )
+Proof Sketch The proof shows that any inversion in this order will reduce the expected
+profit. CE function is deduced from expected profits of two placements—the CE ranked
 
 J Intell Inf Syst
 
-placement and placement in which the order of two adjacent ads are inverted. We show that the expected profit from the inverted placement can be no greater than the CE ranked placement. Please refer to Appendix A-1 for the complete proof. As mentioned in the introduction, the ranking function CE is the utility generated per unit view probability consumed by the entity. With respect to browsing model in Fig. 1, the top entities in the ranked list have greater view probabilities, and placing ads with greater utility per consumed view probability at higher positions intuitively increases total utility. The proof of Theorem 1 assumes that the user clicks only one entity in the list. Since this may not always be true, we extend the optimality to multiple clicks in Theorem 2. Theorem 2 The order proposed in Theorem 1 is optimal for multiple clicks if the user restarts browsing at the position one below the last clicked entity. Proof Sketch We proved that ordering according to CE provides maximum expected utility for single click above. Multiple clicks are the same as the user restarting her browsing from the entity immediately below the last clicked entity. A simple induction on number of clicks based on this idea, using a single click as base case is sufficient to prove that the proposed placement provides maximum expected utility for multiple clicks. See Appendix A-2 for the complete proof. Note that the ordering above does not maximize the utility for selecting a subset of items. The seemingly intuitive method of ranking the set of items by CE and selecting top-k may not be optimal (Aggarwal et al. 2008). For optimal selection, the proposed ranking can be extended by a dynamic programming based selection (Aggarwal et al. 2008). In this paper, we discuss only the ranking problem.
+placement and placement in which the order of two adjacent ads are inverted. We show
+that the expected profit from the inverted placement can be no greater than the CE ranked
+placement. Please refer to Appendix A-1 for the complete proof.
+As mentioned in the introduction, the ranking function CE is the utility generated per
+unit view probability consumed by the entity. With respect to browsing model in Fig. 1, the
+top entities in the ranked list have greater view probabilities, and placing ads with greater
+utility per consumed view probability at higher positions intuitively increases total utility.
+The proof of Theorem 1 assumes that the user clicks only one entity in the list. Since this
+may not always be true, we extend the optimality to multiple clicks in Theorem 2.
+Theorem 2 The order proposed in Theorem 1 is optimal for multiple clicks if the user
+restarts browsing at the position one below the last clicked entity.
+Proof Sketch We proved that ordering according to CE provides maximum expected utility
+for single click above. Multiple clicks are the same as the user restarting her browsing from
+the entity immediately below the last clicked entity. A simple induction on number of clicks
+based on this idea, using a single click as base case is sufficient to prove that the proposed
+placement provides maximum expected utility for multiple clicks. See Appendix A-2 for
+the complete proof.
+Note that the ordering above does not maximize the utility for selecting a subset of items.
+The seemingly intuitive method of ranking the set of items by CE and selecting top-k may
+not be optimal (Aggarwal et al. 2008). For optimal selection, the proposed ranking can be
+extended by a dynamic programming based selection (Aggarwal et al. 2008). In this paper,
+we discuss only the ranking problem.
 
 5 Ranking taxonomy
-The click model in Fig. 1 is common to many types of rankings including document searches and search ads. The only difference between these rankings sharing a common click model is the utility to be maximized. Consequently, the CE ranking can be made applicable to different ranking problems by plugging in different utilities. For example, if we plug in relevance as utility (U (e) in (4)), the ranking function is applicable for the documents, whereas if we plug in cost per click of ads, the ranking function is applicable to ads. Furthermore, we may assume specific constraints on one or more of the three parameters of CE ranking (e.g. i  (ei ) = 0). Through these assumptions, CE ranking will suggest a number of reduced ranking functions with specific applications. These substitutions and reductions can be enumerated as a taxonomy of ranking functions. We show the taxonomy in Fig. 2. The three top branches of the taxonomy (U (e) = R(d), U (e) = $(a), and U (e) = v(a) branches) are for document ranking, ad ranking maximizing search engine profit, and ad ranking maximizing advertisers revenue respectively. These branches correspond to the substitution of utilities by document relevance, CPC, and private value of the advertisers. The sub-trees below these branches are the further reduced cases of these three main categories. The solid lines in Fig. 2 denote already known functions, while the dotted lines are the new ranking functions suggested by CE ranking. Sections 5.1, 5.2, and 5.3 below discuss the further reductions of document ranking, search engine optimal ad ranking, and social optimal ad ranking respectively.
+The click model in Fig. 1 is common to many types of rankings including document searches
+and search ads. The only difference between these rankings sharing a common click model
+is the utility to be maximized. Consequently, the CE ranking can be made applicable to
+different ranking problems by plugging in different utilities. For example, if we plug in relevance as utility (U (e) in (4)), the ranking function is applicable for the documents, whereas
+if we plug in cost per click of ads, the ranking function is applicable to ads. Furthermore,
+we may assume specific constraints on one or more of the three parameters of CE ranking (e.g. ∀i γ (ei ) = 0). Through these assumptions, CE ranking will suggest a number of
+reduced ranking functions with specific applications. These substitutions and reductions can
+be enumerated as a taxonomy of ranking functions.
+We show the taxonomy in Fig. 2. The three top branches of the taxonomy (U (e) = R(d),
+U (e) = $(a), and U (e) = v(a) branches) are for document ranking, ad ranking maximizing
+search engine profit, and ad ranking maximizing advertisers revenue respectively. These
+branches correspond to the substitution of utilities by document relevance, CPC, and private
+value of the advertisers. The sub-trees below these branches are the further reduced cases of
+these three main categories. The solid lines in Fig. 2 denote already known functions, while
+the dotted lines are the new ranking functions suggested by CE ranking. Sections 5.1, 5.2,
+and 5.3 below discuss the further reductions of document ranking, search engine optimal
+ad ranking, and social optimal ad ranking respectively.
 
 J Intell Inf Syst
 
-Fig. 2 Taxonomy reduced CE ranking functions. The assumptions and corresponding reduced ranking functions are illustrated. The dotted lines denote predicted ranking functions incorporating new click model parameters
+Fig. 2 Taxonomy reduced CE ranking functions. The assumptions and corresponding reduced ranking functions are illustrated. The dotted lines denote predicted ranking functions incorporating new click model
+parameters
 
 5.1 Optimal document ranking
-For document ranking the utility of ranking is the probability of relevance of the document. Hence by substituting the document relevance--denoted by R(d)--in (4) we get CE(d) = C(d)R(d) C(d) +  (d) (5)
+For document ranking the utility of ranking is the probability of relevance of the document.
+Hence by substituting the document relevance—denoted by R(d)—in (4) we get
+CE(d) =
 
-This function suggests the general optimal relevance ranking for the documents. We discuss some intuitively valid assumptions on user model for the document ranking and the corresponding ranking functions below. The three assumptions discussed below correspond to the three branches under Optimal Document Ranking subtree in Fig. 2.
+C(d)R(d)
+C(d) + γ (d)
 
-Sort by relevance (PRP) We elucidate two sets of assumptions under which the CE(d) in (5) will reduce to PRP. First assume that the user has infinite patience, and never abandons results (i.e.  (d)  0). Substituting this assumption in (5),
-R(d)C(d) = R(d) (6) C(d) which is exactly the ranking suggested by PRP. In other words, the PRP is still optimal for scenarios in which the user has infinite patience and never abandons checking the results (i.e. the user leaves browsing the results only by clicking a result). The second set of slightly weaker assumptions under which the CE(d) will reduce to PRP is CE(d)  1. C(d)  R(d).
+(5)
+
+This function suggests the general optimal relevance ranking for the documents. We discuss
+some intuitively valid assumptions on user model for the document ranking and the corresponding ranking functions below. The three assumptions discussed below correspond to
+the three branches under Optimal Document Ranking subtree in Fig. 2.
+
+Sort by relevance (PRP) We elucidate two sets of assumptions under which the CE(d)
+in (5) will reduce to PRP.
+First assume that the user has infinite patience, and never abandons results (i.e. γ (d) ≈
+0). Substituting this assumption in (5),
+R(d)C(d)
+= R(d)
+(6)
+C(d)
+which is exactly the ranking suggested by PRP.
+In other words, the PRP is still optimal for scenarios in which the user has infinite
+patience and never abandons checking the results (i.e. the user leaves browsing the results
+only by clicking a result).
+The second set of slightly weaker assumptions under which the CE(d) will reduce to
+PRP is
+CE(d) ≈
+
+1.
+
+C(d) ≈ R(d).
 
 J Intell Inf Syst
 
 2.
 
-Abandonment probability  (d) is negatively proportional to the document relevance i.e.  (d)  k - R(d), where k is a constant between one and zero. This assumption corresponds to the intuition that the higher the perceived relevance of the current result, the less likely is the user abandoning the search.
+Abandonment probability γ (d) is negatively proportional to the document relevance
+i.e. γ (d) ≈ k − R(d), where k is a constant between one and zero. This assumption
+corresponds to the intuition that the higher the perceived relevance of the current result,
+the less likely is the user abandoning the search.
 
-Now CE(d) reduces to, R(d)2 (7) k Since this function is strictly increasing with zero and positive values of R(d), ordering just by R(d) results in the same ranking as suggested by the function. This implies that PRP is optimal under these assumptions also. It may be noted that abandonment probability decreasing with perceived relevance is a more intuitively valid assumption than the infinite patience assumption above. CE(d) 
+Now CE(d) reduces to,
+R(d)2
+(7)
+k
+Since this function is strictly increasing with zero and positive values of R(d), ordering just
+by R(d) results in the same ranking as suggested by the function. This implies that PRP is
+optimal under these assumptions also.
+It may be noted that abandonment probability decreasing with perceived relevance is a
+more intuitively valid assumption than the infinite patience assumption above.
+CE(d) ≈
 
-Ranking considering perceived relevance Recent click log studies effectively assess perceived relevance of document search snippets (Yue et al. 2010; Clarke et al. 2007). But, how to use the perceived relevance for improved document ranking is still an open question. The proposed perceived relevance ranking addresses this question. If we assume that  (d)  0 in (5), the optimal perceived relevance ranking is the same as that suggested by PRP as we have seen in (6). On the other hand, if we assume that the abandonment probability is negatively proportional to the perceived relevance ( (d) = k - C(d)) as above, the optimal ranking considering perceived relevance is
-C(d)R(d)  C(d)R(d) (8) k i.e. sorting in the order of the product of document relevance and perceived relevance is optimal under these assumptions. The assumption of abandonment probabilities being negatively proportional to relevance is more realistic than the infinite patience assumption as we discussed above. This discussion shows that by estimating the nature of abandonment probability, one would be able to decide on the optimal perceived relevance ranking. CE(d) 
+Ranking considering perceived relevance Recent click log studies effectively assess
+perceived relevance of document search snippets (Yue et al. 2010; Clarke et al. 2007). But,
+how to use the perceived relevance for improved document ranking is still an open question.
+The proposed perceived relevance ranking addresses this question.
+If we assume that γ (d) ≈ 0 in (5), the optimal perceived relevance ranking is the same
+as that suggested by PRP as we have seen in (6).
+On the other hand, if we assume that the abandonment probability is negatively proportional to the perceived relevance (γ (d) = k − C(d)) as above, the optimal ranking
+considering perceived relevance is
+C(d)R(d)
+∝ C(d)R(d)
+(8)
+k
+i.e. sorting in the order of the product of document relevance and perceived relevance is
+optimal under these assumptions. The assumption of abandonment probabilities being negatively proportional to relevance is more realistic than the infinite patience assumption as
+we discussed above. This discussion shows that by estimating the nature of abandonment
+probability, one would be able to decide on the optimal perceived relevance ranking.
+CE(d) ≈
 
-Ranking considering abandonment We now examine the ranking considering abandonment probability  (d), with the assumption that the perceived relevance is approximately equal to the actual relevance. In this case CE(d) becomes,
-CE(d)  R(d)2 R(d) +  (d) (9)
+Ranking considering abandonment We now examine the ranking considering abandonment probability γ (d), with the assumption that the perceived relevance is approximately
+equal to the actual relevance. In this case CE(d) becomes,
+CE(d) ≈
 
-Clearly this is not a strictly increasing function with R(d). Hence the ranking considering abandonment is different from PRP ranking, even if we assume that the perceived relevance is equal to the actual relevance. assumption that d  (d) = 0, the abandonment ranking becomes the same as PRP.
+R(d)2
+R(d) + γ (d)
+
+(9)
+
+Clearly this is not a strictly increasing function with R(d). Hence the ranking considering
+abandonment is different from PRP ranking, even if we assume that the perceived relevance
+is equal to the actual relevance. assumption that ∀d γ (d) = 0, the abandonment ranking
+becomes the same as PRP.
 
 5.2 Optimal Ad ranking for search engines
-For the paid placement of ads, the utilities of ads to the search engine are Cost-Per-Click (CPC) of the ads. Hence, by substituting the CPC of the ad--denoted by $(a)-- in (4) we get C(a)$(a) (10) CE(a) = C(a) +  (a)
+For the paid placement of ads, the utilities of ads to the search engine are Cost-Per-Click
+(CPC) of the ads. Hence, by substituting the CPC of the ad—denoted by $(a)— in (4) we
+get
+C(a)$(a)
+(10)
+CE(a) =
+C(a) + γ (a)
 
 J Intell Inf Syst
 
-Thus this function suggests the general optimal ranking for the ads. Please recall that the perceived relevance C(a) is the same as the CTR used for ad placement (Richardson et al. 2007). In the following subsections we demonstrate how the general ranking presented reduces to the currently used ad placement strategies under various assumptions. We will show that they all correspond to specific assumptions about the abandonment probability  (a). These two functions below corresponds to the two branches under the SE (Search Engine) Optimal Ad Placement subtree in Fig. 2.
+Thus this function suggests the general optimal ranking for the ads. Please recall
+that the perceived relevance C(a) is the same as the CTR used for ad placement
+(Richardson et al. 2007).
+In the following subsections we demonstrate how the general ranking presented reduces
+to the currently used ad placement strategies under various assumptions. We will show that
+they all correspond to specific assumptions about the abandonment probability γ (a). These
+two functions below corresponds to the two branches under the SE (Search Engine) Optimal
+Ad Placement subtree in Fig. 2.
 
-Ranking by bid amount The sort by bid amount ranking was used by Overture Services (and was later used by Yahoo! for a while after acquisition of Overture). Assuming that the user never abandons browsing (i.e. a  (a) = 0), then (10) reduces to
-CE(a) = $(a) (11) This means that the ads are ranked purely in terms of their payment. In fact overture ranking is by bid amount, which is different from payment in a second price auction. But both will result in the same ranking as higher bids implies higher payments also. When  (a) = 0, we essentially have a user with infinite patience who will keep browsing downwards until he finds a relevant ad. Hence ranking by bid amount maximizes profit. More generally, for small abandonment probabilities, ranking by bid amount is near optimal. Note that this ranking is isomorphic to PRP ranking discussed above for document ranking, since both ranks are based only on utilities.
+Ranking by bid amount The sort by bid amount ranking was used by Overture Services
+(and was later used by Yahoo! for a while after acquisition of Overture). Assuming that the
+user never abandons browsing (i.e. ∀a γ (a) = 0), then (10) reduces to
+CE(a) = $(a)
 
-Ranking by expected profit Google and Microsoft supposedly place the ads in the order of expected profit based on product of CTR (C(a) in CE ) and bid amount ($(a)) (Richardson et al. 2006). The mechanism is called Generalized Second Price (GSP) auction, and the most popular one as well. If we approximate abandonment probability as negatively proportional to the CTR of the ad (i.e. a  (a) = k - C(a)) , the (10) reduces to,
-$(a)R(a)  $(a)R(a) (12) k This shows that ranking ads by their standalone expected profit is near optimal as long as the abandonment probability is negatively proportional to the relevance. To be accurate, the Google mechanism--GSP--uses the bid amount of the advertisers (instead of CPC in (12)) for ranking. Although CPC and bids are different for GSP, we will show that both will result in the same ranking in Section 6. Note that this ranking is isomorphic to the perceived relevance ranking of documents discussed above. CE(a) 
+(11)
+
+This means that the ads are ranked purely in terms of their payment. In fact overture ranking
+is by bid amount, which is different from payment in a second price auction. But both will
+result in the same ranking as higher bids implies higher payments also.
+When γ (a) = 0, we essentially have a user with infinite patience who will keep browsing
+downwards until he finds a relevant ad. Hence ranking by bid amount maximizes profit.
+More generally, for small abandonment probabilities, ranking by bid amount is near optimal.
+Note that this ranking is isomorphic to PRP ranking discussed above for document ranking,
+since both ranks are based only on utilities.
+
+Ranking by expected profit Google and Microsoft supposedly place the ads in the order
+of expected profit based on product of CTR (C(a) in CE) and bid amount ($(a)) (Richardson et al. 2006). The mechanism is called Generalized Second Price (GSP) auction, and
+the most popular one as well. If we approximate abandonment probability as negatively
+proportional to the CTR of the ad (i.e. ∀a γ (a) = k − C(a)) , the (10) reduces to,
+$(a)R(a)
+∝ $(a)R(a)
+(12)
+k
+This shows that ranking ads by their standalone expected profit is near optimal as long as
+the abandonment probability is negatively proportional to the relevance. To be accurate,
+the Google mechanism—GSP—uses the bid amount of the advertisers (instead of CPC in
+(12)) for ranking. Although CPC and bids are different for GSP, we will show that both will
+result in the same ranking in Section 6. Note that this ranking is isomorphic to the perceived
+relevance ranking of documents discussed above.
+CE(a) ≈
 
 5.3 Social optimal Ad ranking
-An important property of any auction mechanism is social utility, i.e. total utilities of all the players. In our case this is equal to the sum of the utilities of all the advertisers and the search engine. To analyze advertiser's profit, a private value model is commonly used. Each advertiser has a private value for the click, which is equal to the expected benefit (direct and indirect revenue) from the click. Advertisers pay a fraction of this benefit to the search engine as CPC. The utility for the advertisers is the difference between the private value and payment to the search engine. The utility for the search engine is the payment from the advertisers. Hence the social utility is equal to the sum of private values of all the clicks for the advertisers (which is the sum of utilities of the search engine and advertisers).
+An important property of any auction mechanism is social utility, i.e. total utilities of all
+the players. In our case this is equal to the sum of the utilities of all the advertisers and
+the search engine. To analyze advertiser’s profit, a private value model is commonly used.
+Each advertiser has a private value for the click, which is equal to the expected benefit
+(direct and indirect revenue) from the click. Advertisers pay a fraction of this benefit to the
+search engine as CPC. The utility for the advertisers is the difference between the private
+value and payment to the search engine. The utility for the search engine is the payment
+from the advertisers. Hence the social utility is equal to the sum of private values of all the
+clicks for the advertisers (which is the sum of utilities of the search engine and advertisers).
 
 J Intell Inf Syst
 
-Consequently, to prove the social optimality all we need to prove is that the total private values of clicks for the advertisers is optimal. The social-optimal branch in Fig. 2 corresponds to the ranking to maximize total revenue. Private value of advertisers ai is denoted as--v(ai ). By substituting the utility by private values in (4) we get, CE(d) = C(a)v(a) C(a) +  (a) (13)
+Consequently, to prove the social optimality all we need to prove is that the total private
+values of clicks for the advertisers is optimal.
+The social-optimal branch in Fig. 2 corresponds to the ranking to maximize total revenue.
+Private value of advertisers ai is denoted as—v(ai ). By substituting the utility by private
+values in (4) we get,
+CE(d) =
 
-If the ads are ranked in this order, the ranking will guarantee maximum revenue. Note that the optimal revenue does not imply optimal net profits for the advertisers, since part of this revenue is paid to the search engine as CPC. But optimal revenue implies a maximum total profit (utility)--sum of profits of search engine and advertisers. In Figure 2 the two left branches of the Social Optimal subtree (labeled  (a) = 0 and  (a) = k - C(a)) correspond respectively to the assumption of no abandonment, and abandonment probabilities being negatively proportional to the click probability. These two cases are isomorphic to the Overture and Google ranking discussed in Section 5.2 above. The social optimal ranking is not directly implementable as search engines do not know the private value of the advertisers. But this ranking is useful in analysis of auctions mechanisms. Furthermore, the search engine may try to effectuate this order through auction mechanism equilibriums as we demonstrate in Section 6.
+C(a)v(a)
+C(a) + γ (a)
+
+(13)
+
+If the ads are ranked in this order, the ranking will guarantee maximum revenue. Note that
+the optimal revenue does not imply optimal net profits for the advertisers, since part of this
+revenue is paid to the search engine as CPC. But optimal revenue implies a maximum total
+profit (utility)—sum of profits of search engine and advertisers.
+In Figure 2 the two left branches of the Social Optimal subtree (labeled γ (a) = 0 and
+γ (a) = k − C(a)) correspond respectively to the assumption of no abandonment, and
+abandonment probabilities being negatively proportional to the click probability. These two
+cases are isomorphic to the Overture and Google ranking discussed in Section 5.2 above.
+The social optimal ranking is not directly implementable as search engines do not know
+the private value of the advertisers. But this ranking is useful in analysis of auctions mechanisms. Furthermore, the search engine may try to effectuate this order through auction
+mechanism equilibriums as we demonstrate in Section 6.
 
 6 Applying CE ranking for Ad placement
-We have shown that CE ranking maximizes the profits for search engines for given CPCs. The CPCs are determined by the pricing mechanism used by the search engine. Hence the overall profit of ranking can be analyzed only in association with a pricing mechanism. The existing ad pricing mechanisms like GSP do not preserve any of their appealing properties for CE ranking as they do not consider the additional parameter abandonment probability. For example, the GSP pricing Edelman et al. (2007) is no longer the minimum amount need to be paid by the advertiser to maintain his position in the CE ranking. To this end, we design a full auction mechanism by proposing a new second price based pricing to be used with the CE ranking. Subsequently, we analyze the properties of the auction mechanism. Let us start by describing the dynamics of ad auctions briefly, the search engine decides the ranking and pricing (CPC) of the ads based on the bid amounts of the advertisers. Generally the pricing is not equal to the bid amount of advertisers, but derived based on the bids (Easley and Kleinberg 2010; Edelman et al. 2007; Aggarwal et al. 2006). In response to these ranking and pricing strategies, the advertisers (more commonly, the software agents of the advertisers) may change their bids to maximize their profits. They may change bids hundreds of times a day. Eventually, the bids may stabilize at a fixed point where no advertiser can increase his profit by unilaterally changing his bid, depending on the initial bids and behavior of the advertisers. This set of bids corresponds to a Nash Equilibrium of the auction mechanism. Hence the expected profits of a search engine will be the profits corresponding to the Nash Equilibrium, if the auction attains a Nash Equilibrium. The next section discusses properties of any mechanism based on the user model-- independent of the ranking and pricing strategies. In Section 6.2, we introduce a pricing mechanism and analyze the properties including the equilibrium.
+We have shown that CE ranking maximizes the profits for search engines for given CPCs.
+The CPCs are determined by the pricing mechanism used by the search engine. Hence
+the overall profit of ranking can be analyzed only in association with a pricing mechanism. The existing ad pricing mechanisms like GSP do not preserve any of their appealing
+properties for CE ranking as they do not consider the additional parameter abandonment
+probability. For example, the GSP pricing Edelman et al. (2007) is no longer the minimum
+amount need to be paid by the advertiser to maintain his position in the CE ranking. To
+this end, we design a full auction mechanism by proposing a new second price based pricing to be used with the CE ranking. Subsequently, we analyze the properties of the auction
+mechanism.
+Let us start by describing the dynamics of ad auctions briefly, the search engine decides
+the ranking and pricing (CPC) of the ads based on the bid amounts of the advertisers. Generally the pricing is not equal to the bid amount of advertisers, but derived based on the
+bids (Easley and Kleinberg 2010; Edelman et al. 2007; Aggarwal et al. 2006). In response to
+these ranking and pricing strategies, the advertisers (more commonly, the software agents of
+the advertisers) may change their bids to maximize their profits. They may change bids hundreds of times a day. Eventually, the bids may stabilize at a fixed point where no advertiser
+can increase his profit by unilaterally changing his bid, depending on the initial bids and
+behavior of the advertisers. This set of bids corresponds to a Nash Equilibrium of the auction
+mechanism. Hence the expected profits of a search engine will be the profits corresponding
+to the Nash Equilibrium, if the auction attains a Nash Equilibrium.
+The next section discusses properties of any mechanism based on the user model—
+independent of the ranking and pricing strategies. In Section 6.2, we introduce a pricing
+mechanism and analyze the properties including the equilibrium.
 
 J Intell Inf Syst
 
 6.1 User model based properties
-We discuss general properties of all auction mechanisms using the browsing model (Fig. 1). These properties are implications of the user behavior and applicable to any pricing and ranking. Lemma 1 (Individual Rationality) In any equilibrium the payment by the advertisers is less than or equal to their private values.1 If this is not true, this advertiser may opt out from the auction by bidding zero and increase the profit, violating the assumption of equilibrium. Lemma 2 (Pricing Monotonicity) In any equilibrium, the price paid by an advertiser increases monotonically as he moves up in the ranking unilaterally. From the browsing model, click probability of the advertisers is non-decreasing as he moves up in the position. Unless the price increases monotonically, the advertiser may increase his profit by moving up, thereby violating assumption of an equilibrium. Lemma 3 (Revenue Maximum) The sum of the payoffs of the advertisers and the search engine is less than or equal to
-N i -1
-
+We discuss general properties of all auction mechanisms using the browsing model (Fig. 1).
+These properties are implications of the user behavior and applicable to any pricing and
+ranking.
+Lemma 1 (Individual Rationality) In any equilibrium the payment by the advertisers is less
+than or equal to their private values.1
+If this is not true, this advertiser may opt out from the auction by bidding zero and
+increase the profit, violating the assumption of equilibrium.
+Lemma 2 (Pricing Monotonicity) In any equilibrium, the price paid by an advertiser
+increases monotonically as he moves up in the ranking unilaterally.
+From the browsing model, click probability of the advertisers is non-decreasing as he
+moves up in the position. Unless the price increases monotonically, the advertiser may
+increase his profit by moving up, thereby violating assumption of an equilibrium.
+Lemma 3 (Revenue Maximum) The sum of the payoffs of the advertisers and the search
+engine is less than or equal to
 E(V ) =
-i =1
+
+N
+
 
 v(ai )C(ai )
-j =1 C(a)v(a) C(a)+ (a) .
 
-1 - (C(aj ) +  (aj ))
+1 − (C(aj ) + γ (aj ))
+
+
 
 (14)
 
+j =1
+
+i=1
+
 when the advertisers are ordered by
 
-Note that this quantity is the maximal advertiser revenue corresponding to the social optimal placement in (13), and is a direct consequence. The advertiser pay a fraction of his revenue to the search engine. Payoff for the advertisers is the difference between the total revenue and the payment to the search engine. The total payoff of the search engine is the sum of these payments by all the advertisers. Since the suggested order above in Lemma 3 maximizes total revenue of the advertisers, the sum of the payoffs for the search engine and the advertisers will not exceed this value. A corollary of the social optimality combined with the individual rationality result expressed in Lemma 1 is that, Lemma 4 (Profit Maximum) The quantity E(V ) in Lemma 3 is an upper bound for the search engine profit in any equilibrium.
+i−1
+
+
+
+C(a)v(a)
+C(a)+γ (a) .
+
+Note that this quantity is the maximal advertiser revenue corresponding to the social
+optimal placement in (13), and is a direct consequence. The advertiser pay a fraction of his
+revenue to the search engine. Payoff for the advertisers is the difference between the total
+revenue and the payment to the search engine. The total payoff of the search engine is the
+sum of these payments by all the advertisers. Since the suggested order above in Lemma 3
+maximizes total revenue of the advertisers, the sum of the payoffs for the search engine and
+the advertisers will not exceed this value.
+A corollary of the social optimality combined with the individual rationality result
+expressed in Lemma 1 is that,
+Lemma 4 (Profit Maximum) The quantity E(V ) in Lemma 3 is an upper bound for the
+search engine profit in any equilibrium.
 
 6.2 Pricing and equilibrium
-An interesting property of the proposed mechanism is the existence of an equilibrium in which the search engine optimal ranking coincides with the social optimality. As we proved above, CE ranking is search engine optimal as it maximizes the revenue for the given CPCs. On the other hand, social optimal ordering maximizes the total profits for all the players
+An interesting property of the proposed mechanism is the existence of an equilibrium in
+which the search engine optimal ranking coincides with the social optimality. As we proved
+above, CE ranking is search engine optimal as it maximizes the revenue for the given CPCs.
+On the other hand, social optimal ordering maximizes the total profits for all the players
 
 1 This
 
@@ -189,354 +759,1189 @@ property is called individual rationality
 
 J Intell Inf Syst
 
-(search engine and advertisers) for given CPCs. Social optimality is desirable for search engines, as the increased profits will improve the advertiser's preference of one search engine over others. Since search engines do not know the private value of the advertisers, social optimal ranking is not directly achievable (note that the search engines do the ranking). A possibility is to design a mechanism having an equilibrium coinciding with the social optimality, as we propose below. This may cause the bid vector to stabilize in a social optima. For defining the pricing strategy for the auction mechanism, we define the pricing order as the decreasing order of w(a)b(a), where b(a) is the bid value and w(a) is, w(a) = C(a) C(a) +  (a) (15)
+(search engine and advertisers) for given CPCs. Social optimality is desirable for search
+engines, as the increased profits will improve the advertiser’s preference of one search
+engine over others. Since search engines do not know the private value of the advertisers, social optimal ranking is not directly achievable (note that the search engines do the
+ranking). A possibility is to design a mechanism having an equilibrium coinciding with the
+social optimality, as we propose below. This may cause the bid vector to stabilize in a social
+optima.
+For defining the pricing strategy for the auction mechanism, we define the pricing order
+as the decreasing order of w(a)b(a), where b(a) is the bid value and w(a) is,
+w(a) =
 
-In this pricing order, we denote the i th advertiser's w(ai ) as wi , C(ai ) as ci , b(ai ) as bi , and the abandonment probability  (ai ) as i for convenience. Let i = ci + i . For each click, advertiser ai is charged price pi (CPC) equal to the minimum bid required to maintain its position in the pricing order, pi = wi + 1 b i + 1 bi +1 ci +1 i = wi i +1 ci (16)
+C(a)
+C(a) + γ (a)
 
-Substituting pi in (10) for the ranking order, CE of the i th advertiser is, pi ci CEi = i This proposed mechanism preserves the pricing order in the ranking as well, i.e. Theorem 3 The order by wi bi is the same as the order by CEi for the auction i.e. wi bi  wj bj  CEi  CEj
+(15)
+
+In this pricing order, we denote the i th advertiser’s w(ai ) as wi , C(ai ) as ci , b(ai ) as bi , and
+the abandonment probability γ (ai ) as γi for convenience. Let μi = ci + γi . For each click,
+advertiser ai is charged price pi (CPC) equal to the minimum bid required to maintain its
+position in the pricing order,
+pi =
+
+wi+1 bi+1
+bi+1 ci+1 μi
+=
+wi
+μi+1 ci
+
+Substituting pi in (10) for the ranking order, CE of the i th advertiser is,
+pi ci
+CEi =
+μi
+
+(16)
 
 (17)
 
+This proposed mechanism preserves the pricing order in the ranking as well, i.e.
+Theorem 3 The order by wi bi is the same as the order by CEi for the auction i.e.
+wi bi ≥ wj bj ⇐⇒ CEi ≥ CEj
+
 (18)
 
-The proof for theorem 3 is given in Appendix A-3. This order preservation property implies that the final ranking is the same as that based on bid amounts. In other words, ads can be ranked based on the bid amounts instead of CPCs. After the ranking, the CPCs can be decided based on this ranking order. A corollary of this order preservation is that the CPC is equal to the minimum amount the advertisers have to pay to maintain their position in the ranking order. Furthermore we show below that any advertiser's CPC is less than or equal to his bid. Lemma 5 (Individual Rationality) The payment pi of any advertiser is less or equal to his bid amount. Proof pi = bi +1 ci +1 i bi +1 ci +1 i CEi +1 = bi = bi  bi (since CEi  CEi +1 ) i +1 ci i +1 ci bi CEi
+The proof for theorem 3 is given in Appendix A-3. This order preservation property
+implies that the final ranking is the same as that based on bid amounts. In other words, ads
+can be ranked based on the bid amounts instead of CPCs. After the ranking, the CPCs can
+be decided based on this ranking order. A corollary of this order preservation is that the
+CPC is equal to the minimum amount the advertisers have to pay to maintain their position
+in the ranking order.
+Furthermore we show below that any advertiser’s CPC is less than or equal to his bid.
+Lemma 5 (Individual Rationality) The payment pi of any advertiser is less or equal to his
+bid amount.
+Proof
+pi =
 
-This means advertisers will never have to pay more than their bid, similar to GSP. This property makes it easy for the advertiser to decide his bid, as he may bid up to his click valuation. He will never have to pay more than his revenue, irrespective of bids of other advertisers.
+bi+1 ci+1 μi
+bi+1 ci+1 μi
+CEi+1
+=
+bi =
+bi ≤ bi (since CEi ≥ CEi+1 )
+μi+1 ci
+μi+1 ci bi
+CEi
+
+This means advertisers will never have to pay more than their bid, similar to GSP. This
+property makes it easy for the advertiser to decide his bid, as he may bid up to his click
+valuation. He will never have to pay more than his revenue, irrespective of bids of other
+advertisers.
 
 J Intell Inf Syst
 
-Interestingly, this mechanism is a general case of existing mechanisms, similar to CE ranking above. The mechanism reduces to GSP (Google mechanism) and Overture mechanisms on the same assumptions on which CE ranking reduces to respective rankings (described in Section 5.2). Lemma 6 The mechanism reduces to Overture ranking with a second price auction on the assumption i i = 0 Proof This assumption implies wi = 1  pi = bi +1 (second price auction)  CEi = bi +1  bi (i.e. ranking by bi +1 is equivalent to ranking by bi )
+Interestingly, this mechanism is a general case of existing mechanisms, similar to CE
+ranking above. The mechanism reduces to GSP (Google mechanism) and Overture mechanisms on the same assumptions on which CE ranking reduces to respective rankings
+(described in Section 5.2).
+Lemma 6 The mechanism reduces to Overture ranking with a second price auction on the
+assumption ∀i γi = 0
+Proof This assumption implies
+wi = 1
+⇒ pi = bi+1 (second price auction)
+⇒ CEi = bi+1 ≡ bi (i.e. ranking by bi+1 is equivalent to ranking by bi )
 
-Lemma 7 The mechanism reduces to GSP on the assumption i i = k - ci Proof This assumption implies wi = c i bi + 1 c i + 1 (i.e. ranking reduces to GSP ranking) ci bi c i bi +1 c i +1  (by Theorem 3)  CEi = k k  bi ci  pi =
+Lemma 7 The mechanism reduces to GSP on the assumption ∀i γi = k − ci
+Proof This assumption implies
+wi = c i
+bi+1 ci+1
+(i.e. ranking reduces to GSP ranking)
+ci
+bi c i
+bi+1 ci+1
+≡
+(by Theorem 3)
+⇒ CEi =
+k
+k
+∝ bi ci
+⇒ pi =
 
-This lemma in conjunction with Theorem 3 implies that GSP ranking by ci bi (i.e. by bids) is the same as the ranking by ci pi (by CPCs). Now we will look at the equilibrium properties of the mechanism. We start by noting that truth telling is not a dominant strategy. This trivially follows, since GSP is a special case of the proposed mechanism, and it is generally known that truth telling is not a dominant strategy for GSP. Hence we focus on Nash Equilibrium conditions in our analysis. Theorem 4 (Nash Equilibrium) Without loss of generality, assume that advertisers are i vi where vi is the private value of the i th advertiser. The ordered in decreasing order of c i advertisers are in a pure strategy Nash Equilibrium if bi = i bi + 1 c i + 1 vi ci + (1 - i ) ci i +1 (19)
-
-This equilibrium is socially optimal as well as optimal for search engines for the given CPC's. Proof Sketch The inductive proof shows that for these bid values, no advertisers can increase his profit by moving up or down in the ranking. The full proof is given in Appendix A-4. Since the ranking is the same as the social optima order in (13), social optimality is a direct implication.
+This lemma in conjunction with Theorem 3 implies that GSP ranking by ci bi (i.e. by
+bids) is the same as the ranking by ci pi (by CPCs).
+Now we will look at the equilibrium properties of the mechanism. We start by noting that
+truth telling is not a dominant strategy. This trivially follows, since GSP is a special case
+of the proposed mechanism, and it is generally known that truth telling is not a dominant
+strategy for GSP. Hence we focus on Nash Equilibrium conditions in our analysis.
+Theorem 4 (Nash Equilibrium) Without loss of generality, assume that advertisers are
+ordered in decreasing order of cμi vi i where vi is the private value of the i th advertiser. The
+advertisers are in a pure strategy Nash Equilibrium if
+
+	
+μi
+bi+1 ci+1
+vi ci + (1 − μi )
+(19)
+bi =
+ci
+μi+1
+This equilibrium is socially optimal as well as optimal for search engines for the given
+CPC’s.
+Proof Sketch The inductive proof shows that for these bid values, no advertisers can
+increase his profit by moving up or down in the ranking. The full proof is given in
+Appendix A-4. Since the ranking is the same as the social optima order in (13), social
+optimality is a direct implication.
 
 J Intell Inf Syst
 
-We do not rule out the existence of multiple equilibriums. The stated equilibrium is particularly interesting, due to the social optimality and search engine optimality. Furthermore, although the equilibrium depends on the private values of the advertisers unknown to the search engine, please keep in mind that search engines do not implement equilibriums directly. Instead, search engines decide the pricing and ranking, and the advertisers may reach an equilibrium by repeatedly revising auction prices. The pricing and ranking are practical, since they depend solely on the quantities known to the search engine. The following Lemmas show that equilibriums of other placement mechanisms are special cases of the proposed CE equilibrium. The stated equilibrium reduces to equilibriums in the Overture mechanism and GSP under the same assumptions (discussed above) under which the CE ranking reduces to Overture and GSP rankings. Lemma 8 The bid values bi = vi ci + (1 - ci )bi +1 (20)
+We do not rule out the existence of multiple equilibriums. The stated equilibrium is
+particularly interesting, due to the social optimality and search engine optimality. Furthermore, although the equilibrium depends on the private values of the advertisers unknown
+to the search engine, please keep in mind that search engines do not implement equilibriums directly. Instead, search engines decide the pricing and ranking, and the advertisers
+may reach an equilibrium by repeatedly revising auction prices. The pricing and ranking are
+practical, since they depend solely on the quantities known to the search engine.
+The following Lemmas show that equilibriums of other placement mechanisms are special cases of the proposed CE equilibrium. The stated equilibrium reduces to equilibriums
+in the Overture mechanism and GSP under the same assumptions (discussed above) under
+which the CE ranking reduces to Overture and GSP rankings.
+Lemma 8 The bid values
+bi = vi ci + (1 − ci )bi+1
 
-are in a pure strategy Nash Equilibrium in the Overture mechanism. This corresponds to the substitution of the assumption i i = 0 (i.e. i = ci ) in Theorem 4. The proof follows from Theorem 4 as both pricing and ranking are shown to be a special case of our proposed mechanism. Similarly for GSP, Lemma 9 The bid values bi = vi k + (1 - k)bi +1 ci +1 is a pure strategy Nash Equilibrium in the GSP mechanism. This equilibrium corresponds to the substitution of the assumption i i = k - ci (1  k  0) in Theorem 4. Since this is a special case, this result follows from Theorem 4. (21)
+(20)
+
+are in a pure strategy Nash Equilibrium in the Overture mechanism. This corresponds to
+the substitution of the assumption ∀i γi = 0 (i.e. μi = ci ) in Theorem 4.
+The proof follows from Theorem 4 as both pricing and ranking are shown to be a special
+case of our proposed mechanism.
+Similarly for GSP,
+Lemma 9 The bid values
+bi = vi k + (1 − k)bi+1 ci+1
+
+(21)
+
+is a pure strategy Nash Equilibrium in the GSP mechanism.
+This equilibrium corresponds to the substitution of the assumption ∀i γi = k − ci (1 ≥
+k ≥ 0) in Theorem 4. Since this is a special case, this result follows from Theorem 4.
 
 6.3 Comparison with VCG mechanism
-We compare the revenue and equilibrium of CE mechanism with those of VCG (Vickrey 1961; Clarke 1971; Groves 1973). VCG auctions combine an optimal allocation (ranking) with VCG pricing. VCG payment of a bidder is equal to the reduction of revenues of other bidders due to the presence of the bidder. A well known property is that VCG pricing with any socially optimal allocation has truth telling as the the dominant strategy equilibrium. In the context of online ads, a ranking optimal with respect to the bid amounts is socially i ci ; as directly implied by the (1) on optimal ranking for VCG. This optimal ranking is b i substituting bi for utilities. Hence this ranking combined with VCG pricing has truth telling as the dominant strategy equilibrium. Since bi = vi at the dominant strategy equilibrium, ranking is socially optimal for advertiser's true value as suggested in (13). The CE ranking function is different from VCG since CE ranking by payments optimizes search engine profits. On the other hand, VCG ranking optimizes the advertiser's profit. But Theorem 3 shows that for the pricing used in CE , ordering of CE is the same as that of VCG. This order preserving property facilitates the comparison of CE with VCG. The theorem below shows revenue dominance of CE over VCG for the same bid values of the advertisers.
+We compare the revenue and equilibrium of CE mechanism with those of VCG (Vickrey
+1961; Clarke 1971; Groves 1973). VCG auctions combine an optimal allocation (ranking)
+with VCG pricing. VCG payment of a bidder is equal to the reduction of revenues of other
+bidders due to the presence of the bidder. A well known property is that VCG pricing with
+any socially optimal allocation has truth telling as the the dominant strategy equilibrium.
+In the context of online ads, a ranking optimal with respect to the bid amounts is socially
+optimal ranking for VCG. This optimal ranking is bμi ci i ; as directly implied by the (1) on
+substituting bi for utilities. Hence this ranking combined with VCG pricing has truth telling
+as the dominant strategy equilibrium. Since bi = vi at the dominant strategy equilibrium,
+ranking is socially optimal for advertiser’s true value as suggested in (13).
+The CE ranking function is different from VCG since CE ranking by payments optimizes
+search engine profits. On the other hand, VCG ranking optimizes the advertiser’s profit.
+But Theorem 3 shows that for the pricing used in CE, ordering of CE is the same as that
+of VCG. This order preserving property facilitates the comparison of CE with VCG. The
+theorem below shows revenue dominance of CE over VCG for the same bid values of the
+advertisers.
 
 J Intell Inf Syst
 
-Theorem 5 (Search Engine Revenue Dominance) For the same bid values for all the advertisers, the search engine revenue by CE mechanism is greater than or equal to its revenue by VCG. Proof Sketch The proof is an induction based on the fact that the ranking by CE and VCG are the same, as mentioned above. Full proof is given in Appendix A-5. This theorem shows that the CE mechanism is likely to provide higher revenue to the search engine even during transient times before the bids settle on equilibriums. Based on Theorem 5, we prove revenue equivalence of the proposed CE equilibrium with dominant strategy equilibrium of VCG. Theorem 6 (Equilibrium Revenue Equivalence) At the equilibrium in Theorem 4, the revenue of the search engine is equal to the revenue of the truthful dominant strategy equilibrium of VCG. Proof Sketch The proof is an inductive extension of Theorem 5. Please see Appendix A-6 for complete proof. Note that the CE equilibrium has lower bid values than VCG at the equilibrium, but provides the same profit to the search engine.
+Theorem 5 (Search Engine Revenue Dominance) For the same bid values for all the advertisers, the search engine revenue by CE mechanism is greater than or equal to its revenue
+by VCG.
+Proof Sketch The proof is an induction based on the fact that the ranking by CE and VCG
+are the same, as mentioned above. Full proof is given in Appendix A-5.
+This theorem shows that the CE mechanism is likely to provide higher revenue to the
+search engine even during transient times before the bids settle on equilibriums.
+Based on Theorem 5, we prove revenue equivalence of the proposed CE equilibrium
+with dominant strategy equilibrium of VCG.
+Theorem 6 (Equilibrium Revenue Equivalence) At the equilibrium in Theorem 4, the
+revenue of the search engine is equal to the revenue of the truthful dominant strategy
+equilibrium of VCG.
+Proof Sketch The proof is an inductive extension of Theorem 5. Please see Appendix A-6
+for complete proof.
+Note that the CE equilibrium has lower bid values than VCG at the equilibrium, but
+provides the same profit to the search engine.
 
 7 CE ranking considering mutual influences: diversity ranking
-An assumption in CE ranking is that the entities are mutually independent as we pointed out in Section 3. In other words, the three parameters--U (e), C(e) and  (e)--of an entity do not depend on other entities in the ranked list. In this section we relax this assumption and analyze the implications. Since the nature of the mutual influence may vary for different problems, we base our analysis on a specific well known problem--ranking considering diversity (Carterette 2010; Agrawal et al. 2009; Rafiei et al. 2010). Diversity ranking accounts for the fact that the utility of an entity is reduced by the presence of a similar entity above in the ranked list. This is a typical example of the mutual influence between the entities. All the existing objective functions for the diversity ranking are known to be NP-Hard (Carterette 2010). We analyze a basic form of diversity ranking to explain why this is a fundamentally hard problem. We modify the objective function in (1) slightly to distinguish between the standalone utilities and the residual utilities--utility of an entity in the context of other entities in the list--as,
-N
-
+An assumption in CE ranking is that the entities are mutually independent as we pointed out
+in Section 3. In other words, the three parameters—U (e), C(e) and γ (e)—of an entity do
+not depend on other entities in the ranked list. In this section we relax this assumption and
+analyze the implications. Since the nature of the mutual influence may vary for different
+problems, we base our analysis on a specific well known problem—ranking considering
+diversity (Carterette 2010; Agrawal et al. 2009; Rafiei et al. 2010).
+Diversity ranking accounts for the fact that the utility of an entity is reduced by the
+presence of a similar entity above in the ranked list. This is a typical example of the mutual
+influence between the entities. All the existing objective functions for the diversity ranking
+are known to be NP-Hard (Carterette 2010). We analyze a basic form of diversity ranking
+to explain why this is a fundamentally hard problem.
+We modify the objective function in (1) slightly to distinguish between the standalone
+utilities and the residual utilities—utility of an entity in the context of other entities in the
+list—as,
 E(U ) =
-i =1
+
+N
+
 
 Ur (ei )Pc (ei )
 
 (22)
 
-where Ur (ei ) denotes the residual utility. We examine a simple case of diversity ranking problem by considering a set of entities-- all having the same utilities, perceived relevances and abandonment probabilities. Some of these entities are repeating. If an entity in the ranked list is the same as the entity in the list above, the residual utility of that entity becomes zero. In this case, it is intuitive that the optimal ranking is to place the maximum number of pair-wise dissimilar entities in the
+i=1
+
+where Ur (ei ) denotes the residual utility.
+We examine a simple case of diversity ranking problem by considering a set of entities—
+all having the same utilities, perceived relevances and abandonment probabilities. Some of
+these entities are repeating. If an entity in the ranked list is the same as the entity in the
+list above, the residual utility of that entity becomes zero. In this case, it is intuitive that
+the optimal ranking is to place the maximum number of pair-wise dissimilar entities in the
 
 J Intell Inf Syst
 
-top slots. The theorem below shows that even in this simple case the optimal ranking is NP-Hard. Theorem 7 Diversity ranking optimizing expected utility in (22) is NP-Hard. Proof Sketch The proof is by reduction from the independent set problem. See Appendix A-7 for the complete proof. Moreover, the proof by reduction from independent set problem has more implications than NP-Hardness as shown in the following corollary, Corollary 1 The constant approximation algorithm for ranking considering diversity is hard. Proof The proof of NP-Hardness in the theorem above shows that the independent set problem is a special case of diversity ranking. This implies that a constant ratio approximation algorithm for the optimal diversity ranking would be a constant ratio approximation algorithm for the independent set problem. Since a constant ratio approximation algorithm for the independent set is known to be hard (cf. Garey and Johnson 1976 and H� astad 1996), the corollary follows. To define hard, in his landmark paper H� astad proved that independent set problem cannot be solved within n1- for > 0 unless all problems in N P are solvable in probabilistic polynomial time, which is widely believed to be not possible.2 This section shows that the optimal ranking considering mutual influences of parameters is hard. We leave formulating approximation algorithms (not necessarily constant ratio) for future research. Beyond proving the intractability of mutual influence ranking, we believe that the intractability of the simple scenario here explains why all optimal diversity rankings and constant ratio approximations are likely to be intractable. Furthermore, the proof based on the reduction from the well explored independent set problem may help in adapting approximation algorithms from graph theory.
+top slots. The theorem below shows that even in this simple case the optimal ranking is
+NP-Hard.
+Theorem 7 Diversity ranking optimizing expected utility in (22) is NP-Hard.
+Proof Sketch The proof is by reduction from the independent set problem. See
+Appendix A-7 for the complete proof.
+Moreover, the proof by reduction from independent set problem has more implications
+than NP-Hardness as shown in the following corollary,
+Corollary 1 The constant approximation algorithm for ranking considering diversity is
+hard.
+Proof The proof of NP-Hardness in the theorem above shows that the independent set problem is a special case of diversity ranking. This implies that a constant ratio approximation
+algorithm for the optimal diversity ranking would be a constant ratio approximation algorithm for the independent set problem. Since a constant ratio approximation algorithm for
+the independent set is known to be hard (cf. Garey and Johnson 1976 and Håstad 1996), the
+corollary follows. To define hard, in his landmark paper Håstad proved that independent set
+problem cannot be solved within n1− for  > 0 unless all problems in N P are solvable in
+probabilistic polynomial time, which is widely believed to be not possible.2
+This section shows that the optimal ranking considering mutual influences of parameters
+is hard. We leave formulating approximation algorithms (not necessarily constant ratio) for
+future research.
+Beyond proving the intractability of mutual influence ranking, we believe that the
+intractability of the simple scenario here explains why all optimal diversity rankings and
+constant ratio approximations are likely to be intractable. Furthermore, the proof based
+on the reduction from the well explored independent set problem may help in adapting
+approximation algorithms from graph theory.
 
 8 Experiments
-We compare the profit improvement by CE and reduced forms to existing rankings. Although the optimality of the proposed ranking is proven above, experiments help to quantify the increase in utilities. Considering the very restricted access to real users and ad click logs, we limit our evaluations to simulations as it is common in computational advertisement research. We believe that these experimental results will motivate future online evaluations in industry settings. In our first experiment in Fig. 3a, we compare the CE ranking with rank by bid amount (11) strategy by Overture and rank by bid � perceived relevance (12) by Google. We assign the perceived relevance values as a uniform random number between 0 and  (0    1) and abandonment probabilities as random between 0 and 1 -  . This assures i (C(ai ) +  (ai ))  1 condition required in the click model. The bid amounts for ads are
+We compare the profit improvement by CE and reduced forms to existing rankings.
+Although the optimality of the proposed ranking is proven above, experiments help to quantify the increase in utilities. Considering the very restricted access to real users and ad click
+logs, we limit our evaluations to simulations as it is common in computational advertisement
+research. We believe that these experimental results will motivate future online evaluations
+in industry settings.
+In our first experiment in Fig. 3a, we compare the CE ranking with rank by bid
+amount (11) strategy by Overture and rank by bid × perceived relevance (12) by Google.
+We assign the perceived relevance values as a uniform random number between 0 and α
+(0 ≤ α ≤ 1) and abandonment probabilities as random between 0 and 1 − α. This assures
+∀i (C(ai ) + γ (ai )) ≤ 1 condition required in the click model. The bid amounts for ads are
 
 2 This
 
-belief is almost as strong as the belief P = N P
+belief is almost as strong as the belief P  = N P
 
 J Intell Inf Syst
 
-Fig. 3 a Comparison of Overture, Google and CE rankings. Perceived relevances are uniformly random in [0,  ] and abandonment probabilities are uniformly random in [0, 1 -  ]. CE provides optimal expected profits for all values of  . b Comparison of CE , PRP and abandonment ranking (9). Abandonment ranking dominates PRP
+Fig. 3 a Comparison of Overture, Google and CE rankings. Perceived relevances are uniformly random
+in [0, α] and abandonment probabilities are uniformly random in [0, 1 − α]. CE provides optimal expected
+profits for all values of α. b Comparison of CE, PRP and abandonment ranking (9). Abandonment ranking
+dominates PRP
 
 J Intell Inf Syst
 
-Fig. 4 Optimality of reduced forms under assumptions (a) setting  (d) = k - R(d). Perceived relevance ranking is optimal for all values of  . (b) setting C(d) = R(d). In this case, abandonment ranking is optimal
+Fig. 4 Optimality of reduced forms under assumptions (a) setting γ (d) = k − R(d). Perceived relevance
+ranking is optimal for all values of α. (b) setting C(d) = R(d). In this case, abandonment ranking is optimal
 
-assigned uniform randomly between 0 and 1. We use uniform random for values as it is the maximum entropy distribution and hence makes least assumptions about the bid amounts. The number of relevant ads (corresponding to the number of bids on a query) is set to fifty.
+assigned uniform randomly between 0 and 1. We use uniform random for values as it is the
+maximum entropy distribution and hence makes least assumptions about the bid amounts.
+The number of relevant ads (corresponding to the number of bids on a query) is set to fifty.
 
 J Intell Inf Syst
 
-Simulated users are made to click on ads. The number of ads clicked is set to a random number generated in a zipf distribution with exponent 1.5. A power law is most intuitive for the distribution of the number of clicks. Simulated users browse down the list. Users click an entity with probability equal to the perceived relevance and abandon the search results with a probability equal to the abandonment probability. The set of entities to be placed is created at random for each run. For the same set of entities, three runs--one with each ranking strategy--are performed. Simulation is repeated 2 � 105 times for each value of  . An alternate interpretation of Fig. 3a is as the comparison of ranking by CE , PRP and perceived relevance ranking (8). As we discussed, PRP and perceived relevance rankings are isomorphic to ad rankings by bid and bid � perceived relevance respectively, with utility being relevance instead of bid amounts. The simulation results are the same. In Fig. 3b we compare CE , PRP and abandonment ranking (9) under the same settings used for Fig. 3a. CE provides the maximum utility as expected, and abandonment ranking occupies the second place. Abandonment ranking provides sub-optimal utility--since the condition d R(d) = C(d) is not satisfied--but dominates over PRP. Further, as abandonment probability becomes zero (i.e.  = 1) abandonment rankings becomes same as PRP and optimal as we predicted in Section 5.1. Figure 4a compares the perceived relevance ranking (8), CE , and PRP under the condition for optimality for perceived relevance ranking (i.e. d  (d) = k - R(d)). For this, we set  (d) =  - C(d) keeping all other settings same as the previous experiments. Figure 4a shows that the perceived relevance ranking provides optimal utility, exactly overlapping with CE curve as expected. Furthermore, note that utilities by PRP are very low under this condition. The utilities by PRP in fact goes down after  = 0.2. The increase in abandonment probability, as well as increased sub-optimality of PRP for higher abandonment (since PRP does not consider abandonment) probabilities may be causing this reduction. In our next experiment shown in Fig. 4b, we compare abandonment ranking (9) with PRP and CE under the condition d C(d) = R(d) (i.e. optimality condition for abandonment ranking). All other settings are the same as those for the experiments in Fig. 3a and b. Here we observe that the abandonment ranking is optimal and exactly overlaps with CE as expected. PRP is sub-optimal but closer to optimal than random C(d) used for experiments in Fig. 3b. The reason may be that C(d) = R(d) is one of the two conditions required for PRP to be optimal for both sets of assumptions as we discussed in Subsection 5.1. When abandonment probability becomes zero PRP relevance reaches optimum as we have already seen. All these simulation experiments confirm the predictions by the theoretical analysis above. Although the simulation is no substitute for experiments on real data, we expect that the observed significant improvements in expected utilities would motivate future online experiments to quantify profit.
+Simulated users are made to click on ads. The number of ads clicked is set to a random
+number generated in a zipf distribution with exponent 1.5. A power law is most intuitive for
+the distribution of the number of clicks.
+Simulated users browse down the list. Users click an entity with probability equal to the
+perceived relevance and abandon the search results with a probability equal to the abandonment probability. The set of entities to be placed is created at random for each run. For the
+same set of entities, three runs—one with each ranking strategy—are performed. Simulation
+is repeated 2 × 105 times for each value of α.
+An alternate interpretation of Fig. 3a is as the comparison of ranking by CE, PRP and
+perceived relevance ranking (8). As we discussed, PRP and perceived relevance rankings
+are isomorphic to ad rankings by bid and bid × perceived relevance respectively, with utility
+being relevance instead of bid amounts. The simulation results are the same.
+In Fig. 3b we compare CE, PRP and abandonment ranking (9) under the same settings
+used for Fig. 3a. CE provides the maximum utility as expected, and abandonment ranking
+occupies the second place. Abandonment ranking provides sub-optimal utility—since the
+condition ∀d R(d) = C(d) is not satisfied—but dominates over PRP. Further, as abandonment probability becomes zero (i.e. α = 1) abandonment rankings becomes same as PRP
+and optimal as we predicted in Section 5.1.
+Figure 4a compares the perceived relevance ranking (8), CE, and PRP under the condition for optimality for perceived relevance ranking (i.e. ∀d γ (d) = k − R(d)). For this,
+we set γ (d) = α − C(d) keeping all other settings same as the previous experiments.
+Figure 4a shows that the perceived relevance ranking provides optimal utility, exactly overlapping with CE curve as expected. Furthermore, note that utilities by PRP are very low
+under this condition. The utilities by PRP in fact goes down after α = 0.2. The increase
+in abandonment probability, as well as increased sub-optimality of PRP for higher abandonment (since PRP does not consider abandonment) probabilities may be causing this
+reduction.
+In our next experiment shown in Fig. 4b, we compare abandonment ranking (9) with PRP
+and CE under the condition ∀d C(d) = R(d) (i.e. optimality condition for abandonment
+ranking). All other settings are the same as those for the experiments in Fig. 3a and b.
+Here we observe that the abandonment ranking is optimal and exactly overlaps with CE as
+expected. PRP is sub-optimal but closer to optimal than random C(d) used for experiments
+in Fig. 3b. The reason may be that C(d) = R(d) is one of the two conditions required for
+PRP to be optimal for both sets of assumptions as we discussed in Subsection 5.1. When
+abandonment probability becomes zero PRP relevance reaches optimum as we have already
+seen.
+All these simulation experiments confirm the predictions by the theoretical analysis
+above. Although the simulation is no substitute for experiments on real data, we expect that
+the observed significant improvements in expected utilities would motivate future online
+experiments to quantify profit.
 
 9 Conclusion and future work
-We approach the document and ad ranking as a utility maximization based on the user click model, and derive an optimal ranking--namely CE ranking. CE ranking is simple and intuitive; and optimal considering perceived relevance and abandonment probability of user behavior.
+We approach the document and ad ranking as a utility maximization based on the user
+click model, and derive an optimal ranking—namely CE ranking. CE ranking is simple and
+intuitive; and optimal considering perceived relevance and abandonment probability of user
+behavior.
 
 J Intell Inf Syst
 
-On specific assumptions on parameters, the CE ranking function spawns a taxonomy of rankings in multiple domains. The taxonomy shows that the existing document and ad ranking strategies are special cases of the proposed ranking function under specific assumptions. The taxonomy is helpful in selecting optimal ranking for a specific user behavior. To apply CE ranking to ad auctions, we incorporate a second-price based pricing mechanism. The resulting CE mechanism has a Nash Equilibrium which simultaneously optimizes both the search engine and advertiser revenues. The CE mechanism is revenue dominant over VCG for the same bid vectors, and has an equilibrium which is revenue equivalent with the truthful equilibrium of VCG. We relax the assumption of independence between entities in CE ranking and apply it to diversity ranking. The ensuing analysis reveals that diversity ranking is an inherently hard problem; since even the basic formulations are NP-Hard with unlikely constant ratio approximation algorithms. Furthermore our simulation experiments confirm the results, and suggest potentially significant increase in profits over the existing rankings. As future research, assessing profits by CE ranking in an online experiment on a large scale search engine will quantify improvement in ranking. Estimation and prediction of abandonment probability using click logs and statistical models are interesting problems. The suggested ranking is optimal for other web ranking scenarios with similar click models--like product and friend recommendations--and may be extended to these problems. Furthermore, effective approximation schemes for diversity ranking based on similarity with the independent set problem may be investigated.
-Acknowledgments This research is supported in part by the ARO grant W911NF-13-1-0023, and the ONR grants N00014-13-1-0176, N00014-13-1-0519 and N00014-15-1-2027, two Google faculty research awards (2010 & 2013), and a Yahoo key scientific challenges program award (2009).
+On specific assumptions on parameters, the CE ranking function spawns a taxonomy of
+rankings in multiple domains. The taxonomy shows that the existing document and ad ranking strategies are special cases of the proposed ranking function under specific assumptions.
+The taxonomy is helpful in selecting optimal ranking for a specific user behavior.
+To apply CE ranking to ad auctions, we incorporate a second-price based pricing mechanism. The resulting CE mechanism has a Nash Equilibrium which simultaneously optimizes
+both the search engine and advertiser revenues. The CE mechanism is revenue dominant
+over VCG for the same bid vectors, and has an equilibrium which is revenue equivalent with
+the truthful equilibrium of VCG.
+We relax the assumption of independence between entities in CE ranking and apply it
+to diversity ranking. The ensuing analysis reveals that diversity ranking is an inherently
+hard problem; since even the basic formulations are NP-Hard with unlikely constant ratio
+approximation algorithms. Furthermore our simulation experiments confirm the results, and
+suggest potentially significant increase in profits over the existing rankings.
+As future research, assessing profits by CE ranking in an online experiment on a
+large scale search engine will quantify improvement in ranking. Estimation and prediction of abandonment probability using click logs and statistical models are interesting
+problems. The suggested ranking is optimal for other web ranking scenarios with similar
+click models—like product and friend recommendations—and may be extended to these
+problems. Furthermore, effective approximation schemes for diversity ranking based on
+similarity with the independent set problem may be investigated.
+Acknowledgments This research is supported in part by the ARO grant W911NF-13-1-0023, and the ONR
+grants N00014-13-1-0176, N00014-13-1-0519 and N00014-15-1-2027, two Google faculty research awards
+(2010 & 2013), and a Yahoo key scientific challenges program award (2009).
 
 Appendix
 A-1 Proof of theorem 1
-Theorem 1 The expected utility in (3) is maximum if the entities are placed in the descending order of the value of the ranking function CE , CE(ei ) = U (ei )C(ei ) C(ei ) +  (ei )
+Theorem 1 The expected utility in (3) is maximum if the entities are placed in the
+descending order of the value of the ranking function CE,
+CE(ei ) =
 
-Proof Consider results ei and ei +1 in positions i and i + 1 respectively. Let i =  (ei ) + C(ei ) for notational convenience. The total expected utility from ei and ei +1 when ei is placed above ei +1 is
-i -1
+U (ei )C(ei )
+C(ei ) + γ (ei )
 
-(1 - j ) U (ei )C(ei ) + (1 - i )U (ei +1 )C(ei +1 )
+Proof Consider results ei and ei+1 in positions i and i + 1 respectively. Let μi = γ (ei ) +
+C(ei ) for notational convenience. The total expected utility from ei and ei+1 when ei is
+placed above ei+1 is
+i−1
+
+
+
+
+(1 − μj ) U (ei )C(ei ) + (1 − μi )U (ei+1 )C(ei+1 )
+
 j =1
 
-If the order of ei and ei +1 are inverted by placing ei above ei +1 , the expected utility from these entities will be,
-i -1
+If the order of ei and ei+1 are inverted by placing ei above ei+1 , the expected utility from
+these entities will be,
+i−1
+
 
-(1 - j ) U (ei +1 )C(ei +1 ) + (1 - i +1 )U (ei )C(ei ))
+
+
+(1 − μj ) U (ei+1 )C(ei+1 ) + (1 − μi+1 )U (ei )C(ei ))
+
 j =1
 
 J Intell Inf Syst
 
-Since utilities from all other results in the list will remain the same, the expected utility of placing ei above ei +1 is greater than inverse placement iff U (ei )C(ei ) + (1 - i )U (ei +1 )C(ei +1 )  U (ei +1 )C(ei +1 ) + (1 - i +1 )U (ei )C(ei ) U (ei +1 )C(ei +1 ) U (ei )C(ei )  i i +1
-U (e)C(e) This means if entities are ranked in the descending order of C(e) + (e) any inversions will reduce the profit. Since any arbitrary order can be effected by a number of inversions on the U (e)C(e) ranking by CE , this implies that ranking by C(e) + (e) is optimal.
+Since utilities from all other results in the list will remain the same, the expected utility of
+placing ei above ei+1 is greater than inverse placement iff
+U (ei )C(ei ) + (1 − μi )U (ei+1 )C(ei+1 ) ≥ U (ei+1 )C(ei+1 ) + (1 − μi+1 )U (ei )C(ei )
+
+U (ei+1 )C(ei+1 )
+U (ei )C(ei )
+≥
+μi
+μi+1
+U (e)C(e)
+This means if entities are ranked in the descending order of C(e)+γ
+(e) any inversions will
+reduce the profit. Since any arbitrary order can be effected by a number of inversions on the
+U (e)C(e)
+ranking by CE, this implies that ranking by C(e)+γ
+(e) is optimal.
 
 A-2 Proof of theorem 2
-Theorem 2 The order proposed in Theorem 1 is optimal for multiple clicks if the user restarts browsing at the position one below the last clicked entity. Proof Induction on number of clicks. Base Case: Single click, proved in Theorem 1. Inductive Hypothesis: The proposed ordering is optimal for n clicks. Let there be total of n ranked entities and ec be the nth clicked entity. The user will browse down starting next to ec . Since there is only one click remaining, optimal ordering of entities is in the descending order of CE by the base case. Since the relevance and abandonment probabilities ec+1 to en remain unchanged by the independence assumption above, the optimal sequence will be the sub-sequence of ec+1 to en in the ranking.
+Theorem 2 The order proposed in Theorem 1 is optimal for multiple clicks if the user
+restarts browsing at the position one below the last clicked entity.
+Proof Induction on number of clicks.
+Base Case: Single click, proved in Theorem 1.
+Inductive Hypothesis: The proposed ordering is optimal for n clicks.
+Let there be total of n ranked entities and ec be the nth clicked entity. The user will browse
+down starting next to ec . Since there is only one click remaining, optimal ordering of entities is in the descending order of CE by the base case. Since the relevance and abandonment
+probabilities ec+1 to en remain unchanged by the independence assumption above, the
+optimal sequence will be the sub-sequence of ec+1 to en in the ranking.
 
 A-3 Proof of theorem 3
-Theorem 3 The order by wi bi is the same as the order by CEi for the auction i.e. wi bi  wj bj  CEi  CEj Proof Without loss of generality, we assume that ai refers to ad in the position i in the descending order of wi bi . CEi = pi ci i bi +1 ci +1 i ci = i +1 ci i bi +1 c i +1 = i +1 = wi + 1 b i + 1  wi +2 bi +2 = CEi +1
+Theorem 3 The order by wi bi is the same as the order by CEi for the auction i.e.
+wi bi ≥ wj bj ⇐⇒ CEi ≥ CEj
+Proof Without loss of generality, we assume that ai refers to ad in the position i in the
+descending order of wi bi .
+pi ci
+μi
+bi+1 ci+1 μi ci
+=
+μi+1 ci μi
+bi+1 ci+1
+=
+μi+1
+= wi+1 bi+1
+
+CEi =
+
+≥ wi+2 bi+2 = CEi+1
 
 J Intell Inf Syst
 
 A-4 Proof of theorem 4
-Theorem 4 (Nash Equilibrium) : Without the loss of generality assume that the advertisers i vi where vi is the private value of the i th advertiser. are ordered in the decreasing order of c i The advertisers are in a pure strategy Nash Equilibrium if bi = i bi + 1 c i + 1 vi ci + (1 - i ) ci i +1
+Theorem 4 (Nash Equilibrium) : Without the loss of generality assume that the advertisers
+are ordered in the decreasing order of cμi vi i where vi is the private value of the i th advertiser.
+The advertisers are in a pure strategy Nash Equilibrium if
+
+	
+μi
+bi+1 ci+1
+vi ci + (1 − μi )
+bi =
+ci
+μi+1
+This equilibrium is socially optimal for advertisers as well as optimal for search engines for
+the given CPC’s.
+Proof Let there are n advertisers. Without loss of generality, let us assume that advertisers
+are indexed in the descending order of vμi ci i . We prove equilibrium in two steps.
+Step 1: Prove that
+wi bi ≥ wi+1 bi+1
 
-This equilibrium is socially optimal for advertisers as well as optimal for search engines for the given CPC's. Proof Let there are n advertisers. Without loss of generality, let us assume that advertisers i ci . We prove equilibrium in two steps. are indexed in the descending order of v i Step 1: Prove that wi b i  wi + 1 b i + 1 bi c i i (1)
+w i bi =
 
-w i bi = Expanding bi by (19),
+(1)
 
-wi bi = vi ci + (1 - i )
+bi c i
+μi
 
-bi + 1 c i + 1 i +1 = vi ci + (1 - i )wi +1 bi +1 vi ci = i + (1 - i )wi +1 bi +1 i
+Expanding bi by (19),
+bi+1 ci+1
+μi+1
+= vi ci + (1 − μi )wi+1 bi+1
+vi ci
+=
+μi + (1 − μi )wi+1 bi+1
+μi
 
-i ci Notice that wi bi is a convex linear combination of wi +1 bi +1 and v . This means that i i ci the value of wi bi is in between (or equal to) the values of wi +1 bi +1 and v . Hence to i vi ci prove that wi bi  wi +1 bi +1 all we need to prove is that i  wi +1 bi +1 . This inductive proof is given below. Induction hypothesis: Assume that
+wi bi = vi ci + (1 − μi )
 
- i j
+Notice that wi bi is a convex linear combination of wi+1 bi+1 and vμi ci i . This means that
+the value of wi bi is in between (or equal to) the values of wi+1 bi+1 and vμi ci i . Hence to
+prove that wi bi ≥ wi+1 bi+1 all we need to prove is that vμi ci i ≥ wi+1 bi+1 . This inductive
+proof is given below.
+Induction hypothesis: Assume that
+∀i≥j
 
-vi ci  wi + 1 b i + 1 i
+vi ci
+≥ wi+1 bi+1
+μi
 
-Base case: Prove for i = N i.e. for the bottommost ad. vN -1 cN -1  wN b N N -1 Assuming i>N bi = 0 wN bN = vN cN  vN cN vN -1 cN -1 vi ci (as N  1)  (by the assumed order i.e. by ) N N -1 i
+Base case: Prove for i = N i.e. for the bottommost ad.
+vN−1 cN−1
+≥ wN b N
+μN−1
+Assuming ∀i>N bi = 0
+wN bN = vN cN ≤
 
-Induction: Expanding wj bj by (19), wj bj = vj cj j + (1 - j )wj +1 bj +1 j
+vN cN
+vN−1 cN−1
+vi ci
+(as μN ≤ 1) ≤
+(by the assumed order i.e. by
+)
+μN
+μN−1
+μi
+
+Induction: Expanding wj bj by (19),
+wj bj =
+
+vj cj
+μj + (1 − μj )wj +1 bj +1
+μj
 
 J Intell Inf Syst
 
 wj bj is the convex linear combination, i.e
-vj cj j
+vj cj
+μj
 
-vj cj j
+vj cj
+μj
 
- wj bj  wj +1 bj +1 , as we know that
+≥ wj bj ≥ wj +1 bj +1 , as we know that
 
- wj +1 bj +1 by induction hypothesis. Consequently, wj bj  vj -1 cj -1 vj cj  (by the assumed order) j j -1
+≥ wj +1 bj +1 by induction hypothesis. Consequently,
+wj bj ≤
+
+vj −1 cj −1
+vj cj
+≤
+(by the assumed order)
+μj
+μj −1
 
 This completes the induction.
 
-Since advertisers are ordered by wi bi for pricing, the above proof says that the pricing i ci order is the same as the assumed order in this proof (i.e. ordering by v ). Consequently, i pi = bi +1 ci +1 i i +1 ci
+Since advertisers are ordered by wi bi for pricing, the above proof says that the pricing
+order is the same as the assumed order in this proof (i.e. ordering by vμi ci i ). Consequently,
+pi =
 
-As corollary of Theorem 3 we know that CEi  CEi +1 . In the second step we prove the equilibrium using results in Step 1. Step 2: No advertiser can increase his profit by changing his bids unilaterally Proof (of lack of incentive to undercut to advertisers below) In the first step let us prove that ad ai can not increase his profit by decreasing his bid to move to a position j  i below. Inductive hypothesis: Assume true for i  j  m. Base Case: Trivially true for j = i . Induction: Prove that the expected profit of ai at m + 1 is less or equal to the expected profit of ai at i . Let k denotes the amount paid by ai when he is at the position k . By inductive hypothesis, the expected profit at m is less or equal to the expected profit at i . So we just need to prove that the expected profit at m + 1 is less or equal to the expected profit at m. i.e. (vi - m ) (1 - i ) Canceling the common terms, vi - m  (vi - m+1 )(1 - m+1 ) (2)
+bi+1 ci+1 μi
+μi+1 ci
+
+As corollary of Theorem 3 we know that CEi ≥ CEi+1 .
+In the second step we prove the equilibrium using results in Step 1.
+Step 2: No advertiser can increase his profit by changing his bids unilaterally
+Proof (of lack of incentive to undercut to advertisers below) In the first step let us prove that
+ad ai can not increase his profit by decreasing his bid to move to a position j ≥ i below.
+Inductive hypothesis: Assume true for i ≤ j ≤ m.
+Base Case: Trivially true for j = i.
+Induction: Prove that the expected profit of ai at m + 1 is less or equal to the expected
+profit of ai at i.
+Let ρk denotes the amount paid by ai when he is at the position k. By inductive hypothesis, the expected profit at m is less or equal to the expected profit at i. So we just need to
+prove that the expected profit at m + 1 is less or equal to the expected profit at m. i.e.
 m
+m+1
+(vi − ρm+1 ) 
+(vi − ρm ) 
+(1 − μl ) ≥
+(1 − μl )
+(1 − μi )
+(1 − μi )
+l=1
 
-(1 - l ) 
-l =1
+l=1
 
-(vi - m+1 ) (1 - i )
+Canceling the common terms,
+vi − ρm ≥ (vi − ρm+1 )(1 − μm+1 )
 
-m +1
+(2)
 
-(1 - l )
-l =1
+ρm —the price charged to ai at position m—is based on the Equations 16 and 19. Since the
+ai is moving downward, ai will occupy position m by shifting ad am upwards. Hence the ad
+just below ai is am+1 . Consequently, the price charged to ai when it is at the mth position is,
+
+	
+bm+1 cm+1 μi
+μi
+bm+2 cm+2
+=
+vm+1 cm+1 + (1 − μm+1 )
+ρm =
+μm+1 ci
+ci
+μm+2
+Substituting for ρm and ρm+1 in (2),
+
+	
+μi
+bm+2 cm+2
+vm+1 cm+1 + (1 − μm+1 )
+vi −
+ci
+μm+2
+
+	
 
-m --the price charged to ai at position m--is based on the Equations 16 and 19. Since the ai is moving downward, ai will occupy position m by shifting ad am upwards. Hence the ad just below ai is am+1 . Consequently, the price charged to ai when it is at the mth position is, m = bm+1 cm+1 i i bm + 2 c m + 2 = vm+1 cm+1 + (1 - m+1 ) m+1 ci ci m+2
 
-Substituting for m and m+1 in (2), vi - i bm + 2 c m + 2 vm+1 cm+1 + (1 - m+1 ) ci m+2 i bm + 3 c m + 3 vm+2 cm+2 + (1 - m+2 )  vi - ci m+3
-
-(1 - m+1 )
-
-J Intell Inf Syst
-
-Simplifying, and multiplying both sides by -1 bm + 2 c m + 2 i i vm+1 cm+1 + (1 - m+1 )  vi m+1 + (1 - m+1 ) ci m+2 ci bm + 3 c m + 3 � vm+2 cm+2 + (1 - m+2 ) m+3 Substituting by bm+2 from (19) on RHS. bm + 2 c m + 2 i vm+1 cm+1 + (1 - m+1 ) ci m+2  vi m+1 + i bm + 2 c m + 2 (1 - m+1 ) ci m+2
-
-Canceling out the common terms on both sides, i vm+1 cm+1  vi m+1 ci vi ci vm + 1 c m + 1  m+1 i Which is true by the assumed order as m  i Inductive proof for m  i is somewhat similar and enumerated below. Inductive hypothesis: Assume true for j  m. Base Case: Trivially true for j = i . Proof (of lack of incentive to overbid ad one above) The case in which ai increases his bid to move one position up i.e. to i - 1 is a special case and need to be proved separately. In this case, by moving a single slot up, the index of the ad below ai will change from i + 1 to i - 1 (a difference of two). For all other movements of ai to a position one above or one below, the index of the advertisers below will change only by one. Since the amount paid by ai depends on the ad below ai , this case warrants a slightly different proof,
-i -1 i -2
-
-(vi - i )
-l =1
-
-(1 - l )  (vi - m-1 )
-l =1
-
-(1 - l )
-
-(vi - i )(1 - i -1 )  vi - i -1 Expanding i is straight forward.To expand i -1 , note that when ai has moved upwards to i - 1, the ad just below ai is ai -1 . Since ai -1 has not changed its bids, the i -1 can be bi ci i expanded as  ci vi -1 ci -1 + (1 - i -1 ) i . Substituting for i and i -1 ,
-vi - i i bi +2 ci +2 vi +1 ci +1 +  vi - vi -1 ci -1 + (1 - i +1 ) ci ci i +2 (1 - i -1 )(1 - i -1 ) bi ci i
-
-Simplifying and multiplying by -1
-vi i -1 + i i bi ci bi +2 ci +2 vi +1 ci +1 +  vi -1 ci -1 + (1 - i -1 ) (1 - i +1 ) (1 - i -1 ) ci ci i i +2
-
-J Intell Inf Syst
-
-Substituting bi +1 from (19) vi i -1 + i bi +1 ci +1 i bi c i vi -1 ci -1 + (1 - i -1 ) (1 - i -1 )  ci i +1 ci i i bi + 1 c i + 1 i vi -1 ci -1 i bi c i (1 - i -1 )  + (1 - i -1 ) ci i +1 ci ci i
-
-vi i -1 +
-
-We now prove that both the terms in RHS are greater or equal to the corresponding terms in LHS separately. i vi -1 ci -1 vi i -1  ci vi -1 ci -1 vi ci  i i -1 Which is true by our assumed order. Similarly, bi + 1 c i + 1 i bi c i i (1 - i -1 )  (1 - i -1 ) ci i +1 ci i bi ci bi +1 c i +1  i +1 i Which is true by (1) above. This completes the proof for this case. Induction: Prove that the expected profit at m - 1 is less or equal to the expected profit at m. The proof is similar to the induction for the case m > i . Proof Base case is trivially true.
-m -1 m -2
-
-(vi - m )
-l =1
-
-(1 - l )  (vi - m-1 )
-l =1
-
-(1 - l )
-
-Canceling common terms, (vi - m )(1 - m-1 )  vi - m-1 In this case, note that ai is moving upwards. This means that ai will occupy position m by pushing the ad originally at m one position downwards. Hence the original ad at m is the one just below ai now. i.e. m = bm cm i i bm + 1 c m + 1 vm cm + (1 - m ) = m ci ci m+1
-
-Substituting for m and m-1
-vi - i i bm+1 cm+1 vm cm +  vi - vm-1 cm-1 + (1 - m ) ci ci m+1 (1 - m-1 )(1 - m-1 ) bm cm m
-
-Simplifying and multiplying by -1
-vi m-1 + i i bm cm bm+1 cm+1 vm cm +  vm-1 cm-1 + (1 - m-1 ) (1 - m ) (1 - m-1 ) ci ci m m+1
+μi
+bm+3 cm+3
+vm+2 cm+2 + (1 − μm+2 )
+(1−μm+1 )
+≥ vi −
+ci
+μm+3
 
 J Intell Inf Syst
 
-Substituting by bm from (19) vi m-1 + i bm cm i bm c m vm-1 cm-1 + (1 - m-1 ) (1 - m-1 )  ci m ci m
+Simplifying, and multiplying both sides by −1
+
+	
+bm+2 cm+2
+μi
+μi
+vm+1 cm+1 + (1 − μm+1 )
+≤ vi μm+1 + (1 − μm+1 )
+ci
+μm+2
+ci
+	
+
+bm+3 cm+3
+× vm+2 cm+2 + (1 − μm+2 )
+μm+3
+Substituting by bm+2 from (19) on RHS.
+
+	
+bm+2 cm+2
+μi
+bm+2 cm+2
+μi
+vm+1 cm+1 + (1 − μm+1 )
+≤ vi μm+1 + (1 − μm+1 )
+ci
+μm+2
+ci
+μm+2
+Canceling out the common terms on both sides,
+μi
+vm+1 cm+1 ≤ vi μm+1
+ci
 
-Canceling common terms, vi m-1  i vm-1 cm-1 ci
+vi ci
+vm+1 cm+1
+≤
+μm+1
+μi
+Which is true by the assumed order as m ≥ i
+Inductive proof for m ≤ i is somewhat similar and enumerated below.
+Inductive hypothesis: Assume true for j ≤ m.
+Base Case: Trivially true for j = i.
+Proof (of lack of incentive to overbid ad one above) The case in which ai increases his bid
+to move one position up i.e. to i − 1 is a special case and need to be proved separately. In
+this case, by moving a single slot up, the index of the ad below ai will change from i + 1
+to i − 1 (a difference of two). For all other movements of ai to a position one above or one
+below, the index of the advertisers below will change only by one. Since the amount paid
+by ai depends on the ad below ai , this case warrants a slightly different proof,
+(vi − ρi )
 
-vm-1 cm-1 vi ci  i m-1 Which is true by the assumed order as m < i .
+i−1
+
+
+(1 − μl ) ≥ (vi − ρm−1 )
+
+l=1
+
+i−2
+
+
+(1 − μl )
+
+l=1
+
+
+(vi − ρi )(1 − μi−1 ) ≥ vi − ρi−1
+Expanding ρi is straight forward.To expand ρi−1 , note that when ai has moved upwards to
+i − 1, the ad just
+ below ai is ai−1 . Since ai−1 has not changed its bids, the ρi−1 can be
+μi
+expanded as ci vi−1 ci−1 + (1 − μi−1 ) bμi ci i . Substituting for ρi and ρi−1 ,
+
+
+vi −
+
+
+
+	
+	
+μi
+μi
+bi+2 ci+2
+bi ci
+vi+1 ci+1 + ≥ vi −
+vi−1 ci−1 + (1−μi+1 )
+(1 − μi−1 )(1 − μi−1 )
+ci
+ci
+μi+2
+μi
+
+Simplifying and multiplying by −1
+vi μi−1 +
+
+
+
+	
+	
+μi
+μi
+bi ci
+bi+2 ci+2
+vi+1 ci+1 + ≤
+vi−1 ci−1 + (1 − μi−1 )
+(1 − μi+1 )
+(1 − μi−1 )
+ci
+ci
+μi
+μi+2
+
+J Intell Inf Syst
+
+Substituting bi+1 from (19)
+
+
+	
+μi bi+1 ci+1
+μi
+bi c i
+vi−1 ci−1 + (1 − μi−1 )
+(1 − μi−1 ) ≤
+ci μi+1
+ci
+μi
+
+μi
+bi+1 ci+1
+μi vi−1 ci−1
+μi
+bi c i
+≤
++ (1 − μi−1 )
+vi μi−1 + (1 − μi−1 )
+ci
+μi+1
+ci
+ci
+μi
+vi μi−1 +
+
+We now prove that both the terms in RHS are greater or equal to the corresponding terms in
+LHS separately.
+μi vi−1 ci−1
+vi μi−1 ≤
+ci
+
+vi−1 ci−1
+vi ci
+≤
+μi
+μi−1
+Which is true by our assumed order.
+Similarly,
+bi+1 ci+1
+μi
+bi c i
+μi
+(1 − μi−1 )
+≤
+(1 − μi−1 )
+ci
+μi+1
+ci
+μi
+
+bi ci
+bi+1 ci+1
+≤
+μi+1
+μi
+Which is true by (1) above. This completes the proof for this case.
+Induction: Prove that the expected profit at m − 1 is less or equal to the expected profit
+at m. The proof is similar to the induction for the case m > i.
+Proof Base case is trivially true.
+(vi − ρm )
+
+m−1
+
+
+m−2
+
+
+l=1
+
+l=1
+
+(1 − μl ) ≥ (vi − ρm−1 )
+
+(1 − μl )
+
+Canceling common terms,
+(vi − ρm )(1 − μm−1 ) ≥ vi − ρm−1
+In this case, note that ai is moving upwards. This means that ai will occupy position m by
+pushing the ad originally at m one position downwards. Hence the original ad at m is the
+one just below ai now. i.e.
+
+	
+bm cm μi
+μi
+bm+1 cm+1
+ρm =
+vm cm + (1 − μm )
+=
+μm ci
+ci
+μm+1
+Substituting for ρm and ρm−1
+
+
+vi −
+
+
+
+	
+	
+μi
+μi
+bm+1 cm+1
+bm cm
+vm cm + ≥ vi −
+vm−1 cm−1 + (1−μm )
+(1−μm−1 )(1 − μm−1 )
+ci
+ci
+μm+1
+μm
+
+Simplifying and multiplying by −1
+vi μm−1 +
+
+
+
+	
+	
+μi
+μi
+bm cm
+bm+1 cm+1
+vm cm + ≤
+vm−1 cm−1 + (1−μm−1 )
+(1 − μm )
+(1 − μm−1 )
+ci
+ci
+μm
+μm+1
+
+J Intell Inf Syst
+
+Substituting by bm from (19)
+
+	
+μi bm cm
+μi
+bm c m
+vm−1 cm−1 + (1 − μm−1 )
+(1 − μm−1 ) ≤
+vi μm−1 +
+ci μm
+ci
+μm
+Canceling common terms,
+μi
+vm−1 cm−1
+ci
+
+vi μm−1 ≤
+
+
+vm−1 cm−1
+vi ci
+≤
+μi
+μm−1
+Which is true by the assumed order as m < i.
 
 A-5 Proof of theorem 5
-Theorem 5 (Search Engine Revenue Dominance) : For the same bid values for all the advertisers, the revenue of search engine by CE mechanism is greater or equal to the revenue by VCG. Proof VCG payment of the ad at position i (i.e. ai ) is equal to the reduction in utility of the ads below due to the presence of ai . For each user viewing the list of ads (i.e. for unit view probability), the total expected loss of ads below ai due to ai is, 1 1 - i i 1 - i i 1 - i
-i -1 n j -1 n j -1
+Theorem 5 (Search Engine Revenue Dominance) : For the same bid values for all the
+advertisers, the revenue of search engine by CE mechanism is greater or equal to the
+revenue by VCG.
+Proof VCG payment of the ad at position i (i.e. ai ) is equal to the reduction in utility of
+the ads below due to the presence of ai . For each user viewing the list of ads (i.e. for unit
+view probability), the total expected loss of ads below ai due to ai is,
 
-Vu = pi
-
-bj c j
-j =i +1 n k =1
-
-(1 - k ) -
-j =i +1 j -1
-
-bj c j
-k =1
-
-(1 - k )
+piVu =
+=
 
 =
 
+j
+−1
+j
+−1
+n
+n
+
+
+1
 bj c j
-j =i +1 i k =1
+(1 − μk ) −
+bj c j
+(1 − μk )
+1 − μi
 
-(1 - k )
-n j -1
+μi
+1 − μi
 
+j =i+1
+
+k=1
+
+n
+
+
+j
+−1
+
+bj c j
+
+j =i+1
+
+j =i+1
+
+k=1
+
+(1 − μk )
+
+k=1
+
+j
+−1
+n
+i
+
+μi 
+(1 − μk )
+bj c j
+(1 − μk )
+1 − μi
+j =i+1
+
+k=1
+
+= μi
+
+i−1
+
+
+(1 − μk )
+
+n
+
+
+bj c j
+
+j =i+1
+
+k=1
+
+k=i+1
+
+j
+−1
+
+(1 − μk )
+
+k=i+1
+
+This is the expected lose per user browsing the ad list. Pay per click should be equal to the
+lose per click. To calculate the pay per click, we divide by the click probability of ai . i.e.
+
+piV =
 =
 
-(1 - k )
-k =1 n j =i +1
+μi
 
+i−1
+
+j −1
+j =i+1 bj cj
+k=i+1 (1 − μk )
+i−1
+ci k=1 (1 − μk )
+j
+−1
+
+k=1 (1 − μk )
+
+n
+μi 
 bj c j
-j -1
+ci
+j =i+1
 
-(1 - k )
-k =i +1
+n
 
-= i
+(1 − μk )
 
-(1 - k )
-k =1 j =i +1
-
-bj c j
-
-(1 - k )
-k =i +1
-
-This is the expected lose per user browsing the ad list. Pay per click should be equal to the lose per click. To calculate the pay per click, we divide by the click probability of ai . i.e. i
-i -1 k =1 (1 - k ) j -1 n j =i +1 bj c j k =i +1 (1 - k ) i -1 k =1 (1 - k )
-
-V = pi
-
-ci i ci
-n j -1
-
-=
-
-bj c j
-j =i +1
-
-(1 - k )
-k =i +1
+k=i+1
 
 J Intell Inf Syst
 
 Converting to recursive form,
-V = pi
+bi+1 μi
+μi ci+1 V
+ci+1 + (1 − μi+1 )
+p
+ci
+ci μi+1 i+1
+bi+1 μi ci+1
+μi ci+1 V
+=
+μi+1 + (1 − μi+1 )
+p
+ci μi+1
+ci μi+1 i+1
 
-bi +1 i i ci +1 V ci +1 + (1 - i +1 ) p ci ci i +1 i +1 bi +1 i ci +1 i ci +1 V = i +1 + (1 - i +1 ) p ci i +1 ci i +1 i +1
+piV =
 
 For the CE mechanism payment from (16) is,
-CE = pi
+piCE =
 
-bi +1 ci +1 i i +1 ci
-i ci +1 V ci i +1 pi +1 ,
+bi+1 ci+1 μi
+μi+1 ci
 
-V is convex combination of P CE and Note that pi i
-
-and hence is between these
-i ci +1 V ci i +1 pi +1
-
+Note that piV is convex combination of PiCE and
 two values. To prove that
 
-CE pi
+piCE
 
+≥
 
+piV
 
-V pi
+μi ci+1 V
+ci μi+1 pi+1 ,
 
-all we need to prove is that PiCE 
+and hence is between these
 
+all we need to prove is that PiCE ≥
 
+μi ci+1 V
+ci μi+1 pi+1
 
-V . This directly follows from individual rationality property of VCG. Alternatively, a bi  pi V = 0 (bottommost ad) will prove the same. Note that simple recursion with base case as pN
+⇔
 
-we consider only the ranking (not selection), and hence the VCG pricing of the bottommost ad in the ranking is zero.
+bi ≥ piV . This directly follows from individual rationality property of VCG. Alternatively, a
+V = 0 (bottommost ad) will prove the same. Note that
+simple recursion with base case as pN
+we consider only the ranking (not selection), and hence the VCG pricing of the bottommost
+ad in the ranking is zero.
 
 A-6 Proof of theorem 6
-Theorem 6 (Equilibrium Revenue Equivalence) : At the equilibrium in Theorem 4, the revenue of search engine is equal to the revenue of the truthful dominant strategy equilibrium of VCG. Proof Rearranging (3) and substituting true values for bid amounts,
-V = pi
-
-i (1 - i +1 )ci +1 V vi +1 ci +1 + pi +1 ci i +1
-
+Theorem 6 (Equilibrium Revenue Equivalence) : At the equilibrium in Theorem 4, the revenue of search engine is equal to the revenue of the truthful dominant strategy equilibrium
+of VCG.
+Proof Rearranging (3) and substituting true values for bid amounts,
+
+	
+μi
+(1 − μi+1 )ci+1 V
+V
+vi+1 ci+1 +
+pi+1
+pi =
+ci
+μi+1
 For the CE mechanism, substituting equilibrium bids from (19) in payment (16),
-CE = pi
+
+	
+bi+1 ci+1 μi
+μi
+bi+2 ci+2
+=
+vi+1 ci+1 + (1 − μi+1 )
+piCE =
+μi+1 ci
+ci
+μi+2
+Rewriting bi+2 in terms of pi+1 ,
+piCE =
 
-bi +1 ci +1 i i bi + 2 c i + 2 = vi +1 ci +1 + (1 - i +1 ) i +1 ci ci i +2
+
+	
+μi
+(1 − μi+1 )ci+1 CE
+vi+1 ci+1 +
+pi+1
+ci
+μi+1
 
-Rewriting bi +2 in terms of pi +1 ,
-CE pi =
+= piV
 
-i (1 - i +1 )ci +1 CE vi +1 ci +1 + pi +1 ci i +1
-V CE (iff pi +1 = pi +1 )
+V
+CE
+(iff pi+1
+= pi+1
+)
 
-V = pi
-
-Ad at the bottommost position pays same amount zero, a simple recursion will prove that the payment for all positions for both VCG and the proposed equilibrium is the same.
+Ad at the bottommost position pays same amount zero, a simple recursion will prove that
+the payment for all positions for both VCG and the proposed equilibrium is the same.
 
 A-7 Proof of theorem 7
-Theorem 7 Diversity ranking optimizing expected utility in (22) is NP-Hard. Proof Independent set problem can be formulated as a ranking problem considering similarities. Consider an unweighed graph G of n vertices {e1 , e2 , ..en } represented as an
+Theorem 7 Diversity ranking optimizing expected utility in (22) is NP-Hard.
+Proof Independent set problem can be formulated as a ranking problem considering similarities. Consider an unweighed graph G of n vertices {e1 , e2 , ..en } represented as an
 
 J Intell Inf Syst
 
-adjacency matrix. This conversion is clearly polynomial time. Now, consider the values in the adjacency matrix as the similarity values between the entities to be ranked. Let the entities have the same utilities, perceive relevances and abandonment probabilities. In this set of n entities from {e1 , e2 , .., en }, clearly the optimal ranking will have k pairwise independent entities as the top k entities for a maximum possible value of k . But the set of k independent entities corresponds to the maximum independent set in graph G.
+adjacency matrix. This conversion is clearly polynomial time. Now, consider the values in
+the adjacency matrix as the similarity values between the entities to be ranked. Let the entities have the same utilities, perceive relevances and abandonment probabilities. In this set of
+n entities from {e1 , e2 , .., en }, clearly the optimal ranking will have k pairwise independent
+entities as the top k entities for a maximum possible value of k. But the set of k independent
+entities corresponds to the maximum independent set in graph G.
 
 References
-Aggarwal, G., Feldman, J., Muthukrishnan, S., & P� al, M. (2008). Sponsored search auctions with markovian users. Internet and Network Economics, 621�628. Aggarwal, G., Goel, A., & Motwani, R. (2006). Truthful auctions for pricing search keywords. In Proceedings of the 7th ACM conference on Electronic commerce (pp. 1�7), ACM. Agrawal, R., Gollapudi, S., Halverson, A., & Ieong, S. (2009). Diversifying search results. In Proceedings of the Second ACM International Conference on Web Search and Data Mining (pp. 5�14). ACM. Balakrishnan, R., & Kambhampati, S. (2008). Optimal ad ranking for profit maximization. In Proceedings of the 11th International Workshop on the Web and Databases. Carterette, B. (2010). An analysis of NP-completeness in novelty and diversity ranking. Advances in Information Retrieval Theory, 200�211. Chapelle, O., & Zhang, Y. (2009). A dynamic bayesian network click model for web search ranking. In Proceedings of World Wide Web (pp. 1�10). ACM. Chierichetti, F., Kumar, R., & Raghavan, P. (2011). Optimizing two-dimensional search results presentation. In Proceedings of the fourth ACM international conference on Web search and data mining (pp. 257� 266). ACM. Clarke, C.L.A., Agichtein, E., Dumais, S., & White, R.W. (2007). The influence of caption features on clickthrough patterns in web search. In Proceedings of SIGIR (pp. 135�142). ACM. Clarke, E.H. (1971). Multipart pricing of public goods. Public Choice, 11(1), 17�33. Craswell, N., Zoeter, O., Tayler, M., & Ramsey, B. (2008). An experimental comparison of click position bias models. In Proceedings of WSDM (pp. 87�94). Deng, X., & Yu, J. (2009). A new ranking scheme of the GSP mechanism with markovian users. Internet and Network Economics, 583�590. Dupret, G.E., & Piwowarski, B. (2008). A user browsing model to predict search engine click data from past observations. In Proceedings of SIGIR, (pp. 331�338). ACM. Easley, D., & Kleinberg, J. (2010). Networks, crowds, and markets: Reasoning about a highly connected world: Cambridge Univ Press. Edelman, B., Ostrovsky, M., & Schwarz, M. (2007). Internet advertising and the generalized second price auction: Selling billions of dollars worth of keywords. The American Economic Review, 97 (1). Garey, M.R., & Johnson, D.S. (1976). The complexity of near-optimal graph coloring. Journal of the ACM (JACM), 23(1), 43�49. Ghosh, A., & Sayedi, A. (2010). Expressive auctions for externalities in online advertising. In Proceedings of the 19th international conference on World wide web (pp. 371�380). ACM. Giotis, I., & Karlin, A. (2008). On the equilibria and efficiency of the GSP mechanism in keyword auctions with externalities. Internet and Network Economics, 629�638. Gordon, M.G., & Lenk, P. (1991). A utility theory examination of probability ranking principle in information retrieval. Journal of American Society of Information Science, 41, 703�714. Gordon, M.G., & Lenk, P. (1992). When is probability ranking principle suboptimal. Journal of American Society of Information Science, 42. Groves, T. (1973). Incentives in teams. Econometrica: Journal of the Econometric Society, 617�631. Guo, F., Liu, C., Kannan, A., Minka, T., Taylor, M., Wang, Y.M., & Faloutsos, C. (2009). Click chain model in web search. In Proceedings of World Wide Web (pp. 11�20). New York: ACM. H� astad, J. (1996). Clique is hard to approximate within n. In Foundations of Computer Science, 1996. 37th Annual Symposium on Proceedings (pp. 627�636). Hu, B., Zhang, Y., Chen, W., Wang, G., & Yang, Q. (2011). Characterizing search intent diversity into click models. In Proceedings of the 20th international conference on World wide web (pp. 17�26). ACM. Kempe, D., & Mahdian, M. (2008). A cascade model for externalities in sponsored search. Internet and Network Economics, 585�596.
+Aggarwal, G., Feldman, J., Muthukrishnan, S., & Pál, M. (2008). Sponsored search auctions with markovian
+users. Internet and Network Economics, 621–628.
+Aggarwal, G., Goel, A., & Motwani, R. (2006). Truthful auctions for pricing search keywords. In Proceedings
+of the 7th ACM conference on Electronic commerce (pp. 1–7), ACM.
+Agrawal, R., Gollapudi, S., Halverson, A., & Ieong, S. (2009). Diversifying search results. In Proceedings of
+the Second ACM International Conference on Web Search and Data Mining (pp. 5–14). ACM.
+Balakrishnan, R., & Kambhampati, S. (2008). Optimal ad ranking for profit maximization. In Proceedings
+of the 11th International Workshop on the Web and Databases.
+Carterette, B. (2010). An analysis of NP-completeness in novelty and diversity ranking. Advances in
+Information Retrieval Theory, 200–211.
+Chapelle, O., & Zhang, Y. (2009). A dynamic bayesian network click model for web search ranking. In
+Proceedings of World Wide Web (pp. 1–10). ACM.
+Chierichetti, F., Kumar, R., & Raghavan, P. (2011). Optimizing two-dimensional search results presentation.
+In Proceedings of the fourth ACM international conference on Web search and data mining (pp. 257–
+266). ACM.
+Clarke, C.L.A., Agichtein, E., Dumais, S., & White, R.W. (2007). The influence of caption features on
+clickthrough patterns in web search. In Proceedings of SIGIR (pp. 135–142). ACM.
+Clarke, E.H. (1971). Multipart pricing of public goods. Public Choice, 11(1), 17–33.
+Craswell, N., Zoeter, O., Tayler, M., & Ramsey, B. (2008). An experimental comparison of click position
+bias models. In Proceedings of WSDM (pp. 87–94).
+Deng, X., & Yu, J. (2009). A new ranking scheme of the GSP mechanism with markovian users. Internet and
+Network Economics, 583–590.
+Dupret, G.E., & Piwowarski, B. (2008). A user browsing model to predict search engine click data from past
+observations. In Proceedings of SIGIR, (pp. 331–338). ACM.
+Easley, D., & Kleinberg, J. (2010). Networks, crowds, and markets: Reasoning about a highly connected
+world: Cambridge Univ Press.
+Edelman, B., Ostrovsky, M., & Schwarz, M. (2007). Internet advertising and the generalized second price
+auction: Selling billions of dollars worth of keywords. The American Economic Review, 97(1).
+Garey, M.R., & Johnson, D.S. (1976). The complexity of near-optimal graph coloring. Journal of the ACM
+(JACM), 23(1), 43–49.
+Ghosh, A., & Sayedi, A. (2010). Expressive auctions for externalities in online advertising. In Proceedings
+of the 19th international conference on World wide web (pp. 371–380). ACM.
+Giotis, I., & Karlin, A. (2008). On the equilibria and efficiency of the GSP mechanism in keyword auctions
+with externalities. Internet and Network Economics, 629–638.
+Gordon, M.G., & Lenk, P. (1991). A utility theory examination of probability ranking principle in information
+retrieval. Journal of American Society of Information Science, 41, 703–714.
+Gordon, M.G., & Lenk, P. (1992). When is probability ranking principle suboptimal. Journal of American
+Society of Information Science, 42.
+Groves, T. (1973). Incentives in teams. Econometrica: Journal of the Econometric Society, 617–631.
+Guo, F., Liu, C., Kannan, A., Minka, T., Taylor, M., Wang, Y.M., & Faloutsos, C. (2009). Click chain model
+in web search. In Proceedings of World Wide Web (pp. 11–20). New York: ACM.
+Håstad, J. (1996). Clique is hard to approximate within n. In Foundations of Computer Science, 1996. 37th
+Annual Symposium on Proceedings (pp. 627–636).
+Hu, B., Zhang, Y., Chen, W., Wang, G., & Yang, Q. (2011). Characterizing search intent diversity into click
+models. In Proceedings of the 20th international conference on World wide web (pp. 17–26). ACM.
+Kempe, D., & Mahdian, M. (2008). A cascade model for externalities in sponsored search. Internet and
+Network Economics, 585–596.
 
-J Intell Inf Syst Kuminov, D., & Tennenholtz, M. (2009). User modeling in position auctions: re-considering the gsp and vcg mechanisms. In Proceedings of The 8th International Conference on Autonomous Agents and Multiagent Systems-Volume 1 (pp. 273�280). Rafiei, D., Bharat, K., & Shukla, A. (2010). Diversifying Web Search Results. In Proceedings of World Wide Web. Richardson, M., Dominowska, E., & Ragno, R. (2007). Predicting clicks: Estimating the click-through rate for new ads. In Proceedings of World Wide Web. Richardson, M., Prakash, A., & Brill, E. (2006). Beyond pagerank: Machine learning for static ranking. In World Wide Web Proceedings (pp. 707�714). ACM. Robertson, S.E. (1977). The probability ranking principle in ir. Journal of Documentation, 33, 294�304. Varian, H.R. (2007). Position auctions. International Journal of Industrial Organization, 25(6), 1163�1178. Vickrey, W. (1961). Counterspeculation, auctions, and competitive sealed tenders. The Journal of finance, 16(1), 8�37. Xu, W., Manavoglu, E., & Cantu-Paz, E. (2010). Temporal click model for sponsored search. In Proceedings of the 33rd international ACM SIGIR conference on Research and development in information retrieval (pp. 106�113). ACM. Yilmaz, E., Shokouhi, M., Craswell, N., & Robertson, S. (2010). Expected browsing utility for web search evaluation. In Proceedings of the 19th ACM international conference on Information and knowledge management (pp. 1561�1564). ACM. Yue, Y., Patel, R., & Roehrig, H. (2010). Beyond position bias: Examining result attractiveness as a source of presentation bias in clickthrough data. In Proceedings of World Wide Web. Zhu, Z.A., Chen, W., Minka, T., Zhu, C., & Chen, Z. (2010). A novel click model and its applications to online advertising. In In Proceedings of Web search and data mining (pp. 321�330). ACM.
+J Intell Inf Syst
+Kuminov, D., & Tennenholtz, M. (2009). User modeling in position auctions: re-considering the gsp and vcg
+mechanisms. In Proceedings of The 8th International Conference on Autonomous Agents and Multiagent
+Systems-Volume 1 (pp. 273–280).
+Rafiei, D., Bharat, K., & Shukla, A. (2010). Diversifying Web Search Results. In Proceedings of World Wide
+Web.
+Richardson, M., Dominowska, E., & Ragno, R. (2007). Predicting clicks: Estimating the click-through rate
+for new ads. In Proceedings of World Wide Web.
+Richardson, M., Prakash, A., & Brill, E. (2006). Beyond pagerank: Machine learning for static ranking. In
+World Wide Web Proceedings (pp. 707–714). ACM.
+Robertson, S.E. (1977). The probability ranking principle in ir. Journal of Documentation, 33, 294–304.
+Varian, H.R. (2007). Position auctions. International Journal of Industrial Organization, 25(6), 1163–1178.
+Vickrey, W. (1961). Counterspeculation, auctions, and competitive sealed tenders. The Journal of finance,
+16(1), 8–37.
+Xu, W., Manavoglu, E., & Cantu-Paz, E. (2010). Temporal click model for sponsored search. In Proceedings
+of the 33rd international ACM SIGIR conference on Research and development in information retrieval
+(pp. 106–113). ACM.
+Yilmaz, E., Shokouhi, M., Craswell, N., & Robertson, S. (2010). Expected browsing utility for web search
+evaluation. In Proceedings of the 19th ACM international conference on Information and knowledge
+management (pp. 1561–1564). ACM.
+Yue, Y., Patel, R., & Roehrig, H. (2010). Beyond position bias: Examining result attractiveness as a source
+of presentation bias in clickthrough data. In Proceedings of World Wide Web.
+Zhu, Z.A., Chen, W., Minka, T., Zhu, C., & Chen, Z. (2010). A novel click model and its applications to
+online advertising. In In Proceedings of Web search and data mining (pp. 321–330). ACM.
 
 

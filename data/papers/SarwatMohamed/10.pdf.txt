@@ -2,45 +2,192 @@
 
 IEEE TRANSACTIONS ON KNOWLEDGE AND DATA ENGINEERING, VOL. 26, NO. 6, JUNE 2014
 
-LARS*: An Efficient and Scalable Location-Aware Recommender System
+LARS*: An Efficient and Scalable
+Location-Aware Recommender System
 Mohamed Sarwat, Justin J. Levandoski, Ahmed Eldawy, and Mohamed F. Mokbel
-Abstract--This paper proposes LARS*, a location-aware recommender system that uses location-based ratings to produce recommendations. Traditional recommender systems do not consider spatial properties of users nor items; LARS*, on the other hand, supports a taxonomy of three novel classes of location-based ratings, namely, spatial ratings for non-spatial items, non-spatial ratings for spatial items, and spatial ratings for spatial items. LARS* exploits user rating locations through user partitioning, a technique that influences recommendations with ratings spatially close to querying users in a manner that maximizes system scalability while not sacrificing recommendation quality. LARS* exploits item locations using travel penalty, a technique that favors recommendation candidates closer in travel distance to querying users in a way that avoids exhaustive access to all spatial items. LARS* can apply these techniques separately, or together, depending on the type of location-based rating available. Experimental evidence using large-scale real-world data from both the Foursquare location-based social network and the MovieLens movie recommendation system reveals that LARS* is efficient, scalable, and capable of producing recommendations twice as accurate compared to existing recommendation approaches. Index Terms--Recommender system, spatial, location, performance, efficiency, scalability, social
+Abstract—This paper proposes LARS*, a location-aware recommender system that uses location-based ratings to produce
+recommendations. Traditional recommender systems do not consider spatial properties of users nor items; LARS*, on the other hand,
+supports a taxonomy of three novel classes of location-based ratings, namely, spatial ratings for non-spatial items, non-spatial ratings
+for spatial items, and spatial ratings for spatial items. LARS* exploits user rating locations through user partitioning, a technique that
+influences recommendations with ratings spatially close to querying users in a manner that maximizes system scalability while not
+sacrificing recommendation quality. LARS* exploits item locations using travel penalty, a technique that favors recommendation
+candidates closer in travel distance to querying users in a way that avoids exhaustive access to all spatial items. LARS* can apply
+these techniques separately, or together, depending on the type of location-based rating available. Experimental evidence using
+large-scale real-world data from both the Foursquare location-based social network and the MovieLens movie recommendation
+system reveals that LARS* is efficient, scalable, and capable of producing recommendations twice as accurate compared to existing
+recommendation approaches.
+Index Terms—Recommender system, spatial, location, performance, efficiency, scalability, social
 
 1
 
 I NTRODUCTION
-producing recommendations. Existing recommendation techniques [4] assume ratings are represented by the (user, rating, item) triple, thus are ill-equipped to produce locationaware recommendations. In this paper, we propose LARS*, a novel locationaware recommender system built specifically to produce high-quality location-based recommendations in an efficient manner. LARS* produces recommendations using a taxonomy of three types of location-based ratings within a single framework: (1) Spatial ratings for non-spatial items, represented as a four-tuple (user, ulocation, rating, item), where ulocation represents a user location, for example, a user located at home rating a book; (2) non-spatial ratings for spatial items, represented as a four-tuple (user, rating, item, ilocation), where ilocation represents an item location, for example, a user with unknown location rating a restaurant; (3) spatial ratings for spatial items, represented as a five-tuple (user, ulocation, rating, item, ilocation), for example, a user at his/her office rating a restaurant visited for lunch. Traditional rating triples can be classified as non-spatial ratings for non-spatial items and do not fit this taxonomy.
-
-ECOMMENDER systems make use of community opinions to help users identify useful items from a considerably large search space (e.g., Amazon inventory [1], Netflix movies1 ). The technique used by many of these systems is collaborative filtering (CF) [2], which analyzes past community opinions to find correlations of similar users and items to suggest k personalized items (e.g., movies) to a querying user u. Community opinions are expressed through explicit ratings represented by the triple (user, rating, item) that represents a user providing a numeric rating for an item. Currently, myriad applications can produce location-based ratings that embed user and/or item locations. For example, location-based social networks (e.g., Foursquare2 and Facebook Places [3]) allow users to "check-in" at spatial destinations (e.g., restaurants) and rate their visit, thus are capable of associating both user and item locations with ratings. Such ratings motivate an interesting new paradigm of location-aware recommendations, whereby the recommender system exploits the spatial aspect of ratings when
 
 R
 
-1. Netflix: http://www.netflix.com. 2. Foursquare: http://foursquare.com. � M. Sarwat, A. Eldawy, and M. F. Mokbel are with the Department of Computer Science and Engineering, University of Minnesota, Minneapolis, MN 55455 USA. E-mail: {sarwat, eldawy, mokbel}@cs.umn.edu. � J. J. Levandoski is with the Microsoft Research, Redmond, WA 98052-6399 USA. E-mail: justin.levandoski@microsoft.com. Manuscript received 3 May 2012; revised 27 Nov. 2012; accepted 14 Jan. 2013. Date of publication 31 Jan. 2013; date of current version 29 May 2014. Recommended for acceptance by J. Gehrke, B.C. Ooi, and E. Pitoura. For information on obtaining reprints of this article, please send e-mail to: reprints@ieee.org, and reference the Digital Object Identifier below. Digital Object Identifier 10.1109/TKDE.2013.29
+ECOMMENDER systems make use of community
+opinions to help users identify useful items from a
+considerably large search space (e.g., Amazon inventory [1],
+Netflix movies1 ). The technique used by many of these systems is collaborative filtering (CF) [2], which analyzes past
+community opinions to find correlations of similar users
+and items to suggest k personalized items (e.g., movies)
+to a querying user u. Community opinions are expressed
+through explicit ratings represented by the triple (user, rating, item) that represents a user providing a numeric rating
+for an item.
+Currently, myriad applications can produce location-based
+ratings that embed user and/or item locations. For example, location-based social networks (e.g., Foursquare2 and
+Facebook Places [3]) allow users to “check-in” at spatial
+destinations (e.g., restaurants) and rate their visit, thus are
+capable of associating both user and item locations with ratings. Such ratings motivate an interesting new paradigm
+of location-aware recommendations, whereby the recommender system exploits the spatial aspect of ratings when
 
-1.1 Motivation: A Study of Location-Based Ratings The motivation for our work comes from analysis of two real-world location-based rating datasets: (1) a subset of the well-known MovieLens dataset [5] containing approximately 87K movie ratings associated with user zip codes (i.e., spatial ratings for non-spatial items) and (2) data from the Foursquare [6] location-based social network containing user visit data for 1M users to 643K venues across the United States (i.e., spatial ratings for spatial items). In our analysis we consistently observed two interesting properties that motivate the need for location-aware recommendation techniques.
+1. Netflix: http://www.netflix.com.
+2. Foursquare: http://foursquare.com.
+• M. Sarwat, A. Eldawy, and M. F. Mokbel are with the Department
+of Computer Science and Engineering, University of Minnesota,
+Minneapolis, MN 55455 USA.
+E-mail: {sarwat, eldawy, mokbel}@cs.umn.edu.
+• J. J. Levandoski is with the Microsoft Research, Redmond, WA 98052-6399
+USA. E-mail: justin.levandoski@microsoft.com.
+Manuscript received 3 May 2012; revised 27 Nov. 2012; accepted
+14 Jan. 2013. Date of publication 31 Jan. 2013; date of current version
+29 May 2014.
+Recommended for acceptance by J. Gehrke, B.C. Ooi, and E. Pitoura.
+For information on obtaining reprints of this article, please send e-mail to:
+reprints@ieee.org, and reference the Digital Object Identifier below.
+Digital Object Identifier 10.1109/TKDE.2013.29
 
-1041-4347 c 2013 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+producing recommendations. Existing recommendation
+techniques [4] assume ratings are represented by the (user,
+rating, item) triple, thus are ill-equipped to produce locationaware recommendations.
+In this paper, we propose LARS*, a novel locationaware recommender system built specifically to produce
+high-quality location-based recommendations in an efficient manner. LARS* produces recommendations using a
+taxonomy of three types of location-based ratings within a
+single framework: (1) Spatial ratings for non-spatial items,
+represented as a four-tuple (user, ulocation, rating, item),
+where ulocation represents a user location, for example, a
+user located at home rating a book; (2) non-spatial ratings
+for spatial items, represented as a four-tuple (user, rating,
+item, ilocation), where ilocation represents an item location,
+for example, a user with unknown location rating a restaurant; (3) spatial ratings for spatial items, represented as a
+five-tuple (user, ulocation, rating, item, ilocation), for example,
+a user at his/her office rating a restaurant visited for lunch.
+Traditional rating triples can be classified as non-spatial
+ratings for non-spatial items and do not fit this taxonomy.
+
+1.1 Motivation: A Study of Location-Based Ratings
+The motivation for our work comes from analysis of two
+real-world location-based rating datasets: (1) a subset of
+the well-known MovieLens dataset [5] containing approximately 87K movie ratings associated with user zip codes
+(i.e., spatial ratings for non-spatial items) and (2) data from
+the Foursquare [6] location-based social network containing user visit data for 1M users to 643K venues across
+the United States (i.e., spatial ratings for spatial items).
+In our analysis we consistently observed two interesting properties that motivate the need for location-aware
+recommendation techniques.
+
+c 2013 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+1041-4347 
+See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
 
 SARWAT ET AL.: LARS*: AN EFFICIENT AND SCALABLE LOCATION-AWARE RECOMMENDER SYSTEM
-
-1385
 
 Fig. 1. Preference locality in location-based ratings. (a) MovieLens
 
 preference locality. (b) Foursquare preference locality.
 
-Preference locality. Preference locality suggests users from a spatial region (e.g., neighborhood) prefer items (e.g., movies, destinations) that are manifestly different than items preferred by users from other, even adjacent, regions. Fig. 1(a) lists the top-4 movie genres using average MovieLens ratings of users from different U.S. states. While each list is different, the top genres from Florida differ vastly from the others. Florida's list contains three genres ("Fantasy", "Animation", "Musical") not in the other lists. This difference implies movie preferences are unique to specific spatial regions, and confirms previous work from the New York Times [7] that analyzed Netflix user queues across U.S. zip codes and found similar differences. Meanwhile, Fig. 1(b) summarizes our observation of preference locality in Foursquare by depicting the visit destinations for users from three adjacent Minnesota cities. Each sample exhibits diverse behavior: users from Falcon Heights, MN favor venues in St. Paul, MN (17% of visits) Minneapolis (13%), and Roseville, MN (10%), while users from Robbinsdale, MN prefer venues in Brooklyn Park, MN (32%) and Robbinsdale (20%). Preference locality suggests that recommendations should be influenced by locationbased ratings spatially close to the user. The intuition is that localization influences recommendation using the unique preferences found within the spatial region containing the user. Travel locality. Our second observation is that, when recommended items are spatial, users tend to travel a limited distance when visiting these venues. We refer to this property as "travel locality." In our analysis of Foursquare data, we observed that 45% of users travel 10 miles or less, while 75% travel 50 miles or less. This observation suggests that spatial items closer in travel distance to a user should be given precedence as recommendation candidates. In other words, a recommendation loses efficacy the further a querying user must travel to visit the destination. Existing recommendation techniques do not consider travel locality, thus may recommend users destinations with burdensome travel distances (e.g., a user in Chicago receiving restaurant recommendations in Seattle).
-
-LARS* produces recommendations using spatial ratings for non-spatial items, i.e., the tuple (user, ulocation, rating, item), by employing a user partitioning technique that exploits preference locality. This technique uses an adaptive pyramid structure to partition ratings by their user location attribute into spatial regions of varying sizes at different hierarchies. For a querying user located in a region R, we apply an existing collaborative filtering technique that utilizes only the ratings located in R. The challenge, however, is to determine whether all regions in the pyramid must be maintained in order to balance two contradicting factors: scalability and locality. Maintaining a large number of regions increases locality (i.e., recommendations unique to smaller spatial regions), yet adversely affects system scalability because each region requires storage and maintenance of a collaborative filtering data structure necessary to produce recommendations (i.e., the recommender model). The LARS* pyramid dynamically adapts to find the right pyramid shape that balances scalability and recommendation locality. LARS* produces recommendations using non-spatial ratings for spatial items, i.e., the tuple (user, rating, item, ilocation), by using travel penalty, a technique that exploits travel locality. This technique penalizes recommendation candidates the further they are in travel distance to a querying user. The challenge here is to avoid computing the travel distance for all spatial items to produce the list of k recommendations, as this will greatly consume system resources. LARS* addresses this challenge by employing an efficient query processing framework capable of terminating early once it discovers that the list of k answers cannot be altered by processing more recommendation candidates. To produce recommendations using spatial ratings for spatial items, i.e., the tuple (user, ulocation, rating, item, ilocation) LARS* employs both the user partitioning and travel penalty techniques to address the user and item locations associated with the ratings. This is a salient feature of LARS*, as the two techniques can be used separately, or in concert, depending on the location-based rating type available in the system. We experimentally evaluate LARS* using real locationbased ratings from Foursquare [6] and MovieLens [5], along with a generated user workload of both snapshot and continuous queries. Our experiments show LARS* is scalable to real large-scale recommendation scenarios. Since we have access to real data, we also evaluate recommendation quality by building LARS* with 80% of the spatial ratings and testing recommendation accuracy with the remaining 20% of the (withheld) ratings. We find LARS* produces recommendations that are twice as accurate (i.e., able to better predict user preferences) compared to traditional collaborative filtering. In summary, the contributions of this paper are as follows:
-�
-
-Our Contribution: LARS* - A Location-Aware Recommender System Like traditional recommender systems, LARS* suggests k items personalized for a querying user u. However, LARS* is distinct in its ability to produce location-aware recommendations using each of the three types of location-based rating within a single framework.
+Preference locality. Preference locality suggests users
+from a spatial region (e.g., neighborhood) prefer items
+(e.g., movies, destinations) that are manifestly different
+than items preferred by users from other, even adjacent,
+regions. Fig. 1(a) lists the top-4 movie genres using average MovieLens ratings of users from different U.S. states.
+While each list is different, the top genres from Florida
+differ vastly from the others. Florida’s list contains three
+genres (“Fantasy", “Animation", “Musical") not in the other
+lists. This difference implies movie preferences are unique
+to specific spatial regions, and confirms previous work
+from the New York Times [7] that analyzed Netflix user
+queues across U.S. zip codes and found similar differences. Meanwhile, Fig. 1(b) summarizes our observation
+of preference locality in Foursquare by depicting the visit
+destinations for users from three adjacent Minnesota cities.
+Each sample exhibits diverse behavior: users from Falcon
+Heights, MN favor venues in St. Paul, MN (17% of visits)
+Minneapolis (13%), and Roseville, MN (10%), while users
+from Robbinsdale, MN prefer venues in Brooklyn Park, MN
+(32%) and Robbinsdale (20%). Preference locality suggests
+that recommendations should be influenced by locationbased ratings spatially close to the user. The intuition is that
+localization influences recommendation using the unique
+preferences found within the spatial region containing the
+user.
+Travel locality. Our second observation is that, when
+recommended items are spatial, users tend to travel a
+limited distance when visiting these venues. We refer
+to this property as “travel locality.” In our analysis of
+Foursquare data, we observed that 45% of users travel
+10 miles or less, while 75% travel 50 miles or less. This
+observation suggests that spatial items closer in travel
+distance to a user should be given precedence as recommendation candidates. In other words, a recommendation
+loses efficacy the further a querying user must travel
+to visit the destination. Existing recommendation techniques do not consider travel locality, thus may recommend
+users destinations with burdensome travel distances (e.g.,
+a user in Chicago receiving restaurant recommendations
+in Seattle).
 
 1.2
 
-�
+Our Contribution: LARS* - A Location-Aware
+Recommender System
+Like traditional recommender systems, LARS* suggests k
+items personalized for a querying user u. However, LARS*
+is distinct in its ability to produce location-aware recommendations using each of the three types of location-based
+rating within a single framework.
 
-We provide a novel classification of three types of location-based ratings not supported by existing recommender systems: spatial ratings for non-spatial items, non-spatial ratings for spatial items, and spatial ratings for spatial items. We propose LARS*, a novel location-aware recommender system capable of using three classes of
+1385
+
+LARS* produces recommendations using spatial ratings
+for non-spatial items, i.e., the tuple (user, ulocation, rating, item), by employing a user partitioning technique that
+exploits preference locality. This technique uses an adaptive
+pyramid structure to partition ratings by their user location
+attribute into spatial regions of varying sizes at different
+hierarchies. For a querying user located in a region R, we
+apply an existing collaborative filtering technique that utilizes only the ratings located in R. The challenge, however,
+is to determine whether all regions in the pyramid must
+be maintained in order to balance two contradicting factors: scalability and locality. Maintaining a large number of
+regions increases locality (i.e., recommendations unique to
+smaller spatial regions), yet adversely affects system scalability because each region requires storage and maintenance
+of a collaborative filtering data structure necessary to produce recommendations (i.e., the recommender model). The
+LARS* pyramid dynamically adapts to find the right pyramid shape that balances scalability and recommendation
+locality.
+LARS* produces recommendations using non-spatial ratings for spatial items, i.e., the tuple (user, rating, item, ilocation), by using travel penalty, a technique that exploits travel
+locality. This technique penalizes recommendation candidates the further they are in travel distance to a querying
+user. The challenge here is to avoid computing the travel
+distance for all spatial items to produce the list of k recommendations, as this will greatly consume system resources.
+LARS* addresses this challenge by employing an efficient
+query processing framework capable of terminating early
+once it discovers that the list of k answers cannot be altered
+by processing more recommendation candidates. To produce recommendations using spatial ratings for spatial items,
+i.e., the tuple (user, ulocation, rating, item, ilocation) LARS*
+employs both the user partitioning and travel penalty techniques to address the user and item locations associated
+with the ratings. This is a salient feature of LARS*, as
+the two techniques can be used separately, or in concert,
+depending on the location-based rating type available in
+the system.
+We experimentally evaluate LARS* using real locationbased ratings from Foursquare [6] and MovieLens [5], along
+with a generated user workload of both snapshot and continuous queries. Our experiments show LARS* is scalable to
+real large-scale recommendation scenarios. Since we have
+access to real data, we also evaluate recommendation quality by building LARS* with 80% of the spatial ratings and
+testing recommendation accuracy with the remaining 20%
+of the (withheld) ratings. We find LARS* produces recommendations that are twice as accurate (i.e., able to better
+predict user preferences) compared to traditional collaborative filtering. In summary, the contributions of this paper
+are as follows:
+•
+
+•
+
+We provide a novel classification of three types
+of location-based ratings not supported by existing
+recommender systems: spatial ratings for non-spatial
+items, non-spatial ratings for spatial items, and spatial
+ratings for spatial items.
+We propose LARS*, a novel location-aware recommender system capable of using three classes of
 
 1386
 
@@ -49,30 +196,109 @@ IEEE TRANSACTIONS ON KNOWLEDGE AND DATA ENGINEERING, VOL. 26, NO. 6, JUNE 2014
 Fig. 3. Item-based similarity calculation.
 
 (a)
-(b) Item-based CF model.
 
 (b)
 
 Fig. 2. Item-based CF model generation. (a) Ratings matrix.
 
-location-based ratings. Within LARS*, we propose: (a) a user partitioning technique that exploits user locations in a way that maximizes system scalability while not sacrificing recommendation locality and (b) a travel penalty technique that exploits item locations and avoids exhaustively processing all spatial recommendation candidates. � LARS* distinguishes itself from LARS [8] in the following points: (1) LARS* achieves higher locality gain than LARS using a better user partitioning data structure and algorithm. (2) LARS* exhibits a more flexible tradeoff between locality and scalability. (3) LARS* provides a more efficient way to maintain the user partitioning structure, as opposed to LARS expensive operations. � We provide experimental evidence that LARS* scales to large-scale recommendation scenarios and provides better quality recommendations than traditional approaches. This paper is organized as follows: Section 2 gives an overview of LARS*. Sections 4, 5, and 6 cover LARS* recommendation techniques using spatial ratings for non-spatial items, non-spatial ratings for spatial items, and spatial ratings for spatial items, respectively. Section 7 provides experimental analysis. Section 8 covers related work, while Section 9 concludes the paper.
+(b) Item-based CF model.
 
-items I = {i1 , . . . , im }. Each user uj expresses opinions about a set of items Iuj  I . Opinions can be a numeric rating (e.g., the Netflix scale of one to five stars), or unary (e.g., Facebook "check-ins" [3]). Conceptually, ratings are represented as a matrix with users and items as dimensions, as depicted in Fig. 2(a). Given a querying user u, CF produces a set of k recommended items Ir  I that u is predicted to like the most. Phase I: Model Building. This phase computes a similarity score sim(ip ,iq ) for each pair of objects ip and iq that have at least one common rating by the same user (i.e., co-rated dimensions). Similarity computation is covered below. Using these scores, a model is built that stores for each item i  I , a list L of similar items ordered by a similarity score sim(ip ,iq ), as depicted in Fig. 2(b). Building 2 this model is an O( R U ) process [1], where R and U are the number of ratings and users, respectively. It is common to truncate the model by storing, for each list L, only the n most similar items with the highest similarity scores [9]. The value of n is referred to as the model size and is usually much less than |I |. Phase II: Recommendation Generation. Given a querying user u, recommendations are produced by computing u's predicted rating P(u,i) for each item i not rated by u [9]: P(u,i) =
-lL sim(i, l)  ru,l lL |sim(i, l)|
-
-(1)
+location-based ratings. Within LARS*, we propose:
+(a) a user partitioning technique that exploits user
+locations in a way that maximizes system scalability while not sacrificing recommendation locality and
+(b) a travel penalty technique that exploits item locations and avoids exhaustively processing all spatial
+recommendation candidates.
+•
+LARS* distinguishes itself from LARS [8] in the following points: (1) LARS* achieves higher locality
+gain than LARS using a better user partitioning data
+structure and algorithm. (2) LARS* exhibits a more
+flexible tradeoff between locality and scalability. (3)
+LARS* provides a more efficient way to maintain
+the user partitioning structure, as opposed to LARS
+expensive operations.
+•
+We provide experimental evidence that LARS* scales
+to large-scale recommendation scenarios and provides better quality recommendations than traditional approaches.
+This paper is organized as follows: Section 2 gives an
+overview of LARS*. Sections 4, 5, and 6 cover LARS* recommendation techniques using spatial ratings for non-spatial
+items, non-spatial ratings for spatial items, and spatial ratings
+for spatial items, respectively. Section 7 provides experimental analysis. Section 8 covers related work, while Section 9
+concludes the paper.
 
 2
 
 LARS* OVERVIEW
 
-This section provides an overview of LARS* by discussing the query model and the collaborative filtering method.
+This section provides an overview of LARS* by discussing
+the query model and the collaborative filtering method.
 
-2.1 LARS* Query Model Users (or applications) provide LARS* with a user id U, numeric limit K, and location L; LARS* then returns K recommended items to the user. LARS* supports both snapshot (i.e., one-time) queries and continuous queries, whereby a user subscribes to LARS* and receives recommendation updates as her location changes. The technique LARS* uses to produce recommendations depends on the type of location-based rating available in the system. Query processing support for each type of location-based rating is discussed in Sections 4 to 6. 2.2 Item-Based Collaborative Filtering LARS* uses item-based collaborative filtering (abbr. CF) as its primary recommendation technique, chosen due to its popularity and widespread adoption in commercial systems (e.g., Amazon [1]). Collaborative filtering (CF) assumes a set of n users U = {u1 , . . . , un } and a set of m
+2.1 LARS* Query Model
+Users (or applications) provide LARS* with a user id U,
+numeric limit K, and location L; LARS* then returns K
+recommended items to the user. LARS* supports both snapshot (i.e., one-time) queries and continuous queries, whereby
+a user subscribes to LARS* and receives recommendation
+updates as her location changes. The technique LARS*
+uses to produce recommendations depends on the type of
+location-based rating available in the system. Query processing support for each type of location-based rating is
+discussed in Sections 4 to 6.
+2.2 Item-Based Collaborative Filtering
+LARS* uses item-based collaborative filtering (abbr. CF)
+as its primary recommendation technique, chosen due to
+its popularity and widespread adoption in commercial
+systems (e.g., Amazon [1]). Collaborative filtering (CF)
+assumes a set of n users U = {u1 , . . . , un } and a set of m
 
-Before this computation, we reduce each similarity list L to contain only items rated by user u. The prediction is the sum of ru,l , a user u's rating for a related item l  L weighted by sim(i,l), the similarity of l to candidate item i, then normalized by the sum of similarity scores between i and l. The user receives as recommendations the top-k items ranked by P(u,i) . Computing Similarity. To compute sim(ip , iq ), we represent each item as a vector in the user-rating space of the rating matrix. For instance, Fig. 3 depicts vectors for items ip and iq from the matrix in Fig. 2(a). Many similarity functions have been proposed (e.g., Pearson Correlation, Cosine); we use the Cosine similarity in LARS* due to its popularity: sim(ip , iq ) = ip � iq ip iq (2)
+items I = {i1 , . . . , im }. Each user uj expresses opinions about
+a set of items Iuj ⊆ I . Opinions can be a numeric rating
+(e.g., the Netflix scale of one to five stars), or unary (e.g.,
+Facebook “check-ins" [3]). Conceptually, ratings are represented as a matrix with users and items as dimensions, as
+depicted in Fig. 2(a). Given a querying user u, CF produces
+a set of k recommended items Ir ⊂ I that u is predicted to
+like the most.
+Phase I: Model Building. This phase computes a similarity score sim(ip ,iq ) for each pair of objects ip and iq
+that have at least one common rating by the same user
+(i.e., co-rated dimensions). Similarity computation is covered below. Using these scores, a model is built that stores
+for each item i ∈ I , a list L of similar items ordered by a
+similarity score sim(ip ,iq ), as depicted in Fig. 2(b). Building
+2
+this model is an O( RU ) process [1], where R and U are the
+number of ratings and users, respectively. It is common to
+truncate the model by storing, for each list L, only the n
+most similar items with the highest similarity scores [9].
+The value of n is referred to as the model size and is usually
+much less than |I |.
+Phase II: Recommendation Generation. Given a querying user u, recommendations are produced by computing
+u’s predicted rating P(u,i) for each item i not rated by u [9]:
+
+l∈L sim(i, l) ∗ ru,l
+P(u,i) = 
+(1)
+l∈L |sim(i, l)|
+Before this computation, we reduce each similarity list L to
+contain only items rated by user u. The prediction is the sum
+of ru,l , a user u’s rating for a related item l ∈ L weighted by
+sim(i,l), the similarity of l to candidate item i, then normalized by the sum of similarity scores between i and l. The
+user receives as recommendations the top-k items ranked
+by P(u,i) .
+Computing Similarity. To compute sim(ip , iq ), we represent each item as a vector in the user-rating space of
+the rating matrix. For instance, Fig. 3 depicts vectors for
+items ip and iq from the matrix in Fig. 2(a). Many similarity functions have been proposed (e.g., Pearson Correlation,
+Cosine); we use the Cosine similarity in LARS* due to its
+popularity:
+sim(ip , iq ) =
 
-This score is calculated using the vectors' co-rated dimensions, e.g., the Cosine similarity between ip and iq in Fig. 3 is .7 calculated using the circled co-rated dimensions. Cosine distance is useful for numeric ratings (e.g., on a scale [1,5]). For unary ratings, other similarity functions are used (e.g., absolute sum [10]). While we opt to use item-based CF in this paper, no factors disqualify us from employing other recommendation techniques. For instance, we could easily employ
+ip · iq
+ip iq 
+
+(2)
+
+This score is calculated using the vectors’ co-rated dimensions, e.g., the Cosine similarity between ip and iq in
+Fig. 3 is .7 calculated using the circled co-rated dimensions.
+Cosine distance is useful for numeric ratings (e.g., on a scale
+[1,5]). For unary ratings, other similarity functions are used
+(e.g., absolute sum [10]).
+While we opt to use item-based CF in this paper, no
+factors disqualify us from employing other recommendation techniques. For instance, we could easily employ
 
 SARWAT ET AL.: LARS*: AN EFFICIENT AND SCALABLE LOCATION-AWARE RECOMMENDER SYSTEM
 
@@ -82,287 +308,1475 @@ Fig. 5. Example of Items Ratings Statistics Table.
 
 Fig. 4. Pyramid data structure.
 
-user-based CF [4], that uses correlations between users (instead of items).
-
-using any existing collaborative filtering method (we use item-based CF) over the remaining three attributes (user, rating, item) of only the ratings within the spatial region containing the querying user. We note that ratings can come from users with varying tastes, and that our method only forces collaborative filtering to produce personalized user recommendations based only on ratings restricted to a specific spatial region. In this section, we describe the pyramid structure in Section 4.1, query processing in Section 4.2, and finally data structure maintenance in Section 4.3.
+user-based CF [4], that uses correlations between users
+(instead of items).
 
 3
 
-N ON -S PATIAL U SER R ATINGS FOR N ON -S PATIAL I TEMS
+N ON -S PATIAL U SER R ATINGS FOR
+N ON -S PATIAL I TEMS
 
-The traditional item-based collaborative filtering (CF) method is a special case of LARS*. CF takes as input the classical rating triplet (user, rating, item) such that neither the user location nor the item location are specified. In such case, LARS* directly employs the traditional model building phase (Phase-I in section 2) to calculate the similarity scores between all items. Moreover, recommendations are produced to the users using the recommendation generation phase (Phase-II in section 2). During the rest of the paper, we explain how LARS* incorporates either the user spatial location or the item spatial location to serve location-aware recommendations to the system users.
+The traditional item-based collaborative filtering (CF)
+method is a special case of LARS*. CF takes as input the
+classical rating triplet (user, rating, item) such that neither
+the user location nor the item location are specified. In
+such case, LARS* directly employs the traditional model
+building phase (Phase-I in section 2) to calculate the similarity scores between all items. Moreover, recommendations
+are produced to the users using the recommendation generation phase (Phase-II in section 2). During the rest of
+the paper, we explain how LARS* incorporates either the
+user spatial location or the item spatial location to serve
+location-aware recommendations to the system users.
 
 4
 
-S PATIAL U SER R ATINGS FOR N ON -S PATIAL I TEMS
+S PATIAL U SER R ATINGS FOR N ON -S PATIAL
+I TEMS
 
-This section describes how LARS* produces recommendations using spatial ratings for non-spatial items represented by the tuple (user, ulocation, rating, item). The idea is to exploit preference locality, i.e., the observation that user opinions are spatially unique (based on analysis in Section 1.1). We identify three requirements for producing recommendations using spatial ratings for non-spatial items: (1) Locality: recommendations should be influenced by those ratings with user locations spatially close to the querying user location (i.e., in a spatial neighborhood); (2) Scalability: the recommendation procedure and data structure should scale up to large number of users; (3) Influence: system users should have the ability to control the size of the spatial neighborhood (e.g., city block, zip code, or county) that influences their recommendations. LARS* achieves its requirements by employing a user partitioning technique that maintains an adaptive pyramid structure, where the shape of the adaptive pyramid is driven by the three goals of locality, scalability, and influence. The idea is to adaptively partition the rating tuples (user, ulocation, rating, item) into spatial regions based on the ulocation attribute. Then, LARS* produces recommendations
+This section describes how LARS* produces recommendations using spatial ratings for non-spatial items represented
+by the tuple (user, ulocation, rating, item). The idea is to
+exploit preference locality, i.e., the observation that user opinions are spatially unique (based on analysis in Section 1.1).
+We identify three requirements for producing recommendations using spatial ratings for non-spatial items: (1) Locality:
+recommendations should be influenced by those ratings
+with user locations spatially close to the querying user
+location (i.e., in a spatial neighborhood); (2) Scalability: the
+recommendation procedure and data structure should scale
+up to large number of users; (3) Influence: system users
+should have the ability to control the size of the spatial
+neighborhood (e.g., city block, zip code, or county) that
+influences their recommendations.
+LARS* achieves its requirements by employing a user
+partitioning technique that maintains an adaptive pyramid
+structure, where the shape of the adaptive pyramid is
+driven by the three goals of locality, scalability, and influence.
+The idea is to adaptively partition the rating tuples (user,
+ulocation, rating, item) into spatial regions based on the ulocation attribute. Then, LARS* produces recommendations
 
-4.1 Data Structure LARS* employs a partial in-memory pyramid structure [11] (equivalent to a partial quad-tree [12]) as depicted in Fig. 4. The pyramid decomposes the space into H levels (i.e., pyramid height). For a given level h, the space is partitioned into 4h equal area grid cells. For example, at the pyramid root (level 0), one grid cell represents the entire geographic area, level 1 partitions space into four equi-area cells, and so forth. We represent each cell with a unique identifier cid. A rating may belong to up to H pyramid cells: one per each pyramid level starting from the lowest maintained grid cell containing the embedded user location up to the root level. To provide a tradeoff between recommendation locality and system scalability, the pyramid data structure maintains three types of cells (see Fig. 4): (1) Recommendation Model Cell ( -Cell), (2) Statistics Cell ( -Cell), and (3) Empty Cell ( -Cell), explained as follows: Recommendation Model Cell ( -Cell). Each  -Cell stores an item-based collaborative filtering model built using only the spatial ratings with user locations contained in the cell's spatial region. Note that the root cell (level 0) of the pyramid is an  -Cell and represents a "traditional" (i.e., non-spatial) item-based collaborative filtering model. Moreover, each  -Cell maintains statistics about all the ratings located within the spatial extents of the cell. Each  -Cell Cp maintains a hash table that indexes all items (by their IDs) that have been rated in this cell, named Items Ratings Statistics Table. For each indexed item i in the Items Ratings Statistics Table, we maintain four parameters; each parameter represents the number of user ratings to item i in each of the four children cells (i.e., C1 , C2 , C3 , and C4 ) of cell Cp . An example of the maintained parameters is given in Fig. 5. Assume that cell Cp contains ratings for three items I1 , I2 , and I3 . Fig. 5 shows the maintained statistics for each item in cell Cp . For example, for item I1 , the number of user ratings located in child cell C1 , C2 , C3 , and C4 is equal to 109, 3200, 14, and 54, respectively. Similarly, the number of user ratings is calculated for items I2 and I3 . Statistics Cell ( -Cell). Like an  -Cell, a  -Cell maintains statistics (i.e., items ratings Statistics Table) about the user/item ratings that are located within the spatial range
+using any existing collaborative filtering method (we use
+item-based CF) over the remaining three attributes (user,
+rating, item) of only the ratings within the spatial region
+containing the querying user. We note that ratings can come
+from users with varying tastes, and that our method only
+forces collaborative filtering to produce personalized user
+recommendations based only on ratings restricted to a specific spatial region. In this section, we describe the pyramid
+structure in Section 4.1, query processing in Section 4.2, and
+finally data structure maintenance in Section 4.3.
+
+4.1 Data Structure
+LARS* employs a partial in-memory pyramid structure [11]
+(equivalent to a partial quad-tree [12]) as depicted in Fig. 4.
+The pyramid decomposes the space into H levels (i.e., pyramid height). For a given level h, the space is partitioned
+into 4h equal area grid cells. For example, at the pyramid
+root (level 0), one grid cell represents the entire geographic
+area, level 1 partitions space into four equi-area cells, and
+so forth. We represent each cell with a unique identifier cid.
+A rating may belong to up to H pyramid cells: one
+per each pyramid level starting from the lowest maintained grid cell containing the embedded user location
+up to the root level. To provide a tradeoff between recommendation locality and system scalability, the pyramid
+data structure maintains three types of cells (see Fig. 4):
+(1) Recommendation Model Cell (α-Cell), (2) Statistics Cell
+(β-Cell), and (3) Empty Cell (γ -Cell), explained as follows:
+Recommendation Model Cell (α-Cell). Each α-Cell
+stores an item-based collaborative filtering model built
+using only the spatial ratings with user locations contained
+in the cell’s spatial region. Note that the root cell (level 0)
+of the pyramid is an α-Cell and represents a “traditional"
+(i.e., non-spatial) item-based collaborative filtering model.
+Moreover, each α-Cell maintains statistics about all the ratings located within the spatial extents of the cell. Each
+α-Cell Cp maintains a hash table that indexes all items (by
+their IDs) that have been rated in this cell, named Items
+Ratings Statistics Table. For each indexed item i in the Items
+Ratings Statistics Table, we maintain four parameters; each
+parameter represents the number of user ratings to item i in
+each of the four children cells (i.e., C1 , C2 , C3 , and C4 ) of cell
+Cp . An example of the maintained parameters is given in
+Fig. 5. Assume that cell Cp contains ratings for three items
+I1 , I2 , and I3 . Fig. 5 shows the maintained statistics for each
+item in cell Cp . For example, for item I1 , the number of user
+ratings located in child cell C1 , C2 , C3 , and C4 is equal to
+109, 3200, 14, and 54, respectively. Similarly, the number of
+user ratings is calculated for items I2 and I3 .
+Statistics Cell (β-Cell). Like an α-Cell, a β-Cell maintains statistics (i.e., items ratings Statistics Table) about the
+user/item ratings that are located within the spatial range
 
 1388
 
 IEEE TRANSACTIONS ON KNOWLEDGE AND DATA ENGINEERING, VOL. 26, NO. 6, JUNE 2014
 
-of the cell. The only difference between an  -Cell and a  -Cell is that a  -Cell does not maintain a collaborative filtering (CF) model for the user/item ratings lying in its boundaries. In consequence, a  -Cell is a light weight cell such that it incurs less storage than an  -Cell. In favor of system scalability, LARS* prefers a  -Cell over an  -Cell to reduce the total system storage. Empty Cell ( -Cell). a  -Cell is a cell that maintains neither the statistics nor the recommendation model for the ratings lying within its boundaries. a  -Cell is the most light weight cell among all cell types as it almost incurs no storage overhead. Note that an  -Cell can have  -Cells,  -Cells, or  -Cells children. Also, a  -Cell can have  -Cells,  -Cells, or  -Cells children. However, a  -Cell cannot have any children.
+of the cell. The only difference between an α-Cell and a
+β-Cell is that a β-Cell does not maintain a collaborative
+filtering (CF) model for the user/item ratings lying in its
+boundaries. In consequence, a β-Cell is a light weight cell
+such that it incurs less storage than an α-Cell. In favor of
+system scalability, LARS* prefers a β-Cell over an α-Cell to
+reduce the total system storage.
+Empty Cell (γ -Cell). a γ -Cell is a cell that maintains
+neither the statistics nor the recommendation model for the
+ratings lying within its boundaries. a γ -Cell is the most
+light weight cell among all cell types as it almost incurs
+no storage overhead. Note that an α-Cell can have α-Cells,
+β-Cells, or γ -Cells children. Also, a β-Cell can have α-Cells,
+β-Cells, or γ -Cells children. However, a γ -Cell cannot have
+any children.
 
-TABLE 1 Comparison between LARS and LARS*
+4.1.1 Pyramid Structure Intuition
+An α-Cell requires the highest storage and maintenance
+overhead because it maintains a CF model as well as the
+user/item ratings statistics. On the other hand, an α-Cell (as
+opposed to β-Cell and γ -Cell) is the only cell that can be
+leveraged to answer recommendation queries. A pyramid
+structure that only contains α-Cells achieves the highest
+recommendation locality, and this is why an α-Cell is considered the highly ranked cell type in LARS*. a β-Cell is
+the secondly ranked cell type as it only maintains statistics
+about the user/item ratings. The storage and maintenance
+overhead incurred by a β-Cell is less expensive than an
+α-Cell. The statistics maintained at a β-Cell determines
+whether the children of that cell need to be maintained as
+α-Cells to serve more localized recommendation. Finally, a
+γ -Cell (lowest ranked cell type) has the least maintenance
+cost, as neither a CF model nor statistics are maintained for
+that cell. Moreover, a γ -Cell is a leaf cell in the pyramid.
+LARS* upgrades (downgrades) a cell to a higher (lower)
+cell rank, based on trade-offs between recommendation
+locality and system scalability (discussed in Section 4.3). If
+recommendation locality is preferred over scalability, more
+α-Cells are maintained in the pyramid. On the other hand, if
+scalability is favored over locality, more γ -Cells exist in the
+pyramid. β-Cells comes as an intermediary stage between
+α-Cells and γ -Cells to further increase the recommendation
+locality whereas the system scalability is not quite affected.
+We chose to employ a pyramid as it is a “spacepartitioning" structure that is guaranteed to completely
+cover a given space. For our purposes, “data-partitioning"
+structures (e.g., R-trees) are less ideal than a “spacepartitioning" structure for two main reasons: (1) “datapartitioning" structures index data points, and hence covers
+only locations that are inserted in them. In other words,
+“data-partitioning" structures are not guaranteed to completely cover a given space, which is not suitable for
+queries issued in arbitrary spatial locations. (2) In contrast to “data-partitioning" structures (e.g., R-trees [13]),
+“space partitioning" structures show better performance for
+dynamic memory resident data [14]–[16].
+4.1.2 LARS* versus LARS
+Table 1 compares LARS* against LARS. Like LARS*,
+LARS [8] employs a partial pyramid data structure to
+support spatial user ratings for non-spatial items. LARS
+
+TABLE 1
+Comparison between LARS and LARS*
 
 Detailed experimental evaluation results are provided in Section 7.
 
-4.1.1 Pyramid Structure Intuition An  -Cell requires the highest storage and maintenance overhead because it maintains a CF model as well as the user/item ratings statistics. On the other hand, an  -Cell (as opposed to  -Cell and  -Cell) is the only cell that can be leveraged to answer recommendation queries. A pyramid structure that only contains  -Cells achieves the highest recommendation locality, and this is why an  -Cell is considered the highly ranked cell type in LARS*. a  -Cell is the secondly ranked cell type as it only maintains statistics about the user/item ratings. The storage and maintenance overhead incurred by a  -Cell is less expensive than an  -Cell. The statistics maintained at a  -Cell determines whether the children of that cell need to be maintained as  -Cells to serve more localized recommendation. Finally, a  -Cell (lowest ranked cell type) has the least maintenance cost, as neither a CF model nor statistics are maintained for that cell. Moreover, a  -Cell is a leaf cell in the pyramid. LARS* upgrades (downgrades) a cell to a higher (lower) cell rank, based on trade-offs between recommendation locality and system scalability (discussed in Section 4.3). If recommendation locality is preferred over scalability, more  -Cells are maintained in the pyramid. On the other hand, if scalability is favored over locality, more  -Cells exist in the pyramid.  -Cells comes as an intermediary stage between  -Cells and  -Cells to further increase the recommendation locality whereas the system scalability is not quite affected. We chose to employ a pyramid as it is a "spacepartitioning" structure that is guaranteed to completely cover a given space. For our purposes, "data-partitioning" structures (e.g., R-trees) are less ideal than a "spacepartitioning" structure for two main reasons: (1) "datapartitioning" structures index data points, and hence covers only locations that are inserted in them. In other words, "data-partitioning" structures are not guaranteed to completely cover a given space, which is not suitable for queries issued in arbitrary spatial locations. (2) In contrast to "data-partitioning" structures (e.g., R-trees [13]), "space partitioning" structures show better performance for dynamic memory resident data [14]�[16]. 4.1.2 LARS* versus LARS Table 1 compares LARS* against LARS. Like LARS*, LARS [8] employs a partial pyramid data structure to support spatial user ratings for non-spatial items. LARS
+is different from LARS* in the following aspects: (1) As
+shown in Table 1, LARS* maintains α-Cells, β-Cells, and γ Cells, whereas LARS only maintains α-Cells and γ -Cells. In
+other words, LARS either merges or splits a pyramid cell
+based on a tradeoff between scalability and recommendation locality. LARS* employs the same tradeoff and further
+increases the recommendation locality by allowing for more
+α-Cells to be maintained at lower pyramid levels. (2) As
+opposed to LARS, LARS* does not perform a speculative
+splitting operation to decide whether to maintain more
+localized CF models. Instead, LARS* maintains extra statistics at each α-Cell and β-Cell that helps in quickly deciding
+wether a CF model needs to be maintained at a child cell.
+(3) As it turns out from Table 1, LARS* achieves higher recommendation locality than LARS. That is due to the fact
+that LARS maintains a CF recommendation model in a cell
+at pyramid level h if and only if a CF model, at its parent
+cell at level h − 1, is also maintained. However, LARS* may
+maintain an α-Cell at level h even though its parent cell,
+at level h − 1, does not maintain a CF model, i.e., the parent cell is a β-Cell. In LARS*, the role of a β-Cell is to keep
+the user/item ratings statistics that are used to quickly decide
+whether the child cells needs to be γ -Cells or α-Cells. (4) As
+given in Table 1, LARS* incurs more storage overhead than
+LARS which is explained by the fact that LARS* maintains additional type of cell, i.e., β-Cells, whereas LARS
+only maintains α-Cells and γ -Cells. In addition, LARS*
+may also maintain more α-Cells than LARS does in order
+to increase the recommendation locality. (5) Even though
+LARS* may maintain more α-Cells than LARS besides the
+extra statistics maintained at β-Cells, nonetheless LARS*
+incurs less maintenance cost. That is due to the fact that
+LARS* also reduces the maintenance overhead by avoiding
+the expensive speculative splitting operation employed by
+LARS maintenance algorithm. Instead, LARS* employs the
+user/item ratings statistics maintained at either a β-Cell or an
+α-Cell to quickly decide whether the cell children need to
+maintain a CF model (i.e., upgraded to α-Cells), just needs
+to maintain the statistics (i.e., become β-Cells), or perhaps
+downgraded to γ -Cells.
 
-is different from LARS* in the following aspects: (1) As shown in Table 1, LARS* maintains  -Cells,  -Cells, and  Cells, whereas LARS only maintains  -Cells and  -Cells. In other words, LARS either merges or splits a pyramid cell based on a tradeoff between scalability and recommendation locality. LARS* employs the same tradeoff and further increases the recommendation locality by allowing for more  -Cells to be maintained at lower pyramid levels. (2) As opposed to LARS, LARS* does not perform a speculative splitting operation to decide whether to maintain more localized CF models. Instead, LARS* maintains extra statistics at each  -Cell and  -Cell that helps in quickly deciding wether a CF model needs to be maintained at a child cell. (3) As it turns out from Table 1, LARS* achieves higher recommendation locality than LARS. That is due to the fact that LARS maintains a CF recommendation model in a cell at pyramid level h if and only if a CF model, at its parent cell at level h - 1, is also maintained. However, LARS* may maintain an  -Cell at level h even though its parent cell, at level h - 1, does not maintain a CF model, i.e., the parent cell is a  -Cell. In LARS*, the role of a  -Cell is to keep the user/item ratings statistics that are used to quickly decide whether the child cells needs to be  -Cells or  -Cells. (4) As given in Table 1, LARS* incurs more storage overhead than LARS which is explained by the fact that LARS* maintains additional type of cell, i.e.,  -Cells, whereas LARS only maintains  -Cells and  -Cells. In addition, LARS* may also maintain more  -Cells than LARS does in order to increase the recommendation locality. (5) Even though LARS* may maintain more  -Cells than LARS besides the extra statistics maintained at  -Cells, nonetheless LARS* incurs less maintenance cost. That is due to the fact that LARS* also reduces the maintenance overhead by avoiding the expensive speculative splitting operation employed by LARS maintenance algorithm. Instead, LARS* employs the user/item ratings statistics maintained at either a  -Cell or an  -Cell to quickly decide whether the cell children need to maintain a CF model (i.e., upgraded to  -Cells), just needs to maintain the statistics (i.e., become  -Cells), or perhaps downgraded to  -Cells.
-
-4.2 Query Processing Given a recommendation query (as described in Section 2.1) with user location L and a limit K, LARS* performs two query processing steps: (1) The user location
+4.2 Query Processing
+Given a recommendation query (as described in
+Section 2.1) with user location L and a limit K, LARS*
+performs two query processing steps: (1) The user location
 
 SARWAT ET AL.: LARS*: AN EFFICIENT AND SCALABLE LOCATION-AWARE RECOMMENDER SYSTEM
 
 1389
 
-L is used to find the lowest maintained  -Cell C in the adaptive pyramid that contains L. This is done by hashing the user location to retrieve the cell at the lowest level of the pyramid. If an  -Cell is not maintained at the lowest level, we return the nearest maintained ancestor  -Cell. (2) The top-k recommended items are generated using the item-based collaborative filtering technique (covered in Section 2.2) using the model stored at C. As mentioned earlier, the model in C is built using only the spatial ratings associated with user locations within C. In addition to traditional recommendation queries (i.e., snapshot queries), LARS* also supports continuous queries and can account for the influence requirement as follows. Continuous queries. LARS* evaluates a continuous query in full once it is issued, and sends recommendations back to a user U as an initial answer. LARS* then monitors the movement of U using her location updates. As long as U does not cross the boundary of her current grid cell, LARS* does nothing as the initial answer is still valid. Once U crosses a cell boundary, LARS* reevaluates the recommendation query for the new cell only if the new cell is an  -Cell. In case the new cell is an  Cell, LARS* only sends incremental updates [16] to the last reported answer. Like snapshot queries, if a cell at level h is not maintained, the query is temporarily transferred higher in the pyramid to the nearest maintained ancestor  -Cell. Note that since higher-level cells maintain larger spatial regions, the continuous query will cross spatial boundaries less often, reducing the amount of recommendation updates. Influence level. LARS* addresses the influence requirement by allowing querying users to specify an optional influence level (in addition to location L and limit K) that controls the size of the spatial neighborhood used to influence their recommendations. An influence level I maps to a pyramid level and acts much like a "zoom" level in Google or Bing maps (e.g., city block, neighborhood, entire city). The level I instructs LARS* to process the recommendation query starting from the grid  -Cell containing the querying user location at level I, instead of the lowest maintained grid  -Cell (the default). An influence level of zero forces LARS* to use the root cell of the pyramid, and thus act as a traditional (non-spatial) collaborative filtering recommender system.
+L is used to find the lowest maintained α-Cell C in the
+adaptive pyramid that contains L. This is done by hashing
+the user location to retrieve the cell at the lowest level of
+the pyramid. If an α-Cell is not maintained at the lowest
+level, we return the nearest maintained ancestor α-Cell.
+(2) The top-k recommended items are generated using the
+item-based collaborative filtering technique (covered in
+Section 2.2) using the model stored at C. As mentioned
+earlier, the model in C is built using only the spatial ratings
+associated with user locations within C.
+In addition to traditional recommendation queries (i.e.,
+snapshot queries), LARS* also supports continuous queries
+and can account for the influence requirement as follows.
+Continuous queries. LARS* evaluates a continuous
+query in full once it is issued, and sends recommendations back to a user U as an initial answer. LARS* then
+monitors the movement of U using her location updates.
+As long as U does not cross the boundary of her current grid cell, LARS* does nothing as the initial answer is
+still valid. Once U crosses a cell boundary, LARS* reevaluates the recommendation query for the new cell only if
+the new cell is an α-Cell. In case the new cell is an αCell, LARS* only sends incremental updates [16] to the last
+reported answer. Like snapshot queries, if a cell at level h is
+not maintained, the query is temporarily transferred higher
+in the pyramid to the nearest maintained ancestor α-Cell.
+Note that since higher-level cells maintain larger spatial
+regions, the continuous query will cross spatial boundaries less often, reducing the amount of recommendation
+updates.
+Influence level. LARS* addresses the influence requirement by allowing querying users to specify an optional
+influence level (in addition to location L and limit K)
+that controls the size of the spatial neighborhood used
+to influence their recommendations. An influence level I
+maps to a pyramid level and acts much like a “zoom"
+level in Google or Bing maps (e.g., city block, neighborhood, entire city). The level I instructs LARS* to process the recommendation query starting from the grid
+α-Cell containing the querying user location at level
+I, instead of the lowest maintained grid α-Cell (the
+default). An influence level of zero forces LARS* to use
+the root cell of the pyramid, and thus act as a traditional (non-spatial) collaborative filtering recommender
+system.
+
+4.4 Main Idea
+As time goes by, new users, ratings, and items will be added
+to the system. This new data will both increase the size of
+the collaborative filtering models maintained in the pyramid cells, as well as alter recommendations produced from
+each cell. To account for these changes, LARS* performs
+maintenance on a cell-by-cell basis. Maintenance is triggered for a cell C once it receives N% new ratings; the
+percentage is computed from the number of existing ratings
+in C. We do this because an appealing quality of collaborative filtering is that as a model matures (i.e., more data
+is used to build the model), more updates are needed to
+significantly change the top-k recommendations produced
+from it [17]. Thus, maintenance is needed less often.
+We note the following features of pyramid maintenance:
+(1) Maintenance can be performed completely offline, i.e.,
+LARS* can continue to produce recommendations using
+the "old" pyramid cells while part of the pyramid is being
+updated; (2) maintenance does not entail rebuilding the
+whole pyramid at once, instead, only one cell is rebuilt at
+a time; (3) maintenance is performed only after N% new
+ratings are added to a pyramid cell, meaning maintenance
+will be amortized over many operations.
+
+4.3 Data Structure Maintenance
+This section describes building and maintaining the pyramid data structure. Initially, to build the pyramid, all
+location-based ratings currently in the system are used
+to build a complete pyramid of height H, such that all
+cells in all H levels are α-Cells and contain ratings statistics and a collaborative filtering model. The initial height
+H is chosen according to the level of locality desired,
+where the cells in the lowest pyramid level represent the
+most localized regions. After this initial build, we invoke
+a cell type maintenance step that scans all cells starting
+from the lowest level h and downgrades cell types to
+either (β-Cell or γ -Cell) if necessary (cell type switching is discussed in Section 4.5.2). We note that while
+the original partial pyramid [11] was concerned with
+
+4.5 Maintenance Algorithm
+Algorithm 1 provides the pseudocode for the LARS* maintenance algorithm. The algorithm takes as input a pyramid cell C and level h, and includes three main steps:
+Statistics Maintenance, Model Rebuild and Cell Child Quadrant
+Maintenance, explained below.
+Step I: Statistics Maintenance. The first step (line 4) is
+to maintain the Items Ratings Statistics Table. The maintained
+statistics are necessary for cell type switching decision,
+especially when new location-based ratings enter the system. As the items ratings statistics table is implemented using
+a hash table, then it can be queried and maintained in O(1)
+time, requiring O(|IC |) space such that IC is the set of all
+items rated at cell C and |IC | is the total number of items
+in IC .
 
 Algorithm 1 Pyramid maintenance algorithm
-1: 2: 3: 4: 5: 6: 7: 8: 9: 10: 11: 12: 13: 14: 15: 16: 17: 18: 19: 20:
-/* Called after cell C receives N% new ratings */ Function PyramidMaintenance(Cell C, Level h) /* Step I: Statistics Maintenance*/ Maintain cell C statistics /*Step II: Model Rebuild */ if (Cell C is an  -Cell) then Rebuild item-based collaborative filtering model for cell C end if /*Step III: Cell Child Quadrant Maintenance */ if (C children quadrant q cells are  -Cells) then CheckDownGradeToSCells(q,C) /* covered in Section 4.5.2 */ else if (C children quadrant q cells are  -Cells) then CheckUpGradeToSCells(q,C) else isSwitchedToMcells  CheckUpGradeToMCells(q,C) /* covered in Section 4.5.3 */ if (isSwitchedToMcells is False) then CheckDownGradeToECells(q,C) end if end if return
+1:
+2:
+3:
+4:
+5:
+6:
+7:
+8:
+9:
+10:
+11:
+12:
+13:
+14:
+15:
+16:
+17:
+18:
+19:
+20:
 
-spatial queries over static data, it did not address pyramid maintenance.
+/* Called after cell C receives N% new ratings */
+Function PyramidMaintenance(Cell C, Level h)
+/* Step I: Statistics Maintenance*/
+Maintain cell C statistics
+/*Step II: Model Rebuild */
+if (Cell C is an α -Cell) then
+Rebuild item-based collaborative filtering model for cell C
+end if
+/*Step III: Cell Child Quadrant Maintenance */
+if (C children quadrant q cells are α -Cells) then
+CheckDownGradeToSCells(q,C) /* covered in Section 4.5.2 */
+else if (C children quadrant q cells are γ -Cells) then
+CheckUpGradeToSCells(q,C)
+else
+isSwitchedToMcells ← CheckUpGradeToMCells(q,C) /* covered in
+Section 4.5.3 */
+if (isSwitchedToMcells is False) then
+CheckDownGradeToECells(q,C)
+end if
+end if
+return
 
-4.4 Main Idea As time goes by, new users, ratings, and items will be added to the system. This new data will both increase the size of the collaborative filtering models maintained in the pyramid cells, as well as alter recommendations produced from each cell. To account for these changes, LARS* performs maintenance on a cell-by-cell basis. Maintenance is triggered for a cell C once it receives N% new ratings; the percentage is computed from the number of existing ratings in C. We do this because an appealing quality of collaborative filtering is that as a model matures (i.e., more data is used to build the model), more updates are needed to significantly change the top-k recommendations produced from it [17]. Thus, maintenance is needed less often. We note the following features of pyramid maintenance: (1) Maintenance can be performed completely offline, i.e., LARS* can continue to produce recommendations using the "old" pyramid cells while part of the pyramid is being updated; (2) maintenance does not entail rebuilding the whole pyramid at once, instead, only one cell is rebuilt at a time; (3) maintenance is performed only after N% new ratings are added to a pyramid cell, meaning maintenance will be amortized over many operations. 4.5 Maintenance Algorithm Algorithm 1 provides the pseudocode for the LARS* maintenance algorithm. The algorithm takes as input a pyramid cell C and level h, and includes three main steps: Statistics Maintenance, Model Rebuild and Cell Child Quadrant Maintenance, explained below. Step I: Statistics Maintenance. The first step (line 4) is to maintain the Items Ratings Statistics Table. The maintained statistics are necessary for cell type switching decision, especially when new location-based ratings enter the system. As the items ratings statistics table is implemented using a hash table, then it can be queried and maintained in O(1) time, requiring O(|IC |) space such that IC is the set of all items rated at cell C and |IC | is the total number of items in IC .
-
-4.3 Data Structure Maintenance This section describes building and maintaining the pyramid data structure. Initially, to build the pyramid, all location-based ratings currently in the system are used to build a complete pyramid of height H, such that all cells in all H levels are  -Cells and contain ratings statistics and a collaborative filtering model. The initial height H is chosen according to the level of locality desired, where the cells in the lowest pyramid level represent the most localized regions. After this initial build, we invoke a cell type maintenance step that scans all cells starting from the lowest level h and downgrades cell types to either ( -Cell or  -Cell) if necessary (cell type switching is discussed in Section 4.5.2). We note that while the original partial pyramid [11] was concerned with
+spatial queries over static data, it did not address pyramid
+maintenance.
 
 1390
 
 IEEE TRANSACTIONS ON KNOWLEDGE AND DATA ENGINEERING, VOL. 26, NO. 6, JUNE 2014
 
-Step II: Model Rebuild. The second step is to rebuild the item-based collaborative filtering (CF) model for a cell C, as described in Section 2.2 (line 7). The model is rebuilt at cell C only if cell C is an  -Cell, otherwise ( -Cell or  -Cell) no CF recommendation model is maintained, and hence the model rebuild step does not apply. Rebuilding the CF model is necessary to allow the model to "evolve" as new location-based ratings enter the system (e.g., accounting for new items, ratings, or users). Given the cost of building the 2 item-based CF model is O( R U ) (per Section 2.2), the cost of the model rebuild for a cell C at level h is
-(R/4h )2 (U/4h )
+Step II: Model Rebuild. The second step is to rebuild the
+item-based collaborative filtering (CF) model for a cell C, as
+described in Section 2.2 (line 7). The model is rebuilt at cell
+C only if cell C is an α-Cell, otherwise (β-Cell or γ -Cell)
+no CF recommendation model is maintained, and hence
+the model rebuild step does not apply. Rebuilding the CF
+model is necessary to allow the model to “evolve" as new
+location-based ratings enter the system (e.g., accounting for
+new items, ratings, or users). Given the cost of building the
+2
+item-based CF model is O( RU ) (per Section 2.2), the cost
+of the model rebuild for a cell C at level h is
+
+(R/4h )2
+(U/4h )
 
 (a)
 
-= 4h U ,
-
 R2
 
-assuming ratings and users are uniformly distributed. Step III: Cell Child Quadrant Maintenance. LARS* invokes a maintenance step that may decide whether cell C child quadrant need to be switched to a different cell type based on trade-offs between scalability and locality. The algorithm first checks if cell C child quadrant q at level h + 1 is of type  -Cell (line 10). If that case holds, LARS* considers quadrant q cells as candidates to be downgraded to  -Cells (calling function CheckDownGradeToSCells on line 11). We provide details of the Downgrade  -Cells to  -Cells operation in Section 4.5.2. On the other hand, if C have a child quadrant of type  -Cells at level h + 1 (line 12), LARS* considers upgrading cell C four children cells at level h + 1 to  -Cells (calling function CheckUpGradeToSCells on line 13). The Upgrade to  -Cells operation is covered in Section 4.5.4. However, if C has a child quadrant of type  Cells at level h + 1 (line 12), LARS* first considers upgrading cell C four children cells at level h + 1 from  -Cells to  Cells (calling function CheckUpGradeToMCells on line 15). If the children cells are not switched to  -Cells, LARS* then considers downgrading them to  -Cells (calling function CheckDownGradeToECells on line 17). Cell Type switching operations are performed completely in quadrants (i.e., four equi-area cells with the same parent). We made this decision for simplicity in maintaining the partial pyramid.
+= 4h U ,
+
+assuming ratings and users are uniformly distributed.
+Step III: Cell Child Quadrant Maintenance. LARS*
+invokes a maintenance step that may decide whether cell
+C child quadrant need to be switched to a different cell
+type based on trade-offs between scalability and locality.
+The algorithm first checks if cell C child quadrant q at
+level h + 1 is of type α-Cell (line 10). If that case holds,
+LARS* considers quadrant q cells as candidates to be downgraded to β-Cells (calling function CheckDownGradeToSCells
+on line 11). We provide details of the Downgrade α-Cells to
+β-Cells operation in Section 4.5.2. On the other hand, if C
+have a child quadrant of type γ -Cells at level h+1 (line 12),
+LARS* considers upgrading cell C four children cells at
+level h + 1 to β-Cells (calling function CheckUpGradeToSCells
+on line 13). The Upgrade to β-Cells operation is covered in
+Section 4.5.4. However, if C has a child quadrant of type βCells at level h+1 (line 12), LARS* first considers upgrading
+cell C four children cells at level h + 1 from β-Cells to αCells (calling function CheckUpGradeToMCells on line 15). If
+the children cells are not switched to α-Cells, LARS* then
+considers downgrading them to γ -Cells (calling function
+CheckDownGradeToECells on line 17). Cell Type switching
+operations are performed completely in quadrants (i.e., four
+equi-area cells with the same parent). We made this decision
+for simplicity in maintaining the partial pyramid.
+
+4.5.1 Recommendation Locality
+In this section, we explain the notion of locality in recommendation that is essential to understand the cell type
+switching (upgrade/downgrade) operations highlighted in
+the PyramidMaintenance algorithm (algorithm 1). We use
+the following example to give the intuition behind recommendation locality.
+Running Example. Fig. 6 depicts a two-levels pyramid
+in which Cp is the root cell and its children cells are C1 , C2 ,
+C3 , and C4 . In the example, we assume eight users (U1 , U2 ,
+. . . , and U8 ) have rated eight different items (I1 , I2 , . . . , and
+I8 ). Fig. 6(b) gives the spatial distributions of users U1 , U2 ,
+U3 , U4 , U5 , U6 , U7 , and U8 as well as the items that each
+user rated.
+Intuition. Consider the example given in Fig. 6. In cell
+Cp , users U2 and U5 that belongs to the child cell C2 have
+both rated items I2 and I5 . In that case, the similarity score
+between items I2 and I5 in the item-based collaborative filtering CF model built at cell C2 is exactly the same as the
+one in the CF model built at cell Cp . The last phenomenon
+happened because items (i.e., I2 and I5 ) have been rated
+by mostly users located in the same child cell, and hence
+the recommendation model at the parent cell will not be
 
 (b)
 
-4.5.1 Recommendation Locality In this section, we explain the notion of locality in recommendation that is essential to understand the cell type switching (upgrade/downgrade) operations highlighted in the PyramidMaintenance algorithm (algorithm 1). We use the following example to give the intuition behind recommendation locality. Running Example. Fig. 6 depicts a two-levels pyramid in which Cp is the root cell and its children cells are C1 , C2 , C3 , and C4 . In the example, we assume eight users (U1 , U2 , . . . , and U8 ) have rated eight different items (I1 , I2 , . . . , and I8 ). Fig. 6(b) gives the spatial distributions of users U1 , U2 , U3 , U4 , U5 , U6 , U7 , and U8 as well as the items that each user rated. Intuition. Consider the example given in Fig. 6. In cell Cp , users U2 and U5 that belongs to the child cell C2 have both rated items I2 and I5 . In that case, the similarity score between items I2 and I5 in the item-based collaborative filtering CF model built at cell C2 is exactly the same as the one in the CF model built at cell Cp . The last phenomenon happened because items (i.e., I2 and I5 ) have been rated by mostly users located in the same child cell, and hence the recommendation model at the parent cell will not be
-
 (c)
-Fig. 6. Item ratings spatial distribution example. (a) Two-levels pyramid. (b) Ratings distribution and recommendation models. (c) Locality loss/gain at C_p.
+Fig. 6. Item ratings spatial distribution example. (a) Two-levels
+pyramid. (b) Ratings distribution and recommendation models.
+(c) Locality loss/gain at C_p.
 
-different from the model at the children cells. In this case, if the CF model at C2 is not maintained, LARS* does not lose recommendation locality at all. The opposite case happens when an item is rated by users located in different pyramid cells (spatially skewed). For example, item I4 is rated by users U2 , U4 , and U7 in three different cells (C2 , C3 , and C4 ). In this case, U2 , U4 , and U7 are spatially skewed. Hence, the similarity score between item I4 and other items at the children cells is different from the similarity score calculated at the parent cell Cp because not all users that have rated item I4 exist in the same child cell. Based on that, we observe the following:
+different from the model at the children cells. In this case,
+if the CF model at C2 is not maintained, LARS* does not
+lose recommendation locality at all.
+The opposite case happens when an item is rated by
+users located in different pyramid cells (spatially skewed).
+For example, item I4 is rated by users U2 , U4 , and U7 in
+three different cells (C2 , C3 , and C4 ). In this case, U2 , U4 ,
+and U7 are spatially skewed. Hence, the similarity score
+between item I4 and other items at the children cells is different from the similarity score calculated at the parent cell
+Cp because not all users that have rated item I4 exist in the
+same child cell. Based on that, we observe the following:
 
 SARWAT ET AL.: LARS*: AN EFFICIENT AND SCALABLE LOCATION-AWARE RECOMMENDER SYSTEM
 
-1391
+TABLE 2
+Summary of Mathematical Notations
 
-TABLE 2 Summary of Mathematical Notations
-
-Definition 2. Locality Loss (LGc ) LGc is defined as the total locality lost by downgrading cell c four children cells to  -Cells (0  LGc  1). It is calculated as the sum of all items locality loss normalized by the total number of items |Ic | in cell c. LGc =
-iIc
-
-LGc,i
-
+Definition 2. Locality Loss (LGc )
+LGc is defined as the total locality lost by downgrading cell c
+four children cells to β-Cells (0 ≤ LGc ≤ 1). It is calculated
+as the sum of all items locality loss normalized by the total
+number of items |Ic | in cell c.
+
+i∈Ic LGc,i
+.
+(4)
+LGc =
 |Ic |
 
+Observation 1. The more the user/item ratings in a parent cell
+C are geographically skewed, the higher the locality gained
+from building the item-based CF model at the four children
+cells.
+The amount of locality gained/lost by maintaining the
+child cells of a given pyramid cell depends on whether
+the CF models at the child cells are similar to the CF
+model built at the parent cell. In other words, LARS*
+loses locality if the child cells are not maintained even
+though the CF model at these cells produce different recommendations than the CF model at the parent cell. LARS*
+leverages Observation 1 to determine the amount of locality
+gained/lost due to maintaining an item-based CF model at
+the four children. LARS* calculates the locality loss/gain as
+follows:
+Locality Loss/Gain. Table 2 gives the main mathematical notions used in calculating the recommendation locality
+loss/gain. First, the Item Ratings Pairs Set (RPc,i ) is defined
+as the set of all possible pairs of users that rated item i
+in cell c. For example, in Fig. 6(c) the item ratings pairs
+set for item I7 in cell Cp (RPCp ,I7 ) has three elements
+(i.e., RPCp ,I7 ={
+U3 , U6 ,
+U3 , U7 ,
+U6 , U7 }) as only users U1
+and U7 have rated item I1 . Similarly, RPCp ,I2 is equal to
+{
+U6 , U7 } (i.e., Users U2 and U5 have rated item I2 ).
+For each item, we define the Skewed Item Ratings Set
+(RSc,i ) as the total number of user pairs in cell c that rated
+item i such that each pair of users ∈ RSc,i do not exist
+in the same child cell of c. For example, in Fig. 6(c), the
+skewed item ratings set for item I2 in cell Cp (RSCP ,I2 ) is ∅
+as all users that rated I2 , i.e., U2 and U5 are collocated in
+the same child cell C2 . For I4 , the skewed item ratings set
+RSCP ,I2 ={
+U2 , U7 , 
+U2 , U4 , 
+U4 , U7 } as all users that rated
+item I2 are located in different child cells,i.e., U2 at C2 , U4
+at C4 , and U7 at C3 .
+Given the aforementioned parameters, we calculate Item
+Locality Loss (LGc,i ) for each item, as follows:
+Definition 1. Item Locality Loss (LGc,i )
+LGc,i is defined as the degree of locality lost for item i from
+downgrading the four children of cell c to β-Cells, such that
+0 ≤ LGc,i ≤ 1.
+LGc,i =
+
+|RSc,i |
 .
+|RPc,i |
 
-(4)
+1391
 
-Observation 1. The more the user/item ratings in a parent cell C are geographically skewed, the higher the locality gained from building the item-based CF model at the four children cells. The amount of locality gained/lost by maintaining the child cells of a given pyramid cell depends on whether the CF models at the child cells are similar to the CF model built at the parent cell. In other words, LARS* loses locality if the child cells are not maintained even though the CF model at these cells produce different recommendations than the CF model at the parent cell. LARS* leverages Observation 1 to determine the amount of locality gained/lost due to maintaining an item-based CF model at the four children. LARS* calculates the locality loss/gain as follows: Locality Loss/Gain. Table 2 gives the main mathematical notions used in calculating the recommendation locality loss/gain. First, the Item Ratings Pairs Set (RPc,i ) is defined as the set of all possible pairs of users that rated item i in cell c. For example, in Fig. 6(c) the item ratings pairs set for item I7 in cell Cp (RPCp ,I7 ) has three elements (i.e., RPCp ,I7 ={ U3 , U6 , U3 , U7 , U6 , U7 }) as only users U1 and U7 have rated item I1 . Similarly, RPCp ,I2 is equal to { U6 , U7 } (i.e., Users U2 and U5 have rated item I2 ). For each item, we define the Skewed Item Ratings Set (RSc,i ) as the total number of user pairs in cell c that rated item i such that each pair of users  RSc,i do not exist in the same child cell of c. For example, in Fig. 6(c), the skewed item ratings set for item I2 in cell Cp (RSCP ,I2 ) is  as all users that rated I2 , i.e., U2 and U5 are collocated in the same child cell C2 . For I4 , the skewed item ratings set RSCP ,I2 ={ U2 , U7 , U2 , U4 , U4 , U7 } as all users that rated item I2 are located in different child cells,i.e., U2 at C2 , U4 at C4 , and U7 at C3 . Given the aforementioned parameters, we calculate Item Locality Loss (LGc,i ) for each item, as follows: Definition 1. Item Locality Loss (LGc,i ) LGc,i is defined as the degree of locality lost for item i from downgrading the four children of cell c to  -Cells, such that 0  LGc,i  1. LGc,i = |RSc,i | . |RPc,i | (3)
+(3)
 
-The cell locality loss (or gain) is harnessed by LARS* to determine whether the cell children need to be downgraded from  -Cell to  -Cell rank, upgraded from the  -Cell to  -Cell rank, or downgraded from  -Cell to  -Cell rank. During the rest of section 4, we explain the cell rank upgrade/downgrade operations.
+The value of both |RSc,i | and |RPc,i | can be easily extracted
+using the items ratings statistics table. Then, we use the LGc,i
+values calculated for all items in cell c in order to calculate
+the overall Cell Locality loss (LGc ) from downgrading the
+children cells of c to α-Cells.
 
-4.5.2 Downgrade  -Cells to  -Cells That operation entails downgrading an entire quadrant of cells from  -Cells to  -Cells at level h with a common parent at level h - 1. Downgrading  -Cells to  -Cells improves scalability (i.e., storage and computational overhead) of LARS*, as it reduces storage by discarding the item-based collaborative filtering (CF) models of the the four children cells. Furthermore, downgrading  -Cells to  -Cells leads to the following performance improvements: (a) less maintenance cost, since less CF models are periodically rebuilt, and (b) less continuous query processing computation, as  -Cells do not maintain a CF model and if many  -Cells cover a large spatial region, hence, for users crossing  -Cells boundaries, we do not need to update the recommendation query answer. Downgrading children cells from  -Cells to  -Cells might hurt recommendation locality, since no CF models are maintained at the granularity of the child cells anymore. At cell Cp , in order to determine whether to downgrade a quadrant q cells to  -Cells (i.e., function CheckDownGradeToSCells on line 11 in Algorithm 1), we calculate two percentage values: (1) locality_loss (see equation 4), the amount of locality lost by (potentially) downgrading the children cells to  -Cells, and (2) scalability_gain, the amount of scalability gained by (potentially) downgrading the children cells to  -Cells. Details of calculating these percentages are covered next. When deciding to downgrade cells to  -Cells, we define a system parameter M, a real number in the range [0,1] that defines a tradeoff between scalability gain and locality loss. LARS* downgrades a quadrant q cells to  -Cells (i.e., discards quadrant q) if:
-(1 - M)  scalability_gain > M  locality_loss. (5)
+The cell locality loss (or gain) is harnessed by LARS*
+to determine whether the cell children need to be downgraded from α-Cell to β-Cell rank, upgraded from the
+γ -Cell to β-Cell rank, or downgraded from β-Cell to γ -Cell
+rank. During the rest of section 4, we explain the cell rank
+upgrade/downgrade operations.
 
-The value of both |RSc,i | and |RPc,i | can be easily extracted using the items ratings statistics table. Then, we use the LGc,i values calculated for all items in cell c in order to calculate the overall Cell Locality loss (LGc ) from downgrading the children cells of c to  -Cells.
+4.5.2 Downgrade α-Cells to β-Cells
+That operation entails downgrading an entire quadrant of
+cells from α-Cells to β-Cells at level h with a common parent at level h − 1. Downgrading α-Cells to β-Cells improves
+scalability (i.e., storage and computational overhead) of
+LARS*, as it reduces storage by discarding the item-based
+collaborative filtering (CF) models of the the four children cells. Furthermore, downgrading α-Cells to β-Cells
+leads to the following performance improvements: (a) less
+maintenance cost, since less CF models are periodically
+rebuilt, and (b) less continuous query processing computation,
+as β-Cells do not maintain a CF model and if many β-Cells
+cover a large spatial region, hence, for users crossing β-Cells
+boundaries, we do not need to update the recommendation
+query answer. Downgrading children cells from α-Cells to
+β-Cells might hurt recommendation locality, since no CF
+models are maintained at the granularity of the child cells
+anymore.
+At cell Cp , in order to determine whether to downgrade a quadrant q cells to β-Cells (i.e., function
+CheckDownGradeToSCells on line 11 in Algorithm 1), we
+calculate two percentage values: (1) locality_loss (see
+equation 4), the amount of locality lost by (potentially)
+downgrading the children cells to β-Cells, and (2) scalability_gain, the amount of scalability gained by (potentially)
+downgrading the children cells to β-Cells. Details of calculating these percentages are covered next. When deciding
+to downgrade cells to β-Cells, we define a system parameter M, a real number in the range [0,1] that defines a
+tradeoff between scalability gain and locality loss. LARS*
+downgrades a quadrant q cells to β-Cells (i.e., discards
+quadrant q) if:
+(1 − M) ∗ scalability_gain > M ∗ locality_loss.
 
-A smaller M value implies gaining scalability is important and the system is willing to lose a large amount of locality for small gains in scalability. Conversely, a larger M value implies scalability is not a concern, and the amount of locality lost must be small in order to allow for  -Cells downgrade. At the extremes, setting M=0 (i.e., always switch to  -Cell) implies LARS* will function as a traditional CF recommender system, while setting M=1 causes LARS* pyramid cells to all be  -Cells, i.e., LARS* will employ a complete pyramid structure maintaining a recommendation model at all cells at all levels.
+(5)
+
+A smaller M value implies gaining scalability is important and the system is willing to lose a large amount of
+locality for small gains in scalability. Conversely, a larger
+M value implies scalability is not a concern, and the
+amount of locality lost must be small in order to allow
+for β-Cells downgrade. At the extremes, setting M=0 (i.e.,
+always switch to β-Cell) implies LARS* will function as
+a traditional CF recommender system, while setting M=1
+causes LARS* pyramid cells to all be α-Cells, i.e., LARS*
+will employ a complete pyramid structure maintaining a
+recommendation model at all cells at all levels.
 
 1392
 
 IEEE TRANSACTIONS ON KNOWLEDGE AND DATA ENGINEERING, VOL. 26, NO. 6, JUNE 2014
 
-Calculating Locality Loss. To calculate the locality loss at a cell Cp , LARS* leverages the Item Ratings Statistics Table maintained in that cell. First, LARS* calculates the item locality loss LGCp ,i for each item i in the cell Cp . Therefore, LARS* aggregates the item locality loss values calculated for each item i  Cp , to finally deduce the global cell locality loss LGCp . Calculating scalability gain. Scalability gain is measured in storage and computation savings. We measure scalability gain by summing the recommendation model sizes for each of the downgraded (i.e., child) cells (abbr. sizem ), and divide this value by the sum of sizem and the recommendation model size of the parent cell. We refer to this percentage as the storage_gain. We also quantify computation savings using storage gain as a surrogate measurement, as computation is considered a direct function of the amount of data in the system. Cost. using the Items Ratings Statistics Table maintained at cell Cp , the locality loss at cell Cp can be calculated in O(|ICp |) time such that |ICp | represents the total number of items in Cp . As scalability gain can be calculated in O(1) time, then the total time cost of the Downgrade To  -Cells operation is O(|ICp |). Example. For the example given in Fig. 6(c), the locality loss of downgrading cell Cp four children cells {C1 , C2 , C3 , C4 } to  -Cells is calculated as follows: First, we retrieve the locality loss LGCp ,i for each item i  {I1 , I2 , I3 , I4 , I5 , I6 , I7 , I8 }, from the maintained statistics at cell Cp . As given in Fig. 6(c), LGCp ,I1 , LGCp ,I2 , LGCp ,I3 , LGCp ,I4 , LGCp ,I5 , LGCp ,I6 , LGCp ,I7 , and LGCp ,I8 are equal to 0.0, 0.0, 1.0, 1.0, 0.0, 0.666, 0.166, and 1.0, respectively. Then, we calculate the overall locality loss at Cp (using equation 4), LGCp by summing all the locality loss values of all items and dividing the sum by the total number of items. Hence, 0.666+0.1666+1.0 the scalability loss is equal to ( 0.0+1.0+1.0+0.0+ ) 8 = 0.48 = 48%. To calculate scalability gain, assume the sum of the model sizes for cells C1 to C4 and CP is 4GB, and the sum of the model sizes for cells C1 to C4 is 2GB. Then, the scalability gain is 2 4 =50%. Assuming M=0.7, then (0.3 � 50) < (0.7 � 48), meaning that LARS* will not downgrade cells C1 , C2 , C3 , C4 to  -Cells.
+Calculating Locality Loss. To calculate the locality loss
+at a cell Cp , LARS* leverages the Item Ratings Statistics Table
+maintained in that cell. First, LARS* calculates the item
+locality loss LGCp ,i for each item i in the cell Cp . Therefore,
+LARS* aggregates the item locality loss values calculated
+for each item i ∈ Cp , to finally deduce the global cell locality
+loss LGCp .
+Calculating scalability gain. Scalability gain is measured in storage and computation savings. We measure
+scalability gain by summing the recommendation model
+sizes for each of the downgraded (i.e., child) cells (abbr.
+sizem ), and divide this value by the sum of sizem and the recommendation model size of the parent cell. We refer to this
+percentage as the storage_gain. We also quantify computation
+savings using storage gain as a surrogate measurement, as
+computation is considered a direct function of the amount
+of data in the system.
+Cost. using the Items Ratings Statistics Table maintained
+at cell Cp , the locality loss at cell Cp can be calculated in
+O(|ICp |) time such that |ICp | represents the total number of
+items in Cp . As scalability gain can be calculated in O(1)
+time, then the total time cost of the Downgrade To β-Cells
+operation is O(|ICp |).
+Example. For the example given in Fig. 6(c), the locality loss of downgrading cell Cp four children cells
+{C1 , C2 , C3 , C4 } to β-Cells is calculated as follows: First,
+we retrieve the locality loss LGCp ,i for each item i ∈
+{I1 , I2 , I3 , I4 , I5 , I6 , I7 , I8 }, from the maintained statistics at
+cell Cp . As given in Fig. 6(c), LGCp ,I1 , LGCp ,I2 , LGCp ,I3 ,
+LGCp ,I4 , LGCp ,I5 , LGCp ,I6 , LGCp ,I7 , and LGCp ,I8 are equal to 0.0,
+0.0, 1.0, 1.0, 0.0, 0.666, 0.166, and 1.0, respectively. Then, we
+calculate the overall locality loss at Cp (using equation 4),
+LGCp by summing all the locality loss values of all items
+and dividing the sum by the total number of items. Hence,
+the scalability loss is equal to ( 0.0+1.0+1.0+0.0+0.666+0.1666+1.0
+)
+8
+= 0.48 = 48%. To calculate scalability gain, assume the sum
+of the model sizes for cells C1 to C4 and CP is 4GB, and
+the sum of the model sizes for cells C1 to C4 is 2GB.
+Then, the scalability gain is 24 =50%. Assuming M=0.7, then
+(0.3 × 50) < (0.7 × 48), meaning that LARS* will not
+downgrade cells C1 , C2 , C3 , C4 to β-Cells.
 
-These values are the opposite of those calculated for the Upgrade to  -Cells operation. LARS* change cell CP child quadrant q to  -Cells only if the following condition holds:
-M  locality_gain > (1 - M)  scalability_loss.
+4.5.3 Upgrade β-Cells to α-Cells
+Upgrading β-Cells to α-Cells operation entails upgrading the
+cell type of a cell child quadrant at pyramid level h under
+a cell at level h − 1, to α-Cells. Upgrading β-Cells to α-Cells
+operation improves locality in LARS*, as it leads to maintaining a CF model at the children cells that represent
+more granular spatial regions capable of producing recommendations unique to the smaller, more “local", spatial
+regions. On the other hand, upgrading cells to α-Cells hurts
+scalability by requiring storage and maintenance of more
+item-based collaborative filtering models. The upgrade to
+α-Cells operation also negatively affects continuous query
+processing, since it creates more granular α-Cells causing user locations to cross α-Cell boundaries more often,
+triggering recommendation updates.
+To determine whether to upgrade a cell CP (quadrant q) four children cells to α-Cells (i.e., function
+CheckUpGradeToMCells on line 15 of Algorithm 1). Two percentages are calculated: locality_gain and scalability_loss.
+
+These values are the opposite of those calculated for the
+Upgrade to β-Cells operation. LARS* change cell CP child
+quadrant q to α-Cells only if the following condition holds:
+M ∗ locality_gain > (1 − M) ∗ scalability_loss.
 
 (6)
 
-This equation represents the opposite criteria of that presented for Upgrade to  -Cells operation in Equation 5. Calculating locality gain. To calculate the locality gain, LARS* does not need to speculatively build the CF model at the four children cells. The locality gain is calculated the same way the locality loss is calculated in equation 4. Calculating scalability loss. We calculate scalability loss by estimating the storage necessary to maintain the children cells. Recall from Section 2.2 that the maximum size of an item-based CF model is approximately n|I|, where n is the model size. We can multiply n|I| by the number of bytes needed to store an item in a CF model to find an upper-bound storage size of each potentially Upgradeded to  -Cell cell. The sum of these four estimated sizes (abbr. sizes ) divided by the sum of the size of the existing parent cell and sizes represents the scalability loss metric. Cost. Similar to the CheckDownGradeToSCells operation, scalability loss is calculated in O(1) and locality gain can be calculated in O(|ICp |) time. Then, the total time cost of the CheckUpGradeToMCells operation is O(|ICp |). Example. Consider the example given in Fig. 6(c). Assume the cell Cp is an  -Cell and its four children C1 , C2 , C3 , and C4 are  -Cells. The locality gain (LGCp ) is calculated using equation 4 to be 0.48 (i.e., 48%) as depicted in the table in Fig. 6(c). Further, assume that we estimate the extra storage overhead for upgradinging the children cells to  -Cells (i.e., storage loss) to be 50%. Assuming M=0.7, then (0.7 � 48) > (0.3 � 50), meaning that LARS* will decide to upgrade CP four children cells to  -Cells as locality gain is significantly higher than scalability loss.
+This equation represents the opposite criteria of that presented for Upgrade to β-Cells operation in Equation 5.
+Calculating locality gain. To calculate the locality gain,
+LARS* does not need to speculatively build the CF model
+at the four children cells. The locality gain is calculated the
+same way the locality loss is calculated in equation 4.
+Calculating scalability loss. We calculate scalability loss
+by estimating the storage necessary to maintain the children cells. Recall from Section 2.2 that the maximum size
+of an item-based CF model is approximately n|I|, where n
+is the model size. We can multiply n|I| by the number of
+bytes needed to store an item in a CF model to find an
+upper-bound storage size of each potentially Upgradeded to
+α-Cell cell. The sum of these four estimated sizes (abbr. sizes )
+divided by the sum of the size of the existing parent cell
+and sizes represents the scalability loss metric.
+Cost. Similar to the CheckDownGradeToSCells operation,
+scalability loss is calculated in O(1) and locality gain can
+be calculated in O(|ICp |) time. Then, the total time cost of
+the CheckUpGradeToMCells operation is O(|ICp |).
+Example. Consider the example given in Fig. 6(c).
+Assume the cell Cp is an α-Cell and its four children C1 ,
+C2 , C3 , and C4 are β-Cells. The locality gain (LGCp ) is calculated using equation 4 to be 0.48 (i.e., 48%) as depicted in
+the table in Fig. 6(c). Further, assume that we estimate the
+extra storage overhead for upgradinging the children cells
+to α-Cells (i.e., storage loss) to be 50%. Assuming M=0.7,
+then (0.7 × 48) > (0.3 × 50), meaning that LARS* will
+decide to upgrade CP four children cells to α-Cells as locality
+gain is significantly higher than scalability loss.
 
-4.5.3 Upgrade  -Cells to  -Cells Upgrading  -Cells to  -Cells operation entails upgrading the cell type of a cell child quadrant at pyramid level h under a cell at level h - 1, to  -Cells. Upgrading  -Cells to  -Cells operation improves locality in LARS*, as it leads to maintaining a CF model at the children cells that represent more granular spatial regions capable of producing recommendations unique to the smaller, more "local", spatial regions. On the other hand, upgrading cells to  -Cells hurts scalability by requiring storage and maintenance of more item-based collaborative filtering models. The upgrade to  -Cells operation also negatively affects continuous query processing, since it creates more granular  -Cells causing user locations to cross  -Cell boundaries more often, triggering recommendation updates. To determine whether to upgrade a cell CP (quadrant q) four children cells to  -Cells (i.e., function CheckUpGradeToMCells on line 15 of Algorithm 1). Two percentages are calculated: locality_gain and scalability_loss.
-
-4.5.4 Downgrade  -Cells to  -Cells and Vice Versa Downgrading  -Cells to  -Cells operation entails downgrading the cell type of a cell child quadrant at pyramid level h under a cell at level h - 1, to  -Cells (i.e., empty cells). Downgrading the child quadrant type to  -Cells means that the maintained statistics are no more maintained in the children cell, which definitely reduces the overhead of maintaining the Item Ratings Statistics Table at these cells. Even though  -Cells incurs no maintenance overhead, however they reduce the amount of recommendation locality that LARS* provides. The decision of downgrading from  -Cells to  -Cells is taken based on a system parameter, named MAX_SLEVELS. It is defined as the maximum number of consecutive pyramid levels in which descendant cells can be  -Cells. MAX_SLEVELS can take any value between zero and the total height of the pyramid. A high value of MAX_SLEVELS results in maintaining more  -Cells and less  -Cells in the pyramid. For example, in Fig. 4, MAX_SLEVELS is set to two, and this is why if two consecutive pyramid levels are  -Cells, the third level  -Cells are autotmatically downgraded to  -Cells. For each  -Cell C, a counter, called S-Levels Counter, is maintained. The S-Levels Counter stores of the total number of consecutive levels in the direct ancestry of cell C such that all these levels contains  -Cells.
+4.5.4 Downgrade β-Cells to γ -Cells and Vice Versa
+Downgrading β-Cells to γ -Cells operation entails downgrading the cell type of a cell child quadrant at pyramid level h
+under a cell at level h − 1, to γ -Cells (i.e., empty cells).
+Downgrading the child quadrant type to γ -Cells means
+that the maintained statistics are no more maintained in
+the children cell, which definitely reduces the overhead of
+maintaining the Item Ratings Statistics Table at these cells.
+Even though γ -Cells incurs no maintenance overhead, however they reduce the amount of recommendation locality
+that LARS* provides.
+The decision of downgrading from β-Cells to γ -Cells is
+taken based on a system parameter, named MAX_SLEVELS.
+It is defined as the maximum number of consecutive
+pyramid levels in which descendant cells can be β-Cells.
+MAX_SLEVELS can take any value between zero and the
+total height of the pyramid. A high value of MAX_SLEVELS
+results in maintaining more β-Cells and less γ -Cells in
+the pyramid. For example, in Fig. 4, MAX_SLEVELS is
+set to two, and this is why if two consecutive pyramid
+levels are β-Cells, the third level β-Cells are autotmatically downgraded to γ -Cells. For each β-Cell C, a counter,
+called S-Levels Counter, is maintained. The S-Levels Counter
+stores of the total number of consecutive levels in the direct
+ancestry of cell C such that all these levels contains β-Cells.
 
 SARWAT ET AL.: LARS*: AN EFFICIENT AND SCALABLE LOCATION-AWARE RECOMMENDER SYSTEM
 
-1393
-
-At a  -Cell C, if the cell children are  -Cells, then we compare the S-Levels Counter at the child cells with the MAX_SLEVELS parameter. Note that the counter counts only the consecutive S-Levels, so if some levels in the chain are  -Cells the counter is reset to zero at the  -Cells levels. If S-Levels Counter is greater than or equal to MAX_SLEVELS, then the children cells of C are downgraded to  -Cells. Otherwise, cell C children cells are not downgraded to  -Cells. Similarly, LARS* also makes use of the same S-Levels Counter to decide whether to upgrade  -Cells to  -Cells.
-
-Algorithm 2 Travel Penalty Algorithm for Spatial Items
-1: 2: 3: 4: 5: 6: 7: 8: 9: 10: 11: 12: 13: 14: 15: 16: 17: 18: 19: 20: 21: 22:
-Function LARS*_SpatialItems(User U, Location L, Limit K) /* Populate a list R with a set of K items*/ R for (K iterations) do i  Retrieve the item with the next lowest travel penalty (Section 5.2) Insert i into R ordered by RecScore(U, i) computed by Equation 7 end for LowestRecScore  RecScore of the kth object in R /*Retrieve items one by one in order of their penalty value */ while there are more items to process do i  Retrieve the next item in order of penalty score (Section 5.2) MaxPossibleScore  MAX_RATING - i.penalty if MaxPossibleScore  LowestRecScore then return R /* early termination - end query processing */ end if RecScore(U, i)  P(U, i) - i.penalty /* Equation 7 */ if RecScore(U, i) > LowestRecScore then Insert i into R ordered by RecScore(U, i) LowestRecScore  RecScore of the kth object in R end if end while return R
+At a β-Cell C, if the cell children are β-Cells, then we
+compare the S-Levels Counter at the child cells with the
+MAX_SLEVELS parameter. Note that the counter counts
+only the consecutive S-Levels, so if some levels in the chain
+are α-Cells the counter is reset to zero at the α-Cells levels. If
+S-Levels Counter is greater than or equal to MAX_SLEVELS,
+then the children cells of C are downgraded to γ -Cells.
+Otherwise, cell C children cells are not downgraded to
+γ -Cells. Similarly, LARS* also makes use of the same
+S-Levels Counter to decide whether to upgrade γ -Cells to
+β-Cells.
 
 5
 
-N ON -S PATIAL U SER R ATINGS FOR S PATIAL I TEMS
+N ON -S PATIAL U SER R ATINGS FOR S PATIAL
+I TEMS
 
-This section describes how LARS* produces recommendations using non-spatial ratings for spatial items represented by the tuple (user, rating, item, ilocation). The idea is to exploit travel locality, i.e., the observation that users limit their choice of spatial venues based on travel distance (based on analysis in Section 1.1). Traditional (non-spatial) recommendation techniques may produce recommendations with burdensome travel distances (e.g., hundreds of miles away). LARS* produces recommendations within reasonable travel distances by using travel penalty, a technique that penalizes the recommendation rank of items the further in travel distance they are from a querying user. Travel penalty may incur expensive computational overhead by calculating travel distance to each item. Thus, LARS* employs an efficient query processing technique capable of early termination to produce the recommendations without calculating the travel distance to all items. Section 5.1 describes the query processing framework while Section 5.2 describes travel distance computation.
+This section describes how LARS* produces recommendations using non-spatial ratings for spatial items represented
+by the tuple (user, rating, item, ilocation). The idea is to
+exploit travel locality, i.e., the observation that users limit
+their choice of spatial venues based on travel distance
+(based on analysis in Section 1.1). Traditional (non-spatial)
+recommendation techniques may produce recommendations with burdensome travel distances (e.g., hundreds
+of miles away). LARS* produces recommendations within
+reasonable travel distances by using travel penalty, a technique that penalizes the recommendation rank of items the
+further in travel distance they are from a querying user.
+Travel penalty may incur expensive computational overhead
+by calculating travel distance to each item. Thus, LARS*
+employs an efficient query processing technique capable
+of early termination to produce the recommendations without calculating the travel distance to all items. Section 5.1
+describes the query processing framework while Section 5.2
+describes travel distance computation.
 
-5.1 Query Processing Query processing for spatial items using the travel penalty technique employs a single system-wide item-based collaborative filtering model to generate the top-k recommendations by ranking each spatial item i for a querying user u based on RecScore(u, i), computed as:
-RecScore(u, i) = P(u, i) - TravelPenalty(u, i). (7)
+5.1 Query Processing
+Query processing for spatial items using the travel penalty
+technique employs a single system-wide item-based collaborative filtering model to generate the top-k recommendations by ranking each spatial item i for a querying user u
+based on RecScore(u, i), computed as:
+RecScore(u, i) = P(u, i) − TravelPenalty(u, i).
 
-P(u, i) is the standard item-based CF predicted rating of item i for user u (see Section 2.2). TravelPenalty(u, i) is the road network travel distance between u and i normalized to the same value range as the rating scale (e.g., [0, 5]). When processing recommendations, we aim to avoid calculating Equation 7 for all candidate items to find the top-k recommendations, which can become quite expensive given the need to compute travel distances. To avoid such computation, we evaluate items in monotonically increasing order of travel penalty (i.e., travel distance), enabling us to use early termination principles from top-k query processing [18]�[20]. We now present the main idea of our query processing algorithm and in the next section discuss how to compute travel penalties in an increasing order of travel distance. Algorithm 2 provides the pseudo code of our query processing algorithm that takes a querying user id U, a
+(7)
 
-location L, and a limit K as input, and returns the list R of top-k recommended items. The algorithm starts by running a k-nearest-neighbor algorithm to populate the list R with k items with lowest travel penalty; R is sorted by the recommendation score computed using Equation 7. This initial part is concluded by setting the lowest recommendation score value (LowestRecScore) as the RecScore of the kth item in R (Lines 3 to 8). Then, the algorithm starts to retrieve items one by one in the order of their penalty score. This can be done using an incremental k-nearest-neighbor algorithm, as will be described in the next section. For each item i, we calculate the maximum possible recommendation score that i can have by subtracting the travel penalty of i from MAX_RATING, the maximum possible rating value in the system, e.g., 5 (Line 12). If i cannot make it into the list of top-k recommended items with this maximum possible score, we immediately terminate the algorithm by returning R as the top-k recommendations without computing the recommendation score (and travel distance) for more items (Lines 13 to 15). The rationale here is that since we are retrieving items in increasing order of their penalty and calculating the maximum score that any remaining item can have, then there is no chance that any unprocessed item can beat the lowest recommendation score in R. If the early termination case does not arise, we continue to compute the score for each item i using Equation 7, insert i into R sorted by its score (removing the kth item if necessary), and adjust the lowest recommendation value accordingly (Lines 16 to 20). Travel penalty requires very little maintenance. The only maintenance necessary is to occasionally rebuild the single system-wide item-based collaborative filtering model in order to account for new location-based ratings that enter the system. Following the reasoning discussed in Section 4.3, we rebuild the model after receiving N% new ratings.
+P(u, i) is the standard item-based CF predicted rating of
+item i for user u (see Section 2.2). TravelPenalty(u, i) is the
+road network travel distance between u and i normalized
+to the same value range as the rating scale (e.g., [0, 5]).
+When processing recommendations, we aim to avoid calculating Equation 7 for all candidate items to find the top-k
+recommendations, which can become quite expensive given
+the need to compute travel distances. To avoid such computation, we evaluate items in monotonically increasing
+order of travel penalty (i.e., travel distance), enabling us to
+use early termination principles from top-k query processing [18]–[20]. We now present the main idea of our query
+processing algorithm and in the next section discuss how
+to compute travel penalties in an increasing order of travel
+distance.
+Algorithm 2 provides the pseudo code of our query
+processing algorithm that takes a querying user id U, a
 
-5.2 Incremental Travel Penalty Computation This section gives an overview of two methods we implemented in LARS* to incrementally retrieve items one by one ordered by their travel penalty. The two methods exhibit a
+1393
+
+Algorithm 2 Travel Penalty Algorithm for Spatial Items
+1:
+2:
+3:
+4:
+5:
+6:
+7:
+8:
+9:
+10:
+11:
+12:
+13:
+14:
+15:
+16:
+17:
+18:
+19:
+20:
+21:
+22:
+
+Function LARS*_SpatialItems(User U, Location L, Limit K)
+/* Populate a list R with a set of K items*/
+R←φ
+for (K iterations) do
+i ← Retrieve the item with the next lowest travel penalty (Section 5.2)
+Insert i into R ordered by RecScore(U, i) computed by Equation 7
+end for
+LowestRecScore ← RecScore of the kth object in R
+/*Retrieve items one by one in order of their penalty value */
+while there are more items to process do
+i ← Retrieve the next item in order of penalty score (Section 5.2)
+MaxPossibleScore ← MAX_RATING - i.penalty
+if MaxPossibleScore ≤ LowestRecScore then
+return R /* early termination - end query processing */
+end if
+RecScore(U, i) ← P(U, i) - i.penalty /* Equation 7 */
+if RecScore(U, i) > LowestRecScore then
+Insert i into R ordered by RecScore(U, i)
+LowestRecScore ← RecScore of the kth object in R
+end if
+end while
+return R
+
+location L, and a limit K as input, and returns the list R of
+top-k recommended items. The algorithm starts by running
+a k-nearest-neighbor algorithm to populate the list R with
+k items with lowest travel penalty; R is sorted by the recommendation score computed using Equation 7. This initial
+part is concluded by setting the lowest recommendation
+score value (LowestRecScore) as the RecScore of the kth item
+in R (Lines 3 to 8). Then, the algorithm starts to retrieve
+items one by one in the order of their penalty score. This
+can be done using an incremental k-nearest-neighbor algorithm, as will be described in the next section. For each item
+i, we calculate the maximum possible recommendation score
+that i can have by subtracting the travel penalty of i from
+MAX_RATING, the maximum possible rating value in the
+system, e.g., 5 (Line 12). If i cannot make it into the list
+of top-k recommended items with this maximum possible
+score, we immediately terminate the algorithm by returning R as the top-k recommendations without computing the
+recommendation score (and travel distance) for more items
+(Lines 13 to 15). The rationale here is that since we are
+retrieving items in increasing order of their penalty and calculating the maximum score that any remaining item can
+have, then there is no chance that any unprocessed item
+can beat the lowest recommendation score in R. If the early
+termination case does not arise, we continue to compute
+the score for each item i using Equation 7, insert i into
+R sorted by its score (removing the kth item if necessary),
+and adjust the lowest recommendation value accordingly
+(Lines 16 to 20).
+Travel penalty requires very little maintenance. The only
+maintenance necessary is to occasionally rebuild the single system-wide item-based collaborative filtering model
+in order to account for new location-based ratings that
+enter the system. Following the reasoning discussed in
+Section 4.3, we rebuild the model after receiving N% new
+ratings.
+
+5.2 Incremental Travel Penalty Computation
+This section gives an overview of two methods we implemented in LARS* to incrementally retrieve items one by one
+ordered by their travel penalty. The two methods exhibit a
 
 1394
 
 IEEE TRANSACTIONS ON KNOWLEDGE AND DATA ENGINEERING, VOL. 26, NO. 6, JUNE 2014
 
-trade-off between query processing efficiency and penalty accuracy: (1) an online method that provides exact travel penalties but is expensive to compute, and (2) an offline heuristic method that is less exact but efficient in penalty retrieval. Both methods can be employed interchangeably in Line 11 of Algorithm 2.
+trade-off between query processing efficiency and penalty
+accuracy: (1) an online method that provides exact travel
+penalties but is expensive to compute, and (2) an offline
+heuristic method that is less exact but efficient in penalty
+retrieval. Both methods can be employed interchangeably
+in Line 11 of Algorithm 2.
 
-5.2.1 Incremental KNN: An Exact Online Method To calculate an exact travel penalty for a user u to item i, we employ an incremental k-nearest-neighbor (KNN) technique [21]�[23]. Given a user location l, incremental KNN algorithms return, on each invocation, the next item i nearest to u with regard to travel distance d. In our case, we normalize distance d to the ratings scale to get the travel penalty in Equation 7. Incremental KNN techniques exist for both Euclidean distance [22] and (road) network distance [21], [23]. The advantage of using Incremental KNN techniques is that they provide an exact travel distances between a querying user's location and each recommendation candidate item. The disadvantage is that distances must be computed online at query runtime, which can be expensive. For instance, the runtime complexity of retrieving a single item using incremental KNN in Euclidean space is [22]: O(k + logN), where N and k are the number of total items and items retrieved so far, respectively. 5.2.2 Penalty Grid: A Heuristic Offline Method A more efficient, yet less accurate method to retrieve travel penalties incrementally is to use a pre-computed penalty grid. The idea is to partition space using an n � n grid. Each grid cell c is of equal size and contains all items whose location falls within the spatial region defined by c. Each cell c contains a penalty list that stores the pre-computed penalty values for traveling from anywhere within c to all other n2 - 1 destination cells in the grid; this means all items within a destination grid cell share the same penalty value. The penalty list for c is sorted by penalty value and always stores c (itself) as the first item with a penalty of zero. To retrieve items incrementally, all items within the cell containing the querying user are returned one-by-one (in any order) since they have no penalty. After these items are exhausted, items contained in the next cell in the penalty list are returned, and so forth until Algorithm 2 terminates early or processes all items. To populate the penalty grid, we must calculate the penalty value for traveling from each cell to every other cell in the grid. We assume items and users are constrained to a road network, however, we can also use Euclidean space without consequence. To calculate the penalty from a single source cell c to a destination cell d, we first find the average distance to travel from anywhere within c to all item destinations within d. To do this, we generate an anchor point p within c that both (1) lies on the road network segment within c and (2) lies as close as possible to the center of c. With these criteria, p serves as an approximate average "starting point" for traveling from c to d. We then calculate the shortest path distance from p to all items contained in d on the road network (any shortest path algorithm can be used). Finally, we average all calculated shortest path distances from c to d. As a final step, we normalize the average distance from c to d to fall within the rating value range.
+5.2.1 Incremental KNN: An Exact Online Method
+To calculate an exact travel penalty for a user u to item i,
+we employ an incremental k-nearest-neighbor (KNN) technique [21]–[23]. Given a user location l, incremental KNN
+algorithms return, on each invocation, the next item i nearest to u with regard to travel distance d. In our case, we
+normalize distance d to the ratings scale to get the travel
+penalty in Equation 7. Incremental KNN techniques exist
+for both Euclidean distance [22] and (road) network distance [21], [23]. The advantage of using Incremental KNN
+techniques is that they provide an exact travel distances
+between a querying user’s location and each recommendation candidate item. The disadvantage is that distances
+must be computed online at query runtime, which can be
+expensive. For instance, the runtime complexity of retrieving a single item using incremental KNN in Euclidean space
+is [22]: O(k + logN), where N and k are the number of total
+items and items retrieved so far, respectively.
+5.2.2 Penalty Grid: A Heuristic Offline Method
+A more efficient, yet less accurate method to retrieve travel
+penalties incrementally is to use a pre-computed penalty
+grid. The idea is to partition space using an n × n grid. Each
+grid cell c is of equal size and contains all items whose
+location falls within the spatial region defined by c. Each
+cell c contains a penalty list that stores the pre-computed
+penalty values for traveling from anywhere within c to all
+other n2 −1 destination cells in the grid; this means all items
+within a destination grid cell share the same penalty value.
+The penalty list for c is sorted by penalty value and always
+stores c (itself) as the first item with a penalty of zero. To
+retrieve items incrementally, all items within the cell containing the querying user are returned one-by-one (in any
+order) since they have no penalty. After these items are
+exhausted, items contained in the next cell in the penalty
+list are returned, and so forth until Algorithm 2 terminates
+early or processes all items.
+To populate the penalty grid, we must calculate the
+penalty value for traveling from each cell to every other cell
+in the grid. We assume items and users are constrained to
+a road network, however, we can also use Euclidean space
+without consequence. To calculate the penalty from a single
+source cell c to a destination cell d, we first find the average
+distance to travel from anywhere within c to all item destinations within d. To do this, we generate an anchor point
+p within c that both (1) lies on the road network segment
+within c and (2) lies as close as possible to the center of
+c. With these criteria, p serves as an approximate average
+“starting point" for traveling from c to d. We then calculate
+the shortest path distance from p to all items contained in
+d on the road network (any shortest path algorithm can be
+used). Finally, we average all calculated shortest path distances from c to d. As a final step, we normalize the average
+distance from c to d to fall within the rating value range.
 
-Normalization is necessary as the rating domain is usually small (e.g., zero to five), while distance is measured in miles or kilometers and can have large values that heavily influence Equation 7. We repeat this entire process for each cell to all other cells to populate the entire penalty grid. When new items are added to the system, their presence in a cell d can alter the average distance value used in penalty calculation for each source cell c. Thus, we recalculate penalty scores in the penalty grid after N new items enter the system. We assume spatial items are relatively static, e.g., restaurants do not change location often. Thus, it is unlikely existing items will change cell locations and in turn alter penalty scores.
+Normalization is necessary as the rating domain is usually
+small (e.g., zero to five), while distance is measured in miles
+or kilometers and can have large values that heavily influence Equation 7. We repeat this entire process for each cell
+to all other cells to populate the entire penalty grid.
+When new items are added to the system, their presence in a cell d can alter the average distance value used in
+penalty calculation for each source cell c. Thus, we recalculate penalty scores in the penalty grid after N new items
+enter the system. We assume spatial items are relatively
+static, e.g., restaurants do not change location often. Thus,
+it is unlikely existing items will change cell locations and in
+turn alter penalty scores.
 
 6
 
 S PATIAL U SER R ATINGS FOR S PATIAL I TEMS
 
-This section describes how LARS* produces recommendations using spatial ratings for spatial items represented by the tuple (user, ulocation, rating, item, ilocation). A salient feature of LARS* is that both the user partitioning and travel penalty techniques can be used together with very little change to produce recommendations using spatial user ratings for spatial items. The data structures and maintenance techniques remain exactly the same as discussed in Sections 4 and 5; only the query processing framework requires a slight modification. Query processing uses Algorithm 2 to produce recommendations. However, the only difference is that the item-based collaborative filtering prediction score P(u, i) used in the recommendation score calculation (Line 16 in Algorithm 2) is generated using the (localized) collaborative filtering model from the partial pyramid cell that contains the querying user, instead of the system-wide collaborative filtering model as was used in Section 5.
+This section describes how LARS* produces recommendations using spatial ratings for spatial items represented by
+the tuple (user, ulocation, rating, item, ilocation). A salient feature of LARS* is that both the user partitioning and travel
+penalty techniques can be used together with very little
+change to produce recommendations using spatial user
+ratings for spatial items. The data structures and maintenance techniques remain exactly the same as discussed
+in Sections 4 and 5; only the query processing framework requires a slight modification. Query processing uses
+Algorithm 2 to produce recommendations. However, the
+only difference is that the item-based collaborative filtering
+prediction score P(u, i) used in the recommendation score
+calculation (Line 16 in Algorithm 2) is generated using the
+(localized) collaborative filtering model from the partial
+pyramid cell that contains the querying user, instead of the
+system-wide collaborative filtering model as was used in
+Section 5.
 
 7
 
 E XPERIMENTS
 
-This section provides experimental evaluation of LARS* based on an actual system implementation using C++ and STL. We compare LARS* with the standard item-based collaborative filtering technique along with several variations of LARS*. We also compare LARS* to LARS [8]. Experiments are based on three data sets: Foursquare: a real data set consisting of spatial user ratings for spatial items derived from Foursquare user histories. We crawled Foursquare and collected data for 1,010,192 users and 642,990 venues across the United States. Foursquare does not publish each "check-in" for a user, however, we were able to collect the following pieces of data: (1) user tips for a venue, (2) the venues for which the user is the mayor, and (3) the completed to-do list items for a user. In addition, we extracted each user's friend list. Extracting location-based ratings. To extract spatial user ratings for spatial items from the Foursquare data (i.e., the five-tuple (user, ulocation, rating, item, ilocation)), we map each user visit to a single location-based rating. The user and item attributes are represented by the unique Foursquare user and venue identifier, respectively. We employ the user's home city in Foursquare as the ulocation attribute. Meanwhile, the ilocation attribute is the item's inherent location. We use a numeric rating value range of [1, 3], translated as follows: (a) 3 represents the user is the
+This section provides experimental evaluation of LARS*
+based on an actual system implementation using C++ and
+STL. We compare LARS* with the standard item-based
+collaborative filtering technique along with several variations of LARS*. We also compare LARS* to LARS [8].
+Experiments are based on three data sets:
+Foursquare: a real data set consisting of spatial user
+ratings for spatial items derived from Foursquare user histories. We crawled Foursquare and collected data for
+1,010,192 users and 642,990 venues across the United States.
+Foursquare does not publish each “check-in" for a user,
+however, we were able to collect the following pieces of
+data: (1) user tips for a venue, (2) the venues for which the
+user is the mayor, and (3) the completed to-do list items for
+a user. In addition, we extracted each user’s friend list.
+Extracting location-based ratings. To extract spatial user
+ratings for spatial items from the Foursquare data (i.e.,
+the five-tuple (user, ulocation, rating, item, ilocation)), we
+map each user visit to a single location-based rating. The
+user and item attributes are represented by the unique
+Foursquare user and venue identifier, respectively. We
+employ the user’s home city in Foursquare as the ulocation attribute. Meanwhile, the ilocation attribute is the item’s
+inherent location. We use a numeric rating value range of
+[1, 3], translated as follows: (a) 3 represents the user is the
 
 SARWAT ET AL.: LARS*: AN EFFICIENT AND SCALABLE LOCATION-AWARE RECOMMENDER SYSTEM
 
-1395
-
-"mayor" of the venue, (b) 2 represents that the user left a "tip" at the venue, and (c) 1 represents the user visited the venue as a completed "to-do" list item. Using this scheme, a user may have multiple ratings for a venue, in this case we use the highest rating value. Data properties. Our experimental data consisted of 22,390 location-based ratings for 4K users for 2K venues all from the state of Minnesota, USA. We used this reduced data set in order to focus our quality experiments on a dense rating sample. Use of dense ratings data has been shown to be a very important factor when testing and comparing recommendation quality [17], since use of sparse data (i.e., having users or items with very few ratings) tends to cause inaccuracies in recommendation techniques. MovieLens: a real data set consisting of spatial user ratings for non-spatial items taken from the popular MovieLens recommender system [5]. The Foursquare and MovieLens data are used to test recommendation quality. The MovieLens data used in our experiments was real movie rating data taken from the popular MovieLens recommendation system at the University of Minnesota [5]. This data consisted of 87,025 ratings for 1,668 movies from 814 users. Each rating was associated with the zip code of the user who rated the movie, thus giving us a real data set of spatial user ratings for non-spatial items. Synthetic: a synthetically generated data set consisting of spatial user ratings for spatial items for venues in the state of Minnesota, USA. The synthetic data set we use in our experiments is generated to contain 2000 users and 1000 items, and 500,000 ratings. Users and items locations are randomly generated over the state of Minnesota, USA. Users' ratings to items are assigned random values between zero and five. As this data set contains a number of ratings that is about twenty five times and five times larger than the foursquare data set and the Movilens data set, we use such synthetic data set to test scalability and query efficiency. Unless mentioned otherwise, the default value of M is 0.3, k is 10, the number of pyramid levels is 8, the influence level is the lowest pyramid level, and MAX_SLEVELS is set to two. The rest of this section evaluates LARS* recommendation quality (Section 7.1), trade-offs between storage and locality (Section 7.4), scalability (Section 7.5), and query processing efficiency (Section 7.6). As the system stores its data structures in main memory, all reported time measurements represent the CPU time.
-
-(a)
-
-(b)
-
-Fig. 7. Quality experiments for varying locality. (a) Foursquare data. (b) MovieLens data.
+“mayor” of the venue, (b) 2 represents that the user left a
+“tip” at the venue, and (c) 1 represents the user visited the
+venue as a completed “to-do” list item. Using this scheme,
+a user may have multiple ratings for a venue, in this case
+we use the highest rating value.
+Data properties. Our experimental data consisted of 22,390
+location-based ratings for 4K users for 2K venues all from
+the state of Minnesota, USA. We used this reduced data
+set in order to focus our quality experiments on a dense
+rating sample. Use of dense ratings data has been shown
+to be a very important factor when testing and comparing
+recommendation quality [17], since use of sparse data (i.e.,
+having users or items with very few ratings) tends to cause
+inaccuracies in recommendation techniques.
+MovieLens: a real data set consisting of spatial user ratings for non-spatial items taken from the popular MovieLens
+recommender system [5]. The Foursquare and MovieLens
+data are used to test recommendation quality. The
+MovieLens data used in our experiments was real movie
+rating data taken from the popular MovieLens recommendation system at the University of Minnesota [5]. This data
+consisted of 87,025 ratings for 1,668 movies from 814 users.
+Each rating was associated with the zip code of the user
+who rated the movie, thus giving us a real data set of spatial
+user ratings for non-spatial items.
+Synthetic: a synthetically generated data set consisting
+of spatial user ratings for spatial items for venues in the
+state of Minnesota, USA. The synthetic data set we use
+in our experiments is generated to contain 2000 users and
+1000 items, and 500,000 ratings. Users and items locations
+are randomly generated over the state of Minnesota, USA.
+Users’ ratings to items are assigned random values between
+zero and five. As this data set contains a number of ratings
+that is about twenty five times and five times larger than the
+foursquare data set and the Movilens data set, we use such
+synthetic data set to test scalability and query efficiency.
+Unless mentioned otherwise, the default value of M is
+0.3, k is 10, the number of pyramid levels is 8, the influence
+level is the lowest pyramid level, and MAX_SLEVELS is set
+to two. The rest of this section evaluates LARS* recommendation quality (Section 7.1), trade-offs between storage and
+locality (Section 7.4), scalability (Section 7.5), and query processing efficiency (Section 7.6). As the system stores its data
+structures in main memory, all reported time measurements
+represent the CPU time.
 
 7.1
 
-Recommendation Quality for Varying Pyramid Levels These experiments test the recommendation quality improvement that LARS* achieves over the standard (nonspatial) item-based collaborative filtering method using both the Foursquare and MovieLens data. To test the effectiveness of our proposed techniques, we test the quality improvement of LARS* with only travel penalty enabled (abbr. LARS*-T), LARS* with only user partitioning enabled and M set to one (abbr. LARS*-U), and LARS* with both techniques enabled and M set to one (abbr. LARS*). Notice that LARS*-T represents the traditional item-based collaborative filtering augmented with the travel penalty technique (section 5) to take the distance
+Recommendation Quality for Varying Pyramid
+Levels
+These experiments test the recommendation quality
+improvement that LARS* achieves over the standard (nonspatial) item-based collaborative filtering method using
+both the Foursquare and MovieLens data. To test the
+effectiveness of our proposed techniques, we test the
+quality improvement of LARS* with only travel penalty
+enabled (abbr. LARS*-T), LARS* with only user partitioning enabled and M set to one (abbr. LARS*-U), and
+LARS* with both techniques enabled and M set to one
+(abbr. LARS*). Notice that LARS*-T represents the traditional item-based collaborative filtering augmented with
+the travel penalty technique (section 5) to take the distance
 
-between the querying user and the recommended items into account. We do not plot LARS with LARS* as both give the same result for M=1, and the quality experiments are meant to show how locality increases the recommendation quality. Quality Metric. To measure quality, we build each recommendation method using 80% of the ratings from each data set. Each rating in the withheld 20% represents a Foursquare venue or MovieLens movie a user is known to like (i.e., rated highly). For each rating t in this 20%, we request a set of k ranked recommendations S by submitting the user and ulocation associated with t. We first calculate the quality as the weighted sum of the number of occurrences of the item associated with t (the higher the better) in S . The weight of an item is a value between zero and one that determines how close the rank of this item from its real rank. The quality of each recommendation method is calculated and compared against the baseline, i.e., traditional item-based collaborative filtering. We finally report the ratio of improvement in quality each recommendation method achieves over the baseline. The rationale for this metric is that since each withheld rating represents a real visit to a venue (or movie a user liked), the technique that produces a large number of correctly ranked answers that contain venues (or movies) a user is known to like is considered of higher quality. Fig. 7(a) compares the quality improvement of each technique (over traditional collaborative filtering) for varying locality (i.e., different levels of the adaptive pyramid) using the Foursquare data. LARS*-T does not use the adaptive pyramid, thus has constant quality improvement. However, LARS*-T shows some quality improvement over traditional collaborative filtering. This quality boost is due to that fact that LARS*-T uses a travel penalty technique that recommends items within a feasible distance. Meanwhile, the quality of LARS* and LARS*-U increases as more localized pyramid cells are used to produce recommendation, which verifies that user partitioning is indeed beneficial and necessary for location-based ratings. Ultimately, LARS* has superior performance due to the additional use of travel penalty. While travel penalty produces moderate quality gain, it also enables more efficient query processing, which we observe later in Section 7.6. Fig. 7(b) compares the quality improvement of LARS*U over CF (traditional collaborative filtering) for varying locality using the MovieLens data. Notice that LARS* gives the same quality improvement as LARS*-U because LARS*T do not apply for this dataset since movies are not spatial. Compared to CF, the quality improvement achieved by
+(a)
+
+1395
+
+(b)
+
+Fig. 7. Quality experiments for varying locality. (a) Foursquare data.
+(b) MovieLens data.
+
+between the querying user and the recommended items
+into account. We do not plot LARS with LARS* as both give
+the same result for M=1, and the quality experiments are
+meant to show how locality increases the recommendation
+quality.
+Quality Metric. To measure quality, we build each recommendation method using 80% of the ratings from each
+data set. Each rating in the withheld 20% represents a
+Foursquare venue or MovieLens movie a user is known
+to like (i.e., rated highly). For each rating t in this 20%, we
+request a set of k ranked recommendations S by submitting
+the user and ulocation associated with t. We first calculate
+the quality as the weighted sum of the number of occurrences of the item associated with t (the higher the better)
+in S . The weight of an item is a value between zero and one
+that determines how close the rank of this item from its real
+rank. The quality of each recommendation method is calculated and compared against the baseline, i.e., traditional
+item-based collaborative filtering. We finally report the ratio
+of improvement in quality each recommendation method
+achieves over the baseline. The rationale for this metric is
+that since each withheld rating represents a real visit to a
+venue (or movie a user liked), the technique that produces
+a large number of correctly ranked answers that contain
+venues (or movies) a user is known to like is considered of
+higher quality.
+Fig. 7(a) compares the quality improvement of each technique (over traditional collaborative filtering) for varying
+locality (i.e., different levels of the adaptive pyramid) using
+the Foursquare data. LARS*-T does not use the adaptive
+pyramid, thus has constant quality improvement. However,
+LARS*-T shows some quality improvement over traditional
+collaborative filtering. This quality boost is due to that fact
+that LARS*-T uses a travel penalty technique that recommends items within a feasible distance. Meanwhile, the
+quality of LARS* and LARS*-U increases as more localized pyramid cells are used to produce recommendation,
+which verifies that user partitioning is indeed beneficial and
+necessary for location-based ratings. Ultimately, LARS* has
+superior performance due to the additional use of travel
+penalty. While travel penalty produces moderate quality gain,
+it also enables more efficient query processing, which we
+observe later in Section 7.6.
+Fig. 7(b) compares the quality improvement of LARS*U over CF (traditional collaborative filtering) for varying
+locality using the MovieLens data. Notice that LARS* gives
+the same quality improvement as LARS*-U because LARS*T do not apply for this dataset since movies are not spatial.
+Compared to CF, the quality improvement achieved by
 
 1396
 
 IEEE TRANSACTIONS ON KNOWLEDGE AND DATA ENGINEERING, VOL. 26, NO. 6, JUNE 2014
 
 (a)
-data. (b) MovieLens data.
-
-(b)
-
-(a)
-data. (b) MovieLens data.
 
 (b)
 
 Fig. 8. Quality experiments for varying answer sizes. (a) Foursquare
 
-Fig. 9. Quality experiments for varying value of M. (a) Foursquare
+data. (b) MovieLens data.
 
-LARS*-U (and LARS*) increases when it produces movie recommendations from more localized pyramid cells. This behavior further verifies that user partitioning is beneficial in providing quality recommendations localized to a querying user location, even when items are not spatial. Quality decreases (or levels off for MovieLens) for both LARS*-U and/or LARS* for lower levels of the adaptive pyramid. This is due to recommendation starvation, i.e., not having enough ratings to produce meaningful recommendations.
+LARS*-U (and LARS*) increases when it produces movie
+recommendations from more localized pyramid cells. This
+behavior further verifies that user partitioning is beneficial
+in providing quality recommendations localized to a querying user location, even when items are not spatial. Quality
+decreases (or levels off for MovieLens) for both LARS*-U
+and/or LARS* for lower levels of the adaptive pyramid.
+This is due to recommendation starvation, i.e., not having
+enough ratings to produce meaningful recommendations.
 
-7.2 Recommendation Quality for Varying k These experiments test recommendation quality improvement of LARS*, LARS*-U, and LARS*-T for different values of k (i.e., recommendation answer sizes). We do not plot LARS with LARS* as both gives the same result for M=1, and the quality experiments are meant to show how the degree of locality increases the recommendation quality. We perform experiments using both the Foursquare and MovieLens data. Our quality metric is exactly the same as presented previously in Section 7.1. Fig. 8(a) depicts the effect of the recommendation list size k on the quality of each technique using the Foursquare data set. We report quality numbers using the pyramid height of four (i.e., the level exhibiting the best quality from Section 7.1 in Fig. 7(a)). For all sizes of k from one to ten, LARS* and LARS*-U consistently exhibit better quality. In fact, LARS* consistently achieves better quality over CF for all k. LARS*-T exhibits similar quality to CF for smaller k values, but does better for k values of three and larger. Fig. 8(b) depicts the effect of the recommendation list size k on the quality of improvement of LARS*-U (and LARS*) over CF using the MovieLens data. Notice that LARS* gives the same quality improvement as LARS*-U because LARS*-T do not apply for this dataset since movies are not spatial. This experiment was run using a pyramid hight of seven (i.e., the level exhibiting the best quality in Fig. 7(b)). Again, LARS*-U (and LARS*) consistently exhibits better quality than CF for sizes of K from one to ten. 7.3 Recommendation Quality for Varying M These experiments compares the quality improvement achieved by both LARS and LARS* for different values of M. We perform experiments using both the Foursquare and MovieLens data. Our quality metric is exactly the same as presented previously in Section 7.1. Fig. 9(a) depicts the effect of M on the quality of both LARS and LARS* using the Foursquare data set. Notice that we enable both the user partitioning and travel penalty
-
-techniques for both LARS and LARS*. We report quality numbers using the pyramid height of four and the number of recommended items of ten. When M is equal to zero, both LARS and LARS* exhibit the same quality improvement as M = 0 represents a traditional collaborative filtering with the travel penalty technique applied. Also, when M is set to one, both LARS and LARS* achieve the same quality improvement as a fully maintained pyramid is maintained in both cases. For M values between zero and one, the quality improvement of both LARS and LARS* increases for higher values of M due to the increase in recommendation locality. LARS* achieves better quality improvement over LARS because LARS* maintains  -Cells at lower levels of the pyramid. Fig. 9(b) depicts the effect of M on the quality of both LARS and LARS* using the Movilens data set. We report quality improvement over traditional collaborative filtering using the pyramid height of seven and the number of recommended items set to ten. Similar to Foursquare data set, the quality improvement of both LARS and LARS* increases for higher values of M due to the increase in recommendation locality. For M values between zero and one, LARS* consistently achieves higher quality improvement over LARS as LARS* maintains more  -Cells at more granular levels of the pyramid structure.
-
-7.4 Storage Vs. Locality Fig. 10 depicts the impact of varying M on both the storage and locality in LARS* using the synthetic data set. We plot LARS*-M=0 and LARS*-M=1 as constants to delineate the extreme values of M, i.e., M=0 mirrors traditional collaborative filtering, while M=1 forces LARS* to employ a complete pyramid. Our metric for locality is locality loss (defined in Section 4.5.2) when compared to a complete
+7.2 Recommendation Quality for Varying k
+These experiments test recommendation quality improvement of LARS*, LARS*-U, and LARS*-T for different values
+of k (i.e., recommendation answer sizes). We do not plot
+LARS with LARS* as both gives the same result for M=1,
+and the quality experiments are meant to show how the
+degree of locality increases the recommendation quality.
+We perform experiments using both the Foursquare and
+MovieLens data. Our quality metric is exactly the same as
+presented previously in Section 7.1.
+Fig. 8(a) depicts the effect of the recommendation list size
+k on the quality of each technique using the Foursquare
+data set. We report quality numbers using the pyramid
+height of four (i.e., the level exhibiting the best quality from
+Section 7.1 in Fig. 7(a)). For all sizes of k from one to ten,
+LARS* and LARS*-U consistently exhibit better quality. In
+fact, LARS* consistently achieves better quality over CF for
+all k. LARS*-T exhibits similar quality to CF for smaller k
+values, but does better for k values of three and larger.
+Fig. 8(b) depicts the effect of the recommendation list
+size k on the quality of improvement of LARS*-U (and
+LARS*) over CF using the MovieLens data. Notice that
+LARS* gives the same quality improvement as LARS*-U
+because LARS*-T do not apply for this dataset since movies
+are not spatial. This experiment was run using a pyramid
+hight of seven (i.e., the level exhibiting the best quality
+in Fig. 7(b)). Again, LARS*-U (and LARS*) consistently
+exhibits better quality than CF for sizes of K from one to ten.
+7.3 Recommendation Quality for Varying M
+These experiments compares the quality improvement
+achieved by both LARS and LARS* for different values of
+M. We perform experiments using both the Foursquare and
+MovieLens data. Our quality metric is exactly the same as
+presented previously in Section 7.1.
+Fig. 9(a) depicts the effect of M on the quality of both
+LARS and LARS* using the Foursquare data set. Notice that
+we enable both the user partitioning and travel penalty
 
 (a)
-(a) Storage. (b) Locality.
+
+(b)
+
+Fig. 9. Quality experiments for varying value of M. (a) Foursquare
+
+data. (b) MovieLens data.
+
+techniques for both LARS and LARS*. We report quality
+numbers using the pyramid height of four and the number
+of recommended items of ten. When M is equal to zero,
+both LARS and LARS* exhibit the same quality improvement as M = 0 represents a traditional collaborative
+filtering with the travel penalty technique applied. Also,
+when M is set to one, both LARS and LARS* achieve
+the same quality improvement as a fully maintained pyramid is maintained in both cases. For M values between
+zero and one, the quality improvement of both LARS and
+LARS* increases for higher values of M due to the increase
+in recommendation locality. LARS* achieves better quality
+improvement over LARS because LARS* maintains α-Cells
+at lower levels of the pyramid.
+Fig. 9(b) depicts the effect of M on the quality of
+both LARS and LARS* using the Movilens data set.
+We report quality improvement over traditional collaborative filtering using the pyramid height of seven and
+the number of recommended items set to ten. Similar
+to Foursquare data set, the quality improvement of both
+LARS and LARS* increases for higher values of M due
+to the increase in recommendation locality. For M values between zero and one, LARS* consistently achieves
+higher quality improvement over LARS as LARS* maintains more α-Cells at more granular levels of the pyramid
+structure.
+
+7.4 Storage Vs. Locality
+Fig. 10 depicts the impact of varying M on both the storage and locality in LARS* using the synthetic data set. We
+plot LARS*-M=0 and LARS*-M=1 as constants to delineate
+the extreme values of M, i.e., M=0 mirrors traditional collaborative filtering, while M=1 forces LARS* to employ a
+complete pyramid. Our metric for locality is locality loss
+(defined in Section 4.5.2) when compared to a complete
+
+(a)
 
 (b)
 
 Fig. 10. Effect of M on storage and locality (synthetic data).
 
+(a) Storage. (b) Locality.
+
 SARWAT ET AL.: LARS*: AN EFFICIENT AND SCALABLE LOCATION-AWARE RECOMMENDER SYSTEM
 
-1397
-
 (a)
-(a) Storage. (b) Maintenance.
 
 (b)
-Fig.
-
-(a)
-12. Query processing performance (a) Snapshot queries. (b) Continuous queries.
-
-(b)
-(synthetic data).
 
 Fig. 11. Scalability of the adaptive pyramid (synthetic data).
 
-pyramid (i.e., M=1). LARS*-M=0 requires the lowest storage overhead, but exhibits the highest locality loss, while LARS*-M=1 exhibits no locality loss but requires the most storage. For LARS*, increasing M results in increased storage overhead since LARS* favors switching cells to  -Cells, requiring the maintenance of more pyramid cells each with its own collaborative filtering model. Each additional  Cell incurs a high storage overhead over the original data size as an additional collaborative filtering model needs to be maintained. Meanwhile, increasing M results in smaller locality loss as LARS* merges less and maintains more localized cells. The most drastic drop in locality loss is between 0 and 0.3, which is why we chose M=0.3 as a default. LARS* leads to smaller locality loss (26% less) than LARS because LARS* maintains  -Cells below  -Cells which result in higher locality gain. On the other hand, LARS* exhibits slightly higher storage cost (5% more storage) than LARS due to the fact that LARS* stores the Item Ratings Statistics Table per each  -Cell and  -Cell.
+(a) Storage. (b) Maintenance.
 
-7.5 Scalability Fig. 11 depicts the storage and aggregate maintenance overhead required for an increasing number of ratings using the synthetic data set. We again plot LARS*-M=0 and LARS*M=1 to indicate the extreme cases for LARS*. Fig. 11(a) depicts the impact of increasing the number of ratings from 10K to 500K on storage overhead. LARS*-M=0 requires the lowest amount of storage since it only maintains a single collaborative filtering model. LARS*-M=1 requires the highest amount of storage since it requires storage of a collaborative filtering model for all cells (in all levels) of a complete pyramid. The storage requirement of LARS* is in between the two extremes since it merges cells to save storage. Fig. 11(b) depicts the cumulative computational overhead necessary to maintain the adaptive pyramid initially populated with 100K ratings, then updated with 200K ratings (increments of 50K reported). The trend is similar to the storage experiment, where LARS* exhibits better performance than LARS*-M=1 due to switching some cells from  -Cells to  -Cells. Though LARS*-M=0 has the best performance in terms of maintenance and storage overhead, previous experiments show that it has unacceptable drawbacks in quality/locality. Compared to LARS, LARS* has less maintenance overhead (38% less) due to the fact that the maintenance algorithm in LARS* avoids the expensive speculative splitting used by LARS.
+pyramid (i.e., M=1). LARS*-M=0 requires the lowest storage overhead, but exhibits the highest locality loss, while
+LARS*-M=1 exhibits no locality loss but requires the most
+storage. For LARS*, increasing M results in increased storage overhead since LARS* favors switching cells to α-Cells,
+requiring the maintenance of more pyramid cells each with
+its own collaborative filtering model. Each additional αCell incurs a high storage overhead over the original data
+size as an additional collaborative filtering model needs to
+be maintained. Meanwhile, increasing M results in smaller
+locality loss as LARS* merges less and maintains more
+localized cells. The most drastic drop in locality loss is
+between 0 and 0.3, which is why we chose M=0.3 as a
+default. LARS* leads to smaller locality loss (≈26% less)
+than LARS because LARS* maintains α-Cells below β-Cells
+which result in higher locality gain. On the other hand,
+LARS* exhibits slightly higher storage cost (≈5% more storage) than LARS due to the fact that LARS* stores the Item
+Ratings Statistics Table per each α-Cell and β-Cell.
 
-7.6 Query Processing Performance Fig. 12 depicts snapshot and continuous query processing performance of LARS, LARS*, LARS*-U (LARS* with only user partitioning), LARS*-T (LARS* with only travel penalty), CF (traditional collaborative filtering), and LARS*M=1 (LARS* with a complete pyramid), using the synthetic data set. Snapshot queries. Fig. 12(a) gives the effect of various number of ratings (10K to 500K) on the average snapshot query performance averaged over 500 queries posed at random locations. LARS* and LARS*-M=1 consistently outperform all other techniques; LARS*-M=1 is slightly better due to recommendations always being produced from the smallest (i.e., most localized) CF models. The performance gap between LARS* and LARS*-U (and CF and LARS*-T) shows that employing the travel penalty technique with early termination leads to better query response time. Similarly, the performance gap between LARS* and LARS*T shows that employing user partitioning technique with its localized (i.e., smaller) collaborative filtering model also benefits query processing. LARS* performance is slightly better than LARS as LARS* sometimes maintains more localized CF models than LARS which incurs less query processing time. Continuous queries. Fig. 12(b) provides the continuous query processing performance of the LARS* variants by reporting the aggregate response time of 500 continuous queries. A continuous query is issued once by a user u to get an initial answer, then the answer is continuously updated as u moves. We report the aggregate response time when varying the travel distance of u from 1 to 30 miles using a random walk over the spatial area covered by the pyramid. CF has a constant query response time for all travel distances, as it requires no updates since only a single cell is present. However, since CF is unaware of user location change, the consequence is poor recommendation quality (per experiments from Section 7.1). LARS*-M=1 exhibits the worse performance, as it maintains all cells on all levels and updates the continuous query whenever the user crosses pyramid cell boundaries. LARS*-U has a lower response time than LARS*-M=1 due to switching cells from  -Cells to  -Cells: when a cell is not present on a given influence level, the query is transferred to its next highest ancestor in the pyramid. Since cells higher in the pyramid cover larger spatial regions, query updates occur less often. LARS*-T exhibits slightly higher query processing overhead compared to LARS*U: even though LARS*-T employs the early termination
+7.5 Scalability
+Fig. 11 depicts the storage and aggregate maintenance overhead required for an increasing number of ratings using the
+synthetic data set. We again plot LARS*-M=0 and LARS*M=1 to indicate the extreme cases for LARS*. Fig. 11(a)
+depicts the impact of increasing the number of ratings from
+10K to 500K on storage overhead. LARS*-M=0 requires
+the lowest amount of storage since it only maintains a
+single collaborative filtering model. LARS*-M=1 requires
+the highest amount of storage since it requires storage
+of a collaborative filtering model for all cells (in all levels) of a complete pyramid. The storage requirement of
+LARS* is in between the two extremes since it merges
+cells to save storage. Fig. 11(b) depicts the cumulative
+computational overhead necessary to maintain the adaptive pyramid initially populated with 100K ratings, then
+updated with 200K ratings (increments of 50K reported).
+The trend is similar to the storage experiment, where
+LARS* exhibits better performance than LARS*-M=1 due
+to switching some cells from α-Cells to β-Cells. Though
+LARS*-M=0 has the best performance in terms of maintenance and storage overhead, previous experiments show
+that it has unacceptable drawbacks in quality/locality.
+Compared to LARS, LARS* has less maintenance overhead
+(≈38% less) due to the fact that the maintenance algorithm
+in LARS* avoids the expensive speculative splitting used
+by LARS.
+
+(a)
+12. Query processing performance
+(a) Snapshot queries. (b) Continuous queries.
+
+Fig.
+
+1397
+
+(b)
+(synthetic
+
+data).
+
+7.6 Query Processing Performance
+Fig. 12 depicts snapshot and continuous query processing performance of LARS, LARS*, LARS*-U (LARS* with
+only user partitioning), LARS*-T (LARS* with only travel
+penalty), CF (traditional collaborative filtering), and LARS*M=1 (LARS* with a complete pyramid), using the synthetic
+data set.
+Snapshot queries. Fig. 12(a) gives the effect of various
+number of ratings (10K to 500K) on the average snapshot query performance averaged over 500 queries posed
+at random locations. LARS* and LARS*-M=1 consistently
+outperform all other techniques; LARS*-M=1 is slightly better due to recommendations always being produced from
+the smallest (i.e., most localized) CF models. The performance gap between LARS* and LARS*-U (and CF and
+LARS*-T) shows that employing the travel penalty technique
+with early termination leads to better query response time.
+Similarly, the performance gap between LARS* and LARS*T shows that employing user partitioning technique with
+its localized (i.e., smaller) collaborative filtering model also
+benefits query processing. LARS* performance is slightly
+better than LARS as LARS* sometimes maintains more
+localized CF models than LARS which incurs less query
+processing time.
+Continuous queries. Fig. 12(b) provides the continuous
+query processing performance of the LARS* variants by
+reporting the aggregate response time of 500 continuous
+queries. A continuous query is issued once by a user u
+to get an initial answer, then the answer is continuously
+updated as u moves. We report the aggregate response
+time when varying the travel distance of u from 1 to 30
+miles using a random walk over the spatial area covered
+by the pyramid. CF has a constant query response time for
+all travel distances, as it requires no updates since only
+a single cell is present. However, since CF is unaware
+of user location change, the consequence is poor recommendation quality (per experiments from Section 7.1).
+LARS*-M=1 exhibits the worse performance, as it maintains all cells on all levels and updates the continuous
+query whenever the user crosses pyramid cell boundaries.
+LARS*-U has a lower response time than LARS*-M=1 due
+to switching cells from α-Cells to β-Cells: when a cell is
+not present on a given influence level, the query is transferred to its next highest ancestor in the pyramid. Since
+cells higher in the pyramid cover larger spatial regions,
+query updates occur less often. LARS*-T exhibits slightly
+higher query processing overhead compared to LARS*U: even though LARS*-T employs the early termination
 
 1398
 
 IEEE TRANSACTIONS ON KNOWLEDGE AND DATA ENGINEERING, VOL. 26, NO. 6, JUNE 2014
 
-algorithm, it uses a large (system-wide) collaborative filtering model to (re)generate recommendations once users cross boundaries in the penalty grid. LARS* exhibits a better aggregate response time since it employs the early termination algorithm using a localized (i.e., smaller) collaborative filtering model to produce results while also switching cells to  -Cells to reduce update frequency. LARS has a slightly better performance than LARS* as LARS tends to merge more cells at higher levels in the pyramid structure.
+algorithm, it uses a large (system-wide) collaborative filtering model to (re)generate recommendations once users
+cross boundaries in the penalty grid. LARS* exhibits a
+better aggregate response time since it employs the early
+termination algorithm using a localized (i.e., smaller) collaborative filtering model to produce results while also
+switching cells to β-Cells to reduce update frequency. LARS
+has a slightly better performance than LARS* as LARS
+tends to merge more cells at higher levels in the pyramid
+structure.
 
 8
 
 R ELATED W ORK
 
-Location-based services. Current location-based services employ two main methods to provide interesting destinations to users. (1) KNN techniques [22] and variants (e.g., aggregate KNN [24]) simply retrieve the k objects nearest to a user and are completely removed from any notion of user personalization. (2) Preference methods such as skylines [25] (and spatial variants [26]) and location-based top-k methods [27] require users to express explicit preference constraints. Conversely, LARS* is the first locationbased service to consider implicit preferences by using location-based ratings to help users discover new items. Recent research has proposed the problem of hyper-local place ranking [28]. Given a user location and query string (e.g., "French restaurant"), hyper-local ranking provides a list of top-k points of interest influenced by previously logged directional queries (e.g., map direction searches from point A to point B). While similar in spirit to LARS*, hyper-local ranking is fundamentally different from our work as it does not personalize answers to the querying user, i.e., two users issuing the same search term from the same location will receive exactly the same ranked answer. Traditional recommenders. A wide array of techniques are capable of producing recommendations using nonspatial ratings for non-spatial items represented as the triple (user, rating, item) (see [4] for a comprehensive survey). We refer to these as "traditional" recommendation techniques. The closest these approaches come to considering location is by incorporating contextual attributes into statistical recommendation models (e.g., weather, traffic to a destination) [29]. However, no traditional approach has studied explicit location-based ratings as done in LARS*. Some existing commercial applications make cursory use of location when proposing interesting items to users. For instance, Netflix displays a "local favorites" list containing popular movies for a user's given city. However, these movies are not personalized to each user (e.g., using recommendation techniques); rather, this list is built using aggregate rental data for a particular city [30]. LARS*, on the other hand, produces personalized recommendations influenced by location-based ratings and a query location. Location-aware recommenders. The CityVoyager system [31] mines a user's personal GPS trajectory data to determine her preferred shopping sites, and provides recommendation based on where the system predicts the user is likely to go in the future. LARS*, conversely, does not attempt to predict future user movement, as it produces recommendations influenced by user and/or item locations embedded in community ratings.
+Location-based services. Current location-based services
+employ two main methods to provide interesting destinations to users. (1) KNN techniques [22] and variants (e.g.,
+aggregate KNN [24]) simply retrieve the k objects nearest
+to a user and are completely removed from any notion of
+user personalization. (2) Preference methods such as skylines [25] (and spatial variants [26]) and location-based
+top-k methods [27] require users to express explicit preference constraints. Conversely, LARS* is the first locationbased service to consider implicit preferences by using
+location-based ratings to help users discover new items.
+Recent research has proposed the problem of hyper-local
+place ranking [28]. Given a user location and query string
+(e.g., “French restaurant"), hyper-local ranking provides a
+list of top-k points of interest influenced by previously
+logged directional queries (e.g., map direction searches
+from point A to point B). While similar in spirit to LARS*,
+hyper-local ranking is fundamentally different from our
+work as it does not personalize answers to the querying user,
+i.e., two users issuing the same search term from the same
+location will receive exactly the same ranked answer.
+Traditional recommenders. A wide array of techniques
+are capable of producing recommendations using nonspatial ratings for non-spatial items represented as the triple
+(user, rating, item) (see [4] for a comprehensive survey).
+We refer to these as “traditional" recommendation techniques. The closest these approaches come to considering
+location is by incorporating contextual attributes into statistical recommendation models (e.g., weather, traffic to
+a destination) [29]. However, no traditional approach has
+studied explicit location-based ratings as done in LARS*.
+Some existing commercial applications make cursory use
+of location when proposing interesting items to users. For
+instance, Netflix displays a “local favorites” list containing popular movies for a user’s given city. However, these
+movies are not personalized to each user (e.g., using recommendation techniques); rather, this list is built using
+aggregate rental data for a particular city [30]. LARS*, on
+the other hand, produces personalized recommendations
+influenced by location-based ratings and a query location.
+Location-aware recommenders. The CityVoyager system [31] mines a user’s personal GPS trajectory data to
+determine her preferred shopping sites, and provides recommendation based on where the system predicts the user
+is likely to go in the future. LARS*, conversely, does not
+attempt to predict future user movement, as it produces
+recommendations influenced by user and/or item locations
+embedded in community ratings.
 
-The spatial activity recommendation system [32] mines GPS trajectory data with embedded user-provided tags in order to detect interesting activities located in a city (e.g., art exhibits and dining near downtown). It uses this data to answer two query types: (a) given an activity type, return where in the city this activity is happening, and (b) given an explicit spatial region, provide the activities available in this region. This is a vastly different problem than we study in this paper. LARS* does not mine activities from GPS data for use as suggestions for a given spatial region. Rather, we apply LARS* to a more traditional recommendation problem that uses community opinion histories to produce recommendations. Geo-measured friend-based collaborative filtering [33] produces recommendations by using only ratings that are from a querying user's social-network friends that live in the same city. This technique only addresses user location embedded in ratings. LARS*, on the other hand, addresses three possible types of location-based ratings. More importantly, LARS* is a complete system (not just a recommendation technique) that employs efficiency and scalability techniques (e.g., partial pyramid structure, early query termination) necessary for deployment in actual large-scale applications.
+The spatial activity recommendation system [32] mines
+GPS trajectory data with embedded user-provided tags in
+order to detect interesting activities located in a city (e.g., art
+exhibits and dining near downtown). It uses this data to
+answer two query types: (a) given an activity type, return
+where in the city this activity is happening, and (b) given
+an explicit spatial region, provide the activities available
+in this region. This is a vastly different problem than we
+study in this paper. LARS* does not mine activities from
+GPS data for use as suggestions for a given spatial region.
+Rather, we apply LARS* to a more traditional recommendation problem that uses community opinion histories to
+produce recommendations.
+Geo-measured friend-based collaborative filtering [33]
+produces recommendations by using only ratings that are
+from a querying user’s social-network friends that live in
+the same city. This technique only addresses user location
+embedded in ratings. LARS*, on the other hand, addresses
+three possible types of location-based ratings. More importantly, LARS* is a complete system (not just a recommendation technique) that employs efficiency and scalability
+techniques (e.g., partial pyramid structure, early query termination) necessary for deployment in actual large-scale
+applications.
 
 9
 
 C ONCLUSION
 
-LARS*, our proposed location-aware recommender system, tackles a problem untouched by traditional recommender systems by dealing with three types of location-based ratings: spatial ratings for non-spatial items, non-spatial ratings for spatial items, and spatial ratings for spatial items. LARS* employs user partitioning and travel penalty techniques to support spatial ratings and spatial items, respectively. Both techniques can be applied separately or in concert to support the various types of location-based ratings. Experimental analysis using real and synthetic data sets show that LARS* is efficient, scalable, and provides better quality recommendations than techniques used in traditional recommender systems.
+LARS*, our proposed location-aware recommender system,
+tackles a problem untouched by traditional recommender
+systems by dealing with three types of location-based
+ratings: spatial ratings for non-spatial items, non-spatial ratings for spatial items, and spatial ratings for spatial items.
+LARS* employs user partitioning and travel penalty techniques to support spatial ratings and spatial items, respectively. Both techniques can be applied separately or in
+concert to support the various types of location-based ratings. Experimental analysis using real and synthetic data
+sets show that LARS* is efficient, scalable, and provides
+better quality recommendations than techniques used in
+traditional recommender systems.
 
 ACKNOWLEDGMENTS
-This work was supported in part by the US National Science Foundation under Grants IIS-0811998, IIS-0811935, CNS-0708604, IIS-0952977 and in part by a Microsoft Research Gift.
+This work was supported in part by the US National
+Science Foundation under Grants IIS-0811998, IIS-0811935,
+CNS-0708604, IIS-0952977 and in part by a Microsoft
+Research Gift.
 
 R EFERENCES
-[1] G. Linden, B. Smith, and J. York, "Amazon.com recommendations: Item-to-item collaborative filtering," IEEE Internet Comput., vol. 7, no. 1, pp. 76�80, Jan./Feb. 2003. [2] P. Resnick, N. Iacovou, M. Suchak, P. Bergstrom, and J. Riedl, "GroupLens: An open architecture for collaborative filtering of netnews," in Proc. CSWC, Chapel Hill, NC, USA, 1994. [3] The facebook blog. Facebook Places [Online]. Available: http://tinyurl.com/3aetfs3 [4] G. Adomavicius and A. Tuzhilin, "Toward the next generation of recommender systems: A survey of the state-of-the-art and possible extensions," IEEE Trans. Knowl. Data Eng., vol. 17, no. 6, pp. 734�749, Jun. 2005. [5] MovieLens [Online]. Available: http://www.movielens.org/ [6] Foursquare [Online]. Available: http://foursquare.com
+[1] G. Linden, B. Smith, and J. York, “Amazon.com recommendations: Item-to-item collaborative filtering,” IEEE Internet Comput.,
+vol. 7, no. 1, pp. 76–80, Jan./Feb. 2003.
+[2] P. Resnick, N. Iacovou, M. Suchak, P. Bergstrom, and J. Riedl,
+“GroupLens: An open architecture for collaborative filtering of
+netnews,” in Proc. CSWC, Chapel Hill, NC, USA, 1994.
+[3] The facebook blog. Facebook Places [Online]. Available:
+http://tinyurl.com/3aetfs3
+[4] G. Adomavicius and A. Tuzhilin, “Toward the next generation of
+recommender systems: A survey of the state-of-the-art and possible extensions,” IEEE Trans. Knowl. Data Eng., vol. 17, no. 6,
+pp. 734–749, Jun. 2005.
+[5] MovieLens [Online]. Available: http://www.movielens.org/
+[6] Foursquare [Online]. Available: http://foursquare.com
 
 SARWAT ET AL.: LARS*: AN EFFICIENT AND SCALABLE LOCATION-AWARE RECOMMENDER SYSTEM
 
+[7] New York Times - A Peek into Netflix Queues [Online]. Available:
+http://www.nytimes.com/interactive/2010/01/10/nyregion/
+20100110-netflix-map.html
+[8] J. J. Levandoski, M. Sarwat, A. Eldawy, and M. F. Mokbel,
+“LARS: A location-aware recommender system,” in Proc. ICDE,
+Washington, DC, USA, 2012.
+[9] B. Sarwar, G. Karypis, J. Konstan, and J. Riedl, “Item-based collaborative filtering recommendation algorithms,” in Proc. Int. Conf.
+WWW, Hong Kong, China, 2001.
+[10] J. S. Breese, D. Heckerman, and C. Kadie, “Empirical analysis
+of predictive algorithms for collaborative filtering,” in Proc. Conf.
+UAI, San Francisco, CA, USA, 1998.
+[11] W. G. Aref and H. Samet, “Efficient processing of window queries
+in the pyramid data structure,” in Proc. ACM Symp. PODS, New
+York, NY, USA, 1990.
+[12] R. A. Finkel and J. L. Bentley, “Quad trees: A data structure for
+retrieval on composite keys,” Acta Inf., vol. 4, no. 1, pp. 1–9, 1974.
+[13] A. Guttman, “R-trees: A dynamic index structure for spatial
+searching,” in Proc. SIGMOD, New York, NY, USA, 1984.
+[14] K. Mouratidis, S. Bakiras, and D. Papadias, “Continuous monitoring of spatial queries in wireless broadcast environments,” IEEE
+Trans. Mobile Comput., vol. 8, no. 10, pp. 1297–1311, Oct. 2009.
+[15] K. Mouratidis and D. Papadias, “Continuous nearest neighbor
+queries over sliding windows,” IEEE Trans. Knowl. Data Eng.,
+vol. 19, no. 6, pp. 789–803, Jun. 2007.
+[16] M. F. Mokbel, X. Xiong, and W. G. Aref, “SINA: Scalable
+incremental processing of continuous queries in spatiotemporal
+databases,” in Proc. SIGMOD, Paris, France, 2004.
+[17] J. L. Herlocker, J. A. Konstan, L. G. Terveen, and J. T. Riedl,
+“Evaluating collaborative filtering recommender systems,” ACM
+TOIS, vol. 22, no. 1, pp. 5–53, 2004.
+[18] M. J. Carey and D. Kossmann, “On saying "Enough Already!" in
+SQL,” in Proc. SIGMOD, New York, NY, USA, 1997.
+[19] S. Chaudhuri and L. Gravano, “Evaluating top-k selection
+queries,” in Proc. Int. Conf. VLDB, Edinburgh, U.K., 1999.
+[20] R. Fagin, A. Lotem, and M. Naor, “Optimal aggregation algorithms for middleware,” in Proc. ACM Symp. PODS, New York,
+NY, USA, 2001.
+[21] J. Bao, C.-Y. Chow, M. F. Mokbel, and W.-S. Ku, “Efficient evaluation of k-range nearest neighbor queries in road networks,” in
+Proc. Int. Conf. MDM, Kansas City, MO, USA, 2010.
+[22] G. R. Hjaltason and H. Samet, “Distance browsing in spatial
+databases,” ACM TODS, vol. 24, no. 2, pp. 265–318, 1999.
+[23] K. Mouratidis, M. L. Yiu, D. Papadias, and N. Mamoulis,
+“Continuous nearest neighbor monitoring in road networks,” in
+Proc. Int. Conf. VLDB, Seoul, Korea, 2006.
+[24] D. Papadias, Y. Tao, K. Mouratidis, and C. K. Hui, “Aggregate
+nearest neighbor queries in spatial databases,” ACM TODS,
+vol. 30, no. 2, pp. 529–576, 2005.
+[25] S. Börzsönyi, D. Kossmann, and K. Stocker, “The skyline operator,” in Proc. ICDE, Heidelberg, Germany, 2001.
+[26] M. Sharifzadeh and C. Shahabi, “The spatial skyline queries,” in
+Proc. Int. Conf. VLDB, Seoul, Korea, 2006.
+[27] N. Bruno, L. Gravano, and A. Marian, “Evaluating top-k queries
+over web-accessible databases,” in Proc. ICDE, San Jose, CA, USA,
+2002.
+[28] P. Venetis, H. Gonzalez, C. S. Jensen, and A. Y. Halevy, “Hyperlocal, directions-based ranking of places,” PVLDB, vol. 4, no. 5,
+pp. 290–301, 2011.
+[29] M.-H. Park, J.-H. Hong, and S.-B. Cho, “Location-based recommendation system using Bayesian user’s preference model in
+mobile devices,” in Proc. Int. Conf. UIC, Hong Kong, China, 2007.
+[30] Netflix News and Info - Local Favorites [Online]. Available:
+http://tinyurl.com/4qt8ujo
+[31] Y. Takeuchi and M. Sugimoto, “An outdoor recommendation system based on user location history,” in Proc. Int. Conf. UIC, Berlin,
+Germany, 2006.
+[32] V. W. Zheng, Y. Zheng, X. Xie, and Q. Yang, “Collaborative location and activity recommendations with GPS history data,” in
+Proc. Int. Conf. WWW, New York, NY, USA, 2010.
+[33] M. Ye, P. Yin, and W.-C. Lee, “Location recommendation for
+location-based social networks,” in Proc. ACM GIS, New York,
+NY, USA , 2010.
+
 1399
 
-[7] New York Times - A Peek into Netflix Queues [Online]. Available: http://www.nytimes.com/interactive/2010/01/10/nyregion/ 20100110-netflix-map.html [8] J. J. Levandoski, M. Sarwat, A. Eldawy, and M. F. Mokbel, "LARS: A location-aware recommender system," in Proc. ICDE, Washington, DC, USA, 2012. [9] B. Sarwar, G. Karypis, J. Konstan, and J. Riedl, "Item-based collaborative filtering recommendation algorithms," in Proc. Int. Conf. WWW, Hong Kong, China, 2001. [10] J. S. Breese, D. Heckerman, and C. Kadie, "Empirical analysis of predictive algorithms for collaborative filtering," in Proc. Conf. UAI, San Francisco, CA, USA, 1998. [11] W. G. Aref and H. Samet, "Efficient processing of window queries in the pyramid data structure," in Proc. ACM Symp. PODS, New York, NY, USA, 1990. [12] R. A. Finkel and J. L. Bentley, "Quad trees: A data structure for retrieval on composite keys," Acta Inf., vol. 4, no. 1, pp. 1�9, 1974. [13] A. Guttman, "R-trees: A dynamic index structure for spatial searching," in Proc. SIGMOD, New York, NY, USA, 1984. [14] K. Mouratidis, S. Bakiras, and D. Papadias, "Continuous monitoring of spatial queries in wireless broadcast environments," IEEE Trans. Mobile Comput., vol. 8, no. 10, pp. 1297�1311, Oct. 2009. [15] K. Mouratidis and D. Papadias, "Continuous nearest neighbor queries over sliding windows," IEEE Trans. Knowl. Data Eng., vol. 19, no. 6, pp. 789�803, Jun. 2007. [16] M. F. Mokbel, X. Xiong, and W. G. Aref, "SINA: Scalable incremental processing of continuous queries in spatiotemporal databases," in Proc. SIGMOD, Paris, France, 2004. [17] J. L. Herlocker, J. A. Konstan, L. G. Terveen, and J. T. Riedl, "Evaluating collaborative filtering recommender systems," ACM TOIS, vol. 22, no. 1, pp. 5�53, 2004. [18] M. J. Carey and D. Kossmann, "On saying "Enough Already!" in SQL," in Proc. SIGMOD, New York, NY, USA, 1997. [19] S. Chaudhuri and L. Gravano, "Evaluating top-k selection queries," in Proc. Int. Conf. VLDB, Edinburgh, U.K., 1999. [20] R. Fagin, A. Lotem, and M. Naor, "Optimal aggregation algorithms for middleware," in Proc. ACM Symp. PODS, New York, NY, USA, 2001. [21] J. Bao, C.-Y. Chow, M. F. Mokbel, and W.-S. Ku, "Efficient evaluation of k-range nearest neighbor queries in road networks," in Proc. Int. Conf. MDM, Kansas City, MO, USA, 2010. [22] G. R. Hjaltason and H. Samet, "Distance browsing in spatial databases," ACM TODS, vol. 24, no. 2, pp. 265�318, 1999. [23] K. Mouratidis, M. L. Yiu, D. Papadias, and N. Mamoulis, "Continuous nearest neighbor monitoring in road networks," in Proc. Int. Conf. VLDB, Seoul, Korea, 2006. [24] D. Papadias, Y. Tao, K. Mouratidis, and C. K. Hui, "Aggregate nearest neighbor queries in spatial databases," ACM TODS, vol. 30, no. 2, pp. 529�576, 2005. [25] S. B�rzs�nyi, D. Kossmann, and K. Stocker, "The skyline operator," in Proc. ICDE, Heidelberg, Germany, 2001. [26] M. Sharifzadeh and C. Shahabi, "The spatial skyline queries," in Proc. Int. Conf. VLDB, Seoul, Korea, 2006. [27] N. Bruno, L. Gravano, and A. Marian, "Evaluating top-k queries over web-accessible databases," in Proc. ICDE, San Jose, CA, USA, 2002. [28] P. Venetis, H. Gonzalez, C. S. Jensen, and A. Y. Halevy, "Hyperlocal, directions-based ranking of places," PVLDB, vol. 4, no. 5, pp. 290�301, 2011. [29] M.-H. Park, J.-H. Hong, and S.-B. Cho, "Location-based recommendation system using Bayesian user's preference model in mobile devices," in Proc. Int. Conf. UIC, Hong Kong, China, 2007. [30] Netflix News and Info - Local Favorites [Online]. Available: http://tinyurl.com/4qt8ujo [31] Y. Takeuchi and M. Sugimoto, "An outdoor recommendation system based on user location history," in Proc. Int. Conf. UIC, Berlin, Germany, 2006. [32] V. W. Zheng, Y. Zheng, X. Xie, and Q. Yang, "Collaborative location and activity recommendations with GPS history data," in Proc. Int. Conf. WWW, New York, NY, USA, 2010. [33] M. Ye, P. Yin, and W.-C. Lee, "Location recommendation for location-based social networks," in Proc. ACM GIS, New York, NY, USA , 2010.
+Mohamed Sarwat is a Doctoral candidate
+in the Department of Computer Science
+and Engineering, University of Minnesota,
+Minneapolis, MN, USA. He received the bachelor’s degree in computer engineering from
+Cairo University, Egypt, in 2007 and the master’s
+degree in computer science from the University
+of Minnesota in 2011. His current research interests include a broad area of data management
+systems, more specifically, database systems,
+database support for recommender systems,
+personalized databases, database support for location-based services
+and for social networking applications, distributed graph databases,
+and large scale data management. He was awarded the University of
+Minnesota Doctoral Dissertation Fellowship in 2012. His research was
+recognized by the Best Research Paper Award at the 12th International
+Symposium on Spatial and Temporal Databases, in 2011.
 
-Mohamed Sarwat is a Doctoral candidate in the Department of Computer Science and Engineering, University of Minnesota, Minneapolis, MN, USA. He received the bachelor's degree in computer engineering from Cairo University, Egypt, in 2007 and the master's degree in computer science from the University of Minnesota in 2011. His current research interests include a broad area of data management systems, more specifically, database systems, database support for recommender systems, personalized databases, database support for location-based services and for social networking applications, distributed graph databases, and large scale data management. He was awarded the University of Minnesota Doctoral Dissertation Fellowship in 2012. His research was recognized by the Best Research Paper Award at the 12th International Symposium on Spatial and Temporal Databases, in 2011.
+Justin J. Levandoski is a Researcher with
+the Database Group at Microsoft Research,
+Redmond, WA, USA. He received the bachelor’s
+degree at Carleton College, Northfield, MN, USA
+in 2003, and the master’s and Ph.D. degrees
+from the University of Minnesota, Minneapolis,
+MN, USA, in 2008 and 2011, respectively. His
+current research interests include a broad range
+of topics dealing with large-scale data management systems, such as cloud computing,
+database support for new hardware paradigms,
+transaction processing, query processing, and support for new dataintensive applications such as social/recommender systems.
 
-Justin J. Levandoski is a Researcher with the Database Group at Microsoft Research, Redmond, WA, USA. He received the bachelor's degree at Carleton College, Northfield, MN, USA in 2003, and the master's and Ph.D. degrees from the University of Minnesota, Minneapolis, MN, USA, in 2008 and 2011, respectively. His current research interests include a broad range of topics dealing with large-scale data management systems, such as cloud computing, database support for new hardware paradigms, transaction processing, query processing, and support for new dataintensive applications such as social/recommender systems.
+Ahmed Eldawy is a Ph.D. student in
+the Department of Computer Science
+and Engineering, University of Minnesota,
+Minneapolis, MN, USA. His current research
+interests include spatial data management,
+social networks, and cloud computing, such
+as building scalable spatial data management
+systems over cloud computing platforms. He
+received the bachelor’s and master’s degrees
+in computer science from Alexandria University,
+Egypt, in 2005 and 2010, respectively.
 
-Ahmed Eldawy is a Ph.D. student in the Department of Computer Science and Engineering, University of Minnesota, Minneapolis, MN, USA. His current research interests include spatial data management, social networks, and cloud computing, such as building scalable spatial data management systems over cloud computing platforms. He received the bachelor's and master's degrees in computer science from Alexandria University, Egypt, in 2005 and 2010, respectively.
+Mohamed F. Mokbel received the B.Sc. and
+M.S. degrees from Alexandria University, Egypt,
+in 1996 and 1999, respectively, and the
+Ph.D. degree from Purdue University, West
+Lafayette, IN, USA, in 2005. Currently, he is
+an Assistant Professor in the Department of
+Computer Science and Engineering, University
+of Minnesota, Minneapolis, MN, USA. His current
+research interests include advancing the stateof-the-art in the design and implementation of
+database engines to cope with the requirements
+of emerging applications (e.g., location-based applications and sensor
+networks). His research works has been recognized by three Best Paper
+Awards at IEEE MASS 2008, MDM 2009, and SSTD 2011. He is a recipient of the US NSF CAREER Award 2010. He has actively participated
+in several program committees for major conferences including ICDE,
+SIGMOD, VLDB, SSTD, and ACM GIS. He is/was a program Co-Chair
+for ACM SIGSPATIAL GIS 2008, 2009, and 2010. He is an ACM and an
+IEEE member and a founding member of ACM SIGSPATIAL.
 
-Mohamed F. Mokbel received the B.Sc. and M.S. degrees from Alexandria University, Egypt, in 1996 and 1999, respectively, and the Ph.D. degree from Purdue University, West Lafayette, IN, USA, in 2005. Currently, he is an Assistant Professor in the Department of Computer Science and Engineering, University of Minnesota, Minneapolis, MN, USA. His current research interests include advancing the stateof-the-art in the design and implementation of database engines to cope with the requirements of emerging applications (e.g., location-based applications and sensor networks). His research works has been recognized by three Best Paper Awards at IEEE MASS 2008, MDM 2009, and SSTD 2011. He is a recipient of the US NSF CAREER Award 2010. He has actively participated in several program committees for major conferences including ICDE, SIGMOD, VLDB, SSTD, and ACM GIS. He is/was a program Co-Chair for ACM SIGSPATIAL GIS 2008, 2009, and 2010. He is an ACM and an IEEE member and a founding member of ACM SIGSPATIAL.
-
-For more information on this or any other computing topic, please visit our Digital Library at www.computer.org/publications/dlib.
+ For more information on this or any other computing topic,
+please visit our Digital Library at www.computer.org/publications/dlib.
 
 

@@ -1,70 +1,657 @@
-Identification of K Most Vulnerable Nodes in Multi-layered Network Using a New Model of Interdependency
+Identification of K Most Vulnerable Nodes in
+Multi-layered Network Using a New Model of
+Interdependency
 Arunabha Sen, Anisha Mazumder, Joydeep Banerjee, Arun Das and Randy Compton
 Computer Science and Engineering Program
-School of Computing, Informatics and Decision System Engineering Arizona State University Tempe, Arizona 85287 Email: {asen, amazumde, Joydeep.Banerjee, adas22, Randy.Compton}@asu.edu
 
 arXiv:1401.1783v1 [cs.NI] 8 Jan 2014
 
-Abstract--The critical infrastructures of the nation including the power grid and the communication network are highly interdependent. Recognizing the need for a deeper understanding of the interdependency in a multi-layered network, significant efforts have been made by the research community in the last few years to achieve this goal. Accordingly a number of models have been proposed and analyzed. Unfortunately, most of the models are over simplified and, as such, they fail to capture the complex interdependency that exists between entities of the power grid and the communication networks involving a combination of conjunctive and disjunctive relations. To overcome the limitations of existing models, we propose a new model that is able to capture such complex interdependency relations. Utilizing this model, we provide techniques to identify the K most vulnerable nodes of an interdependent network. We show that the problem can be solved in polynomial time in some special cases, whereas for some others, the problem is NP-complete. We establish that this problem is equivalent to computation of a fixed point of a multilayered network system and we provide a technique for its computation utilizing Integer Linear Programming. Finally, we evaluate the efficacy of our technique using real data collected from the power grid and the communication network that span the Maricopa County of Arizona.
+School of Computing, Informatics and Decision System Engineering
+Arizona State University
+Tempe, Arizona 85287
+Email: {asen, amazumde, Joydeep.Banerjee, adas22, Randy.Compton}@asu.edu
 
-I. I NTRODUCTION In the last few years there has been an increasing awareness in the research community that the critical infrastructures of the nation are closely coupled in the sense that the well being of one infrastructure depends heavily on the well being of another. A case in point is the interdependency between the electric power grid and the communication network. The power grid entities, such as the SCADA systems that control power stations and sub-stations, receive their commands through communication networks, while the entities of communication network, such as routers and base stations, cannot operate without electric power. Cascading failures in the power grid, are even more complex now because of the coupling between power grid and communication network. Due to this coupling, not only entities in power networks, such as generators and transmission lines, can trigger power failure, communication network entities, such as routers and optical fiber lines, can also trigger failure in power grid. Thus it is essential that the interdependency between different types of networks be understood well, so that preventive measures can be taken to
+Abstract—The critical infrastructures of the nation including
+the power grid and the communication network are highly
+interdependent. Recognizing the need for a deeper understanding
+of the interdependency in a multi-layered network, significant
+efforts have been made by the research community in the last
+few years to achieve this goal. Accordingly a number of models
+have been proposed and analyzed. Unfortunately, most of the
+models are over simplified and, as such, they fail to capture the
+complex interdependency that exists between entities of the power
+grid and the communication networks involving a combination of
+conjunctive and disjunctive relations. To overcome the limitations
+of existing models, we propose a new model that is able to
+capture such complex interdependency relations. Utilizing this
+model, we provide techniques to identify the K most vulnerable
+nodes of an interdependent network. We show that the problem
+can be solved in polynomial time in some special cases, whereas
+for some others, the problem is NP-complete. We establish that
+this problem is equivalent to computation of a fixed point of a
+multilayered network system and we provide a technique for its
+computation utilizing Integer Linear Programming. Finally, we
+evaluate the efficacy of our technique using real data collected
+from the power grid and the communication network that span
+the Maricopa County of Arizona.
 
-avoid cascading catastrophic failures in multi-layered network environments. Recognizing the need for a deeper understanding of the interdependency in a multi-layered network, significant efforts have been made in the research community in the last few years to achieve this goal [1], [2], [3], [4], [5], [6], [7], [8]. Accordingly a number of models have been proposed and analyzed. Unfortunately, many of the proposed models are overly simplistic in nature and as such they fail to capture the complex interdependency that exists between power grid and communication networks. In a highly cited paper [1], the authors assume that every node in one network depends on one and only one node of the other network. However, in a follow up paper [2], the same authors argue that this assumption may not be valid in the real world and a single node in one network may depend on more than one node in the other network. A node in one network may be functional ("alive") as long as one supporting node on the other network is functional. Although this generalization can account for disjunctive dependency of a node in the A network (say ai ) on more than one node in the B network (say, bj and bk ), implying that ai may be "alive" as long as either bi or bj is alive, it cannot account for conjunctive dependency of the form when both bj and bk has to be alive in order for ai to be alive. In a real network the dependency is likely to be even more complex involving both disjunctive and conjunctive components. For example, ai may be alive if (i) bj and bk and bl are alive, or (ii) bm and bn are alive, or (iii) bp is alive. The graph based interdependency models proposed in the literature [3], [4], [5], [9], [6], [7] including [1], [2] cannot capture such complex interdependency between entities of multilayer networks. In order to capture such complex interdependency, we propose a new model using Boolean logic. Utilizing this comprehensive model, we provide techniques to identify the K most vulnerable nodes of an interdependent multilayered network system. We show that the this problem can be solved in polynomial time for some special cases, whereas for some others, the problem is NP-complete. We also show that this problem is equivalent to computation of a fixed point [10] and we provide a technique utilizing Integer Linear Programming
+I. I NTRODUCTION
+In the last few years there has been an increasing awareness
+in the research community that the critical infrastructures of
+the nation are closely coupled in the sense that the well being
+of one infrastructure depends heavily on the well being of another. A case in point is the interdependency between the electric power grid and the communication network. The power
+grid entities, such as the SCADA systems that control power
+stations and sub-stations, receive their commands through
+communication networks, while the entities of communication
+network, such as routers and base stations, cannot operate
+without electric power. Cascading failures in the power grid,
+are even more complex now because of the coupling between
+power grid and communication network. Due to this coupling,
+not only entities in power networks, such as generators and
+transmission lines, can trigger power failure, communication
+network entities, such as routers and optical fiber lines, can
+also trigger failure in power grid. Thus it is essential that
+the interdependency between different types of networks be
+understood well, so that preventive measures can be taken to
+
+avoid cascading catastrophic failures in multi-layered network
+environments.
+Recognizing the need for a deeper understanding of the
+interdependency in a multi-layered network, significant efforts
+have been made in the research community in the last few
+years to achieve this goal [1], [2], [3], [4], [5], [6], [7], [8].
+Accordingly a number of models have been proposed and
+analyzed. Unfortunately, many of the proposed models are
+overly simplistic in nature and as such they fail to capture
+the complex interdependency that exists between power grid
+and communication networks. In a highly cited paper [1], the
+authors assume that every node in one network depends on one
+and only one node of the other network. However, in a follow
+up paper [2], the same authors argue that this assumption may
+not be valid in the real world and a single node in one network
+may depend on more than one node in the other network. A
+node in one network may be functional (“alive”) as long as
+one supporting node on the other network is functional.
+Although this generalization can account for disjunctive
+dependency of a node in the A network (say ai ) on more
+than one node in the B network (say, bj and bk ), implying
+that ai may be “alive” as long as either bi or bj is alive,
+it cannot account for conjunctive dependency of the form
+when both bj and bk has to be alive in order for ai to
+be alive. In a real network the dependency is likely to be
+even more complex involving both disjunctive and conjunctive
+components. For example, ai may be alive if (i) bj and bk and
+bl are alive, or (ii) bm and bn are alive, or (iii) bp is alive. The
+graph based interdependency models proposed in the literature
+[3], [4], [5], [9], [6], [7] including [1], [2] cannot capture
+such complex interdependency between entities of multilayer
+networks. In order to capture such complex interdependency,
+we propose a new model using Boolean logic. Utilizing this
+comprehensive model, we provide techniques to identify the
+K most vulnerable nodes of an interdependent multilayered
+network system. We show that the this problem can be solved
+in polynomial time for some special cases, whereas for some
+others, the problem is NP-complete. We also show that this
+problem is equivalent to computation of a fixed point [10] and
+we provide a technique utilizing Integer Linear Programming
 
 2
 
-to compute that fixed point. Finally, we evaluate the efficacy of our technique using real data collected from power grid and communication networks that span Maricopa County of Arizona.
+to compute that fixed point. Finally, we evaluate the efficacy
+of our technique using real data collected from power grid
+and communication networks that span Maricopa County of
+Arizona.
 
-Entities a1 a2 a3 a4 b1 b2 b3 t0 1 0 0 0 0 0 0 t1 1 0 0 0 0 0 1
+II. I NTERDEPENDENCY M ODEL
+We describe the model for an interdependent network with
+two layers. However, the concept can easily be generalized
+to deal with networks with more layers. Suppose that the
+network entities in layer 1 are referred to as the A type
+entities, A = {a1 , . . . , an } and entities in layer 2 are referred
+to as the B type entities, B = {b1 , . . . , bm }. If the layer 1
+entity ai is operational if (i) the layer 2 entities bj , bk , bl
+are operational, or (ii) bm , bn are operational, or (iii) bp
+is operational, we express it in terms of live equations of
+the form ai ← bj bk bl + bm bn + bp . The live equation for
+a B type entity br can be expressed in a similar fashion
+in terms of A type entities. If br is operational if (i) the
+layer 1 entities as , at , au , av are operational, or (ii) aw , az
+are operational, we express it in terms of live equations of
+the form br ← as at au av + aw az . It may be noted that the
+live equations only provide a necessary condition for entities
+such as ai or br to be operational. In other words, ai or br
+may fail independently and may be not operational even when
+the conditions given by the corresponding live equations are
+satisfied. A P
+live equation
+in general will have the following
+Ti Qtj
+form: xi ← j=1
+y
+k=1 j,k where xi and yj,k are elements
+of the set A (B) and B (A) respectively, Ti represents the
+number of min-terms in the live equation and tj refers to the
+size of the j-th min-term (the size of a min-term is equal to the
+number of A or B elements in that min-term). In the example
+ai ← bj bk bl + bm bn + bp , Ti = 3, t1 = 3, t2 = 2, t3 = 1,
+xi = ai , y2,1 = bm , y2,2 = bp .
+We refer to the live equations of the form ai ← bj bk bl +
+bm bn + bp also as First Order Dependency Relations, because
+these relations express direct dependency of the A type entities
+on B type entities and vice-versa. It may be noted however
+that as A type entities are dependent on B type entities,
+which in turn depends on A type entities, the failure of
+some A type entities can trigger the failure of other A type
+entities, though indirectly, through some B type entities. Such
+interdependency creates a cascade of failures in multilayered
+networks when only a few entities of either A type or B type
+(or a combination) fails. We illustrate this with the help of
+an example. The live equations for this example is shown in
+table I.
+Power Network
+a1 ← b1 + b2
+a2 ← b1 b3 + b2
+a3 ← b1 b2 b3
+a4 ← b1 + b2 + b3
 
-Time Steps t2 t3 t4 1 1 1 0 0 1 1 1 1 0 0 1 0 1 1 0 1 1 1 1 1
+Communication Network
+b1 ← a1 + a2 a3
+b2 ← a1 + a3
+b3 ← a1 a2
+−−
 
-t5 1 1 1 1 1 1 1
+TABLE I: Live equations for a Multilayer Network
 
-t6 1 1 1 1 1 1 1
+Entities
+a1
+a2
+a3
+a4
+b1
+b2
+b3
 
-II. I NTERDEPENDENCY M ODEL We describe the model for an interdependent network with two layers. However, the concept can easily be generalized to deal with networks with more layers. Suppose that the network entities in layer 1 are referred to as the A type entities, A = {a1 , . . . , an } and entities in layer 2 are referred to as the B type entities, B = {b1 , . . . , bm }. If the layer 1 entity ai is operational if (i) the layer 2 entities bj , bk , bl are operational, or (ii) bm , bn are operational, or (iii) bp is operational, we express it in terms of live equations of the form ai  bj bk bl + bm bn + bp . The live equation for a B type entity br can be expressed in a similar fashion in terms of A type entities. If br is operational if (i) the layer 1 entities as , at , au , av are operational, or (ii) aw , az are operational, we express it in terms of live equations of the form br  as at au av + aw az . It may be noted that the live equations only provide a necessary condition for entities such as ai or br to be operational. In other words, ai or br may fail independently and may be not operational even when the conditions given by the corresponding live equations are satisfied. A live equation in general will have the following tj Ti form: xi  j =1 k=1 yj,k where xi and yj,k are elements of the set A (B ) and B (A) respectively, Ti represents the number of min-terms in the live equation and tj refers to the size of the j -th min-term (the size of a min-term is equal to the number of A or B elements in that min-term). In the example ai  bj bk bl + bm bn + bp , Ti = 3, t1 = 3, t2 = 2, t3 = 1, xi = ai , y2,1 = bm , y2,2 = bp . We refer to the live equations of the form ai  bj bk bl + bm bn + bp also as First Order Dependency Relations, because these relations express direct dependency of the A type entities on B type entities and vice-versa. It may be noted however that as A type entities are dependent on B type entities, which in turn depends on A type entities, the failure of some A type entities can trigger the failure of other A type entities, though indirectly, through some B type entities. Such interdependency creates a cascade of failures in multilayered networks when only a few entities of either A type or B type (or a combination) fails. We illustrate this with the help of an example. The live equations for this example is shown in table I.
-Power Network a1  b1 + b2 a2  b1 b3 + b2 a3  b1 b2 b3 a4  b1 + b2 + b3 Communication Network b1  a1 + a2 a3 b2  a1 + a3 b3  a1 a2 --
+t0
+1
+0
+0
+0
+0
+0
+0
+
+t1
+1
+0
+0
+0
+0
+0
+1
+
+Time Steps
+t2
+t3
+t4
+1
+1
+1
+0
+0
+1
+1
+1
+1
+0
+0
+1
+0
+1
+1
+0
+1
+1
+1
+1
+1
+
+t5
+1
+1
+1
+1
+1
+1
+1
+
+t6
+1
+1
+1
+1
+1
+1
+1
 
 TABLE II: Time Stepped Cascade Effect for a Multilayer Network
 
 Fig. 1: Cascading failures reach steady state after p time steps
 
-As shown in table II, the failure of only one entity a1 at time step t0 triggered a chain of failures that resulted in the failure of all the entities of the network after by timestep t4 . A table entry of 1 indicates that the entity is "dead". In this example, the failure of a1 at t0 triggered the failure of b3 at t1 , which in turn triggered the failure of a3 at t2 . The failure of b3 at t1 was due to the dependency relation b3  a1 a2 and the failure of a3 at t2 was due to the dependency relation a3  b1 b2 b3 . The cascading failure process initiated by failure (or death) of a subset of A type entities at timestep t0 , A0 d and 0 till it reaches its final steady a subset of B type entities Bd state is shown diagrammatically in figure 1. Accordingly, a multilayered network can be viewed as a "closed loop" control system. Finding the steady state after an initial failure in this case is equivalent of computing the fixed point of a function p p p F (.) such that F (Ap d  Bd ) = Ad  Bd , where p represents the number of steps when the system reaches the steady state. We define a set of K entities in a multi-layered network as most vulnerable, if failure of these K entities triggers the failure of the largest number of other entities. The goal of the K most vulnerable nodes problem is to identify this set of 0 nodes. This is equivalent to identifying A0 d  A, Bd  B , that p p 0 maximizes |Ad  Bd |, subject to the constraint that |A0 d  Bd |  K. The dependency relations (live equations) can be formed either after careful analysis of the multilayer network along the lines carried out in [8], or after consultation with the engineers of the local utility and internet service providers. III. C OMPUTATIONAL C OMPLEXITY AND A LGORITHMS Based on the number and the size of the min-terms in the dependency relations, we divide them into four different cases as shown in Table III. The algorithms for finding the K most vulnerable nodes in the multilayer networks and computation complexity for each of the cases are discussed in the following four subsections.
-Case Case I Case II Case III Case IV No. of Min-terms 1 1 Arbitrary Arbitrary Size of Min-terms 1 Arbitrary 1 Arbitrary
+As shown in table II, the failure of only one entity a1 at
+time step t0 triggered a chain of failures that resulted in the
+failure of all the entities of the network after by timestep t4 .
+A table entry of 1 indicates that the entity is “dead”. In this
+example, the failure of a1 at t0 triggered the failure of b3 at
+t1 , which in turn triggered the failure of a3 at t2 . The failure
+of b3 at t1 was due to the dependency relation b3 ← a1 a2
+and the failure of a3 at t2 was due to the dependency relation
+a3 ← b1 b2 b3 . The cascading failure process initiated by failure
+(or death) of a subset of A type entities at timestep t0 , A0d and
+a subset of B type entities Bd0 till it reaches its final steady
+state is shown diagrammatically in figure 1. Accordingly, a
+multilayered network can be viewed as a “closed loop” control
+system. Finding the steady state after an initial failure in this
+case is equivalent of computing the fixed point of a function
+F(.) such that F(Apd ∪ Bdp ) = Apd ∪ Bdp , where p represents
+the number of steps when the system reaches the steady state.
+We define a set of K entities in a multi-layered network
+as most vulnerable, if failure of these K entities triggers the
+failure of the largest number of other entities. The goal of
+the K most vulnerable nodes problem is to identify this set of
+nodes. This is equivalent to identifying A0d ⊆ A, Bd0 ⊆ B, that
+maximizes |Apd ∪Bdp |, subject to the constraint that |A0d ∪Bd0 | ≤
+K.
+The dependency relations (live equations) can be formed
+either after careful analysis of the multilayer network along the
+lines carried out in [8], or after consultation with the engineers
+of the local utility and internet service providers.
+III. C OMPUTATIONAL C OMPLEXITY AND A LGORITHMS
+Based on the number and the size of the min-terms in the
+dependency relations, we divide them into four different cases
+as shown in Table III. The algorithms for finding the K most
+vulnerable nodes in the multilayer networks and computation
+complexity for each of the cases are discussed in the following
+four subsections.
+Case
+Case I
+Case II
+Case III
+Case IV
 
-TABLE I: Live equations for a Multilayer Network
+No. of Min-terms
+1
+1
+Arbitrary
+Arbitrary
+
+Size of Min-terms
+1
+Arbitrary
+1
+Arbitrary
 
 TABLE III: Equation Types for Dependency Relations
 
 3
 
-A. Case I: Problem Instance with One Min-term of Size One In this case, a live equation in general will have the following form: xi  yj where xi and yj are elements of the set A (B ) and B (A) respectively. In the example ai  bj , xi = ai , y1 = bj . It may be noted that a conjunctive implication of the form ai  bj bk can also be written as two separate implications ai  bj and ai  bk . However, such cases are considered in Case II and is excluded from consideration in Case I. The exclusion of such implications implies that the entities that appear on the LHS of an implication in Case I are unique. This property enables us to develop a polynomial time algorithm for the solution of the K most vulnerable node problem for this case. We present the algorithm next. Algorithm 1 Input: (i) A set S of implications of the form of y  x, where x, y  A  B , (ii) An integer K. Output: A set V where |V | = K and V  A  B such that failure of entities in V at time step t0 results in failure of the largest number of entities in A  B when the steady state is reached. Step 1. We construct a directed graph G = (V, E ), where V = A  B . For each implication y  x in S , where x, y  A  B , we introduce a directed edge (x, y )  E . Step 2. For each node xi  V , we construct a transitive closure set Cxi as follows: If there is a path from xi to some node yi  V in G, then we include yi in Cxi . It may be recalled that |A| + |B | = n + m. So, we get n + m transitive closure sets Cxi , 1  i  (n + m). We call each xi to be the seed entity for the transitive closure set Cxi . Step 3. We remove all the transitive closure sets which are proper subsets of some other transitive closure set. Step 4. Sort the remaining transitive closure sets Cxi , where the rank of the closure sets is determined by the cardinality of the sets. The sets with a larger number of entities are ranked higher than the sets with a fewer number of entities. Step 5. Construct the set V by selecting the seed entities of the top K transitive closure sets. If the number of remaining transitive closure sets is less than K (say, K ), arbitrarily select the remaining entities. Time complexity of Algorithm 1: Step 1 takes O(n + m + |S |) time. Step 2 can be executed in O((n + m)3 ) time. Step 3 takes at most O((n + m)2 ) time. Step 4 sorts at most |S | entries, a standard sorting algorithm takes O(|S | log |S |) time. Selecting K entities in step 5 takes O(K) time. Since |S |  n + m, hence the overall time complexity is O((n + m)3 ) Theorem 1. For each pair of transitive closure sets Cxi and Cxj produced in step 2 of algorithm 1, either Cxi  Cxj =  or Cxi  Cxj = Cxi or Cxi  Cxj = Cxj , where xi = xj . Proof: Consider, if possible, that there is a pair of transitive closure sets Cxi and Cxj produced in step 2 of algorithm 1, such that Cxi  Cxj =  and Cxi  Cxj = Cxi and Cxi  Cxj =
+A. Case I: Problem Instance with One Min-term of Size One
+In this case, a live equation in general will have the following form: xi ← yj where xi and yj are elements of the set A
+(B) and B (A) respectively. In the example ai ← bj , xi = ai ,
+y1 = bj . It may be noted that a conjunctive implication of
+the form ai ← bj bk can also be written as two separate
+implications ai ← bj and ai ← bk . However, such cases are
+considered in Case II and is excluded from consideration in
+Case I. The exclusion of such implications implies that the
+entities that appear on the LHS of an implication in Case I
+are unique. This property enables us to develop a polynomial
+time algorithm for the solution of the K most vulnerable node
+problem for this case. We present the algorithm next.
+Algorithm 1
+Input: (i) A set S of implications of the form of y ← x,
+where x, y ∈ A ∪ B, (ii) An integer K.
+Output: A set V 0 where |V 0 | = K and V 0 ⊂ A ∪ B such
+that failure of entities in V 0 at time step t0 results in failure
+of the largest number of entities in A ∪ B when the steady
+state is reached.
+Step 1. We construct a directed graph G = (V, E), where
+V = A ∪ B. For each implication y ← x in S, where x, y ∈
+A ∪ B, we introduce a directed edge (x, y) ∈ E.
+Step 2. For each node xi ∈ V , we construct a transitive
+closure set Cxi as follows: If there is a path from xi to some
+node yi ∈ V in G, then we include yi in Cxi . It may be
+recalled that |A| + |B| = n + m. So, we get n + m transitive
+closure sets Cxi , 1 ≤ i ≤ (n + m). We call each xi to be the
+seed entity for the transitive closure set Cxi .
+Step 3. We remove all the transitive closure sets which are
+proper subsets of some other transitive closure set.
+Step 4. Sort the remaining transitive closure sets Cxi ,
+where the rank of the closure sets is determined by the
+cardinality of the sets. The sets with a larger number of entities
+are ranked higher than the sets with a fewer number of entities.
+Step 5. Construct the set V 0 by selecting the seed entities
+of the top K transitive closure sets. If the number of remaining
+transitive closure sets is less than K (say, K0 ), arbitrarily select
+the remaining entities.
+Time complexity of Algorithm 1: Step 1 takes O(n + m + |S|)
+time. Step 2 can be executed in O((n+m)3 ) time. Step 3 takes
+at most O((n + m)2 ) time. Step 4 sorts at most |S| entries, a
+standard sorting algorithm takes O(|S| log |S|) time. Selecting
+K entities in step 5 takes O(K) time. Since |S| ≤ n+m, hence
+the overall time complexity is O((n + m)3 )
+Theorem 1. For each pair of transitive closure sets Cxi and
+Cxj produced in step 2 of algorithm 1, either Cxi ∩ Cxj = ∅
+or Cxi ∩ Cxj = Cxi or Cxi ∩ Cxj = Cxj , where xi 6= xj .
+Proof: Consider, if possible, that there is a pair of transitive
+closure sets Cxi and Cxj produced in step 2 of algorithm 1,
+such that Cxi ∩Cxj 6= ∅ and Cxi ∩Cxj 6= Cxi and Cxi ∩Cxj 6=
 
-Cxj . Let xk  Cxi  Cxj . This implies that there is a path from xi to xk (path1 ) as well as there is a path from xj to xk , (path2 ). Since, xi = xj and Cxi  Cxj = Cxi and Cxi  Cxj = Cxj , there is some xl in the path1 such that xl also belongs to path2 . W.l.o.g, let us consider that xl be the first node in path1 such that xl also belongs to path2 . This implies that xl has in-degree greater than 1. This in turn implies that there are two implications in the set of implications S such that xl appears in the L.H.S of both. This is a contradiction because this violates a characteristic of the implications in Case I. Hence, our initial assumption was wrong and the theorem is proven. Theorem 2. Algorithm 1 gives an optimal solution for the problem of selecting K most vulnerable entities in a multilayer network for case I dependencies. Proof: Consider that the set V returned by the algorithm is not optimal and the optimal solution is VOP T . Let us consider there is a entity xi  A  B such that xi  VOP T \ V . Evidently, (i) Cxi was either deleted in step 3 or (ii) |Cxi | is less than the cardinalities of all the transitive closure sets with seed entities xj  V , because our algorithm did not select xi . Hence, in both cases, replacing any entity xj  V by xi reduces the total number of entities killed. Thus, the number of dead entities by the failure of entities in VOP T is lesser than that caused by the failure of the entities in V , contradicting the optimality of VOP T . Hence, the algorithm does in fact return the optimal solution. B. Case II: Problem Instance with One Min-term of Arbitrary Size In this case, a live equation in general will have the q following form: xi  k=1 yj where xi and yj are elements of the set A (B ) and B (A) respectively, q represents the size of min-term. In the example ai  bj bk bl , q = 3, xi = ai , y1 = bj , y2 = bk , y3 = bk . 1) Computational Complexity: We show that computation of K most vulnerable nodes (K-MVN) in a multilayer network is NP-complete in Case II. We formally state the problem next. Instance: Given a set of dependency relations between A and B type entities in the form of live equations xi  q k=1 yj , integers K and L. Question: Is there a subset of A and B type entities of size at most K whose "death" (failure) at time t0 , triggers a cascade of failures resulting in failures of at least L entities, when the steady state is reached? Theorem 3. The K-MVN problem is NP-complete. Proof: We prove that the K-MVN problem is NP-complete by giving a transformation for the vertex cover (VC) problem. An instance of the vertex cover problem is specified by an undirected graph G = (V, E ) and an integer R. We want to know if there is a subset of nodes S  V of size at most R, so that every edge has at least one end point in S . From an instance of the VC problem, we create an instance of the
+Cxj . Let xk ∈ Cxi ∩ Cxj . This implies that there is a path
+from xi to xk (path1 ) as well as there is a path from xj to xk ,
+(path2 ). Since, xi 6= xj and Cxi ∩Cxj 6= Cxi and Cxi ∩Cxj =
+Cxj , there is some xl in the path1 such that xl also belongs to
+path2 . W.l.o.g, let us consider that xl be the first node in path1
+such that xl also belongs to path2 . This implies that xl has
+in-degree greater than 1. This in turn implies that there are two
+implications in the set of implications S such that xl appears in
+the L.H.S of both. This is a contradiction because this violates
+a characteristic of the implications in Case I. Hence, our initial
+assumption was wrong and the theorem is proven.
+Theorem 2. Algorithm 1 gives an optimal solution for the
+problem of selecting K most vulnerable entities in a multilayer network for case I dependencies.
+Proof: Consider that the set V 0 returned by the algorithm is
+not optimal and the optimal solution is VOP T . Let us consider
+there is a entity xi ∈ A ∪ B such that xi ∈ VOP T \ V 0 .
+Evidently, (i) Cxi was either deleted in step 3 or (ii) |Cxi | is
+less than the cardinalities of all the transitive closure sets with
+seed entities xj ∈ V 0 , because our algorithm did not select
+xi . Hence, in both cases, replacing any entity xj ∈ V 0 by xi
+reduces the total number of entities killed. Thus, the number
+of dead entities by the failure of entities in VOP T is lesser than
+that caused by the failure of the entities in V 0 , contradicting
+the optimality of VOP T . Hence, the algorithm does in fact
+return the optimal solution.
+B. Case II: Problem Instance with One Min-term of Arbitrary
+Size
+In this case, a liveQ equation in general will have the
+q
+following form: xi ← k=1 yj where xi and yj are elements
+of the set A (B) and B (A) respectively, q represents the size
+of min-term. In the example ai ← bj bk bl , q = 3, xi = ai ,
+y1 = bj , y2 = bk , y3 = bk .
+1) Computational Complexity: We show that computation
+of K most vulnerable nodes (K-MVN) in a multilayer network
+is NP-complete in Case II. We formally state the problem next.
+Instance: Given a set of dependency relations between
+A
+Qqand B type entities in the form of live equations xi ←
+k=1 yj , integers K and L.
+Question: Is there a subset of A and B type entities of
+size at most K whose “death” (failure) at time t0 , triggers a
+cascade of failures resulting in failures of at least L entities,
+when the steady state is reached?
+Theorem 3. The K-MVN problem is NP-complete.
+Proof: We prove that the K-MVN problem is NP-complete
+by giving a transformation for the vertex cover (VC) problem.
+An instance of the vertex cover problem is specified by an
+undirected graph G = (V, E) and an integer R. We want to
+know if there is a subset of nodes S ⊆ V of size at most
+R, so that every edge has at least one end point in S. From
+an instance of the VC problem, we create an instance of the
 
 4
 
-K-MVN problem in the following way. First, from the graph G = (V, E ), we create a directed graph G = (V, E ) by replacing each edge e  E by two oppositely directed edges e1 and e2 in E (the end vertices of e1 and e2 are same as the end vertices of e). Corresponding to a node vi in G that has incoming edges from other nodes (say) vj , vk and vl , we create a dependency relation (live equation) vi  vj vk vl . We set K = R and L = |V |. The corresponding death equation is of the form v �i  v � � �l (obtained by taking negation j +v k +v of the live equation). We set K = R and L = |V |. It can now easily be verified that if the graph G = (V, E ) has a vertex cover of size R iff in the created instance of K-MVN problem death (failure) of at most K entities at time t0 , will trigger a cascade of failures resulting in failures of at least L entities, when the steady state is reached. 2) Optimal Solution with Integer Linear Programming: In this case, we can find and optimal solution to the KMVN problem using Integer Linear Programming (ILP). We associate binary indicator variables xi (yi ) to capture the state of the entities ai (bi ). xi (yi ) is 1 when ai (bi ) is dead and 0 otherwise. Since we want find the set of K entities whose failure at time step t0 triggers cascading failure resulting in the failure of the largest number of entities, the objective of the n m ILP can be written as follows maximize i=1 xi + i=1 yi It may be noted that the variables in the objective function do not have any notion of time. However, cascading failure takes place in time steps, ai triggers failure of bj at time step t1 , which in turn triggers failure of ak in time step t2 and so on. Accordingly, in order to capture the cascading failure process, we need to introduce the notion of time into the variables of the ILP. If the numbers of A and B type entities are n and m respectively, the steady state must be reached by time step n + m - 1 (cascading process starts at time step 0, t0 ). Accordingly, we introduce n + m versions of the variables xi and yi , i.e., xi [0], . . . , xi [n + m - 1] and yi [0], . . . , yi [n + m - 1]. To indicate the state of entities ai and bi at times t0 , . . . , tn+m-1 . The objective of the ILP is now changed to
-n m
-
-The optimal solution to K-MVN problem for Case II can be found by solving the above ILP. C. Case III: Problem Instance with an Arbitrary Number of Min-terms of Size One A live equation in this special case will have the following q form: xi  j =1 yj where xi and yj are elements of the set A (B ) and B (A) respectively, q represents the number of minterms in the live equation. In the example ai  bj + bk + bl , q = 3, xi = ai , y1 = bj , y2 = bk , y3 = bl . 1) Computational Complexity: We show that a special case of the problem instances with an arbitrary number of min-terms of size one is same as the Subset Cover problem (defined below), which is proven to be NPcomplete. We define Implication Set(A) to be the Ti set of all implications of the form ai  j =1 bj and Implication Set(B ) to be the set of all implications of the Ti form bi  j =1 aj . Now consider a subset of the set of problem instances with an arbitrary number of min-terms of size one where either Implication Set(A) =  or Implication Set(B ) = . Let A = {ai |ai is the element on the LHS of an implication} in the Implication Set(A). The set B is defined accordingly. If Implication Set(B ) =  then B = . In this case, failure of any ai , 1  i  n type entities will not cause failure of any bj , 1  j  m type entities. Since an adversary can cause failure of only K entities, the adversary would like to choose only those K entities that will cause failure of the largest number of entities. In this scenario, there is no reason for the adversary to attack any ai , 1  i  n type entities as they will not cause failure of any bj , 1  j  m type entities. On the other hand, if the adversary attacks K bj type entities, not only those K bj type entities will be destroyed, some ai type entities will also be destroyed due to the implications in the Implication Set(A). As such the goal of the adversary will be to carefully choose K bj , 1  j  m type entities that will destroy the largest number of ai type entities. In its abstract form, the problem can be viewed as the Subset Cover problem. Subset Cover Problem Instance: A set S = {s1 , . . . , sm }, a set S of m subsets of S , i.e., S = {S1 , . . . , Sr }, where Si  S, i, 1  i  r, integers p and q . Question: Is there a p element subset S of S (p < n) that completely covers at least q elements of the set S ? (A set S is said to be completely covering an element Si , i, 1  i  m of the set S , if S  Si = Si , i, 1  i  m.) The set S in the subset cover problem corresponds to the set B = {b1 , . . . , bm }, and each set Si , 1  i  r corresponds to an implication in the ImplicationS et(A) and comprises of the bj 's that appear on the RHS of the implication. The goal of the problem is to select a subset B of B that maximizes the number of Si 's completely covered by B .
-
+K-MVN problem in the following way. First, from the graph
+G = (V, E), we create a directed graph G0 = (V, E 0 ) by
+replacing each edge e ∈ E by two oppositely directed edges
+e1 and e2 in E 0 (the end vertices of e1 and e2 are same as
+the end vertices of e). Corresponding to a node vi in G0 that
+has incoming edges from other nodes (say) vj , vk and vl , we
+create a dependency relation (live equation) vi ← vj vk vl . We
+set K = R and L = |V |. The corresponding death equation is
+of the form v¯i ← v¯j + v¯k + v¯l (obtained by taking negation
+of the live equation). We set K = R and L = |V |. It can now
+easily be verified that if the graph G = (V, E) has a vertex
+cover of size R iff in the created instance of K-MVN problem
+death (failure) of at most K entities at time t0 , will trigger a
+cascade of failures resulting in failures of at least L entities,
+when the steady state is reached.
+2) Optimal Solution with Integer Linear Programming:
+In this case, we can find and optimal solution to the KMVN problem using Integer Linear Programming (ILP). We
+associate binary indicator variables xi (yi ) to capture the state
+of the entities ai (bi ). xi (yi ) is 1 when ai (bi ) is dead and
+0 otherwise. Since we want find the set of K entities whose
+failure at time step t0 triggers cascading failure resulting in the
+failure of the largest number of entities, the
+the
+Pnobjective
+Pof
+m
+ILP can be written as follows maximize
+x
++
+i
+i=1
+i=1 yi
+It may be noted that the variables in the objective function
+do not have any notion of time. However, cascading failure
+takes place in time steps, ai triggers failure of bj at time
+step t1 , which in turn triggers failure of ak in time step t2
+and so on. Accordingly, in order to capture the cascading
+failure process, we need to introduce the notion of time into
+the variables of the ILP. If the numbers of A and B type
+entities are n and m respectively, the steady state must be
+reached by time step n + m − 1 (cascading process starts at
+time step 0, t0 ). Accordingly, we introduce n + m versions
+of the variables xi and yi , i.e., xi [0], . . . , xi [n + m − 1] and
+yi [0], . . . , yi [n+m−1]. To indicate the state of entities ai and
+bi at times t0 , . . . , tn+m−1 . The objective of the ILP is now
+changed to
 maximize
+
+n
+X
 i=1
 
-xi [n + m - 1] +
+xi [n + m − 1] +
+
+m
+X
+
+yi [n + m − 1]
+
 i=1
 
-yi [n + m - 1]
+Subject to the constraint that no more than K entities can
+fail at time t0 .
+Pn
+Pm
+Constraint 1:
+i=1 yi [0] ≤ K In order
+i=1 xi [0] +
+to ensure that the cascading failure process conforms to
+the dependency relations between type A and B entities,
+additional constraints must be imposed.
+Constraint 2: If an entity fails at time fails at time step p,
+(i.e., tp ) it should continue to be in the failed state at all time
+steps t > p. That is xi (t) ≥ xi (t − 1), ∀t, 1 ≤ t ≤ n + m − 1.
+Same constraint applies to yi (t).
+Constraint 3: The dependency relation (death equation)
+a¯i ← b¯j +b¯k +b¯l can be translated into a linear constraint in the
+following way xi (t) ≤ yj (t−1)+yk (t−1)+yl (t−1), ∀t, 1 ≤
+t ≤ n + m − 1.
 
-Subject to the constraint that no more than K entities can fail at time t0 . n m Constraint 1: i=1 yi [0]  K In order i=1 xi [0] + to ensure that the cascading failure process conforms to the dependency relations between type A and B entities, additional constraints must be imposed. Constraint 2: If an entity fails at time fails at time step p, (i.e., tp ) it should continue to be in the failed state at all time steps t > p. That is xi (t)  xi (t - 1), t, 1  t  n + m - 1. Same constraint applies to yi (t). Constraint 3: The dependency relation (death equation) � � � a �i  b j + bk + bl can be translated into a linear constraint in the following way xi (t)  yj (t - 1)+ yk (t - 1)+ yl (t - 1), t, 1  t  n + m - 1.
+The optimal solution to K-MVN problem for Case II can be
+found by solving the above ILP.
+C. Case III: Problem Instance with an Arbitrary Number of
+Min-terms of Size One
+A live equation
+Pq in this special case will have the following
+form: xi ← j=1 yj where xi and yj are elements of the set
+A (B) and B (A) respectively, q represents the number of minterms in the live equation. In the example ai ← bj + bk + bl ,
+q = 3, xi = ai , y1 = bj , y2 = bk , y3 = bl .
+1) Computational Complexity: We show that a special
+case of the problem instances with an arbitrary number
+of min-terms of size one is same as the Subset Cover
+problem (defined below), which is proven to be NPcomplete. We define Implication Set(A) Pto be the
+Ti
+set of all implications of the form ai ←
+j=1 bj and
+ImplicationPSet(B) to be the set of all implications of the
+Ti
+form bi ←
+j=1 aj . Now consider a subset of the set of
+problem instances with an arbitrary number of min-terms
+of size one where either Implication Set(A) = ∅
+or Implication Set(B)
+=
+∅. Let A0
+=
+{ai |ai is the element on the LHS of an implication}
+in the Implication Set(A). The set B 0 is defined
+accordingly. If Implication Set(B) = ∅ then B 0 = ∅. In
+this case, failure of any ai , 1 ≤ i ≤ n type entities will not
+cause failure of any bj , 1 ≤ j ≤ m type entities. Since an
+adversary can cause failure of only K entities, the adversary
+would like to choose only those K entities that will cause
+failure of the largest number of entities. In this scenario, there
+is no reason for the adversary to attack any ai , 1 ≤ i ≤ n type
+entities as they will not cause failure of any bj , 1 ≤ j ≤ m
+type entities. On the other hand, if the adversary attacks
+K bj type entities, not only those K bj type entities will
+be destroyed, some ai type entities will also be destroyed
+due to the implications in the Implication Set(A). As
+such the goal of the adversary will be to carefully choose
+K bj , 1 ≤ j ≤ m type entities that will destroy the largest
+number of ai type entities. In its abstract form, the problem
+can be viewed as the Subset Cover problem.
+Subset Cover Problem
+Instance: A set S = {s1 , . . . , sm }, a set S of m subsets of S,
+i.e., S = {S1 , . . . , Sr }, where Si ⊆ S, ∀i, 1 ≤ i ≤ r, integers
+p and q.
+Question: Is there a p element subset S 0 of S (p < n) that
+completely covers at least q elements of the set S? (A set S 0 is
+said to be completely covering an element Si , ∀i, 1 ≤ i ≤ m
+of the set S, if S 0 ∩ Si = Si , ∀i, 1 ≤ i ≤ m.)
+The set S in the subset cover problem corresponds to the
+set B = {b1 , . . . , bm }, and each set Si , 1 ≤ i ≤ r corresponds
+to an implication in the ImplicationS et(A) and comprises of
+the bj ’s that appear on the RHS of the implication. The goal
+of the problem is to select a subset B 00 of B that maximizes
+the number of Si ’s completely covered by B 00 .
 
 5
 
-Theorem 4. The Subset Cover problem is NP-complete. Proof: We prove that the Subset Cover problem is NPcomplete by giving a transformation from the well known Clique problem. It may be recalled that an instance of the Clique problem is specified by a graph G = (V, E ) and an integer K . The decision question is whether or not a clique of size at least K exists in the graph G = (V, E ). We show that a clique of size K exists in graph G = (V, E ) iff the Subset Cover problem instance has a p element subset S of S that completely covers at least q elements of the set S . From an instance of the Clique problem, we create an instance of the Subset Cover problem in the following way. Corresponding to every vertex vi , 1  i  n of the graph G = (V, E ) (V = {v1 , . . . , vn }), we create an element in the set S = {s1 , . . . , sn }. Corresponding to every edge ei , 1  i  m, we create m subsets of S , i.e., S = {S1 , . . . , Sm }, where Si corresponds to a two element subset of nodes, corresponding to the end vertices of the edge ei . We set the parameters p = K and q = K (K - 1)/2. Next we show that in the instance of the subset cover problem created by the above construction process, a p element subset S of S exists that completely covers at least q elements of the set S , iff the graph G = (V, E ) has a clique of size at least K . Suppose that the graph G = (V, E ) has a clique of size K . It is clear that in the created instance of the subset cover problem, we will have K (K - 1)/2 elements in the set S , that will be completely covered by a K element subset of the set S . The K element subset of S corresponds to the set of K nodes that make up the clique in G = (V, E ) and the K (K - 1)/2 elements in the set S corresponds to the edges of the graph G = (V, E ) that corresponds to the edges of the clique. Conversely, suppose that the instance of the Subset Cover problem has K element subset of S that completely covers K (K - 1)/2 elements of the set S . Since the elements of S corresponds to the edges in G, in order to completely cover K (K - 1)/2 edges, at least K nodes (elements of the set S ) will be necessary. As such, this set of K nodes will constitute a clique in the graph G = (V, E ). 2) Optimal Solution with Integer Linear Programming: If q the live equation is in the form xi  k=1 yj then the "death equation" (obtained by taking negation of the live equation) q will be in the product form x �i  j =1 y �j . If the live equation is given as ai  bj + bk , then the death equation will be given � � as a �i  b j bk . By associating binary indicator variables xi and yi to capture the state of the entities ai and bi , we can follow almost identical procedure as in Case II, with only one exception. It may be recalled that in Case II, the death equations such � � as a �i  b j + bk was translated into a linear constraint xi (t)  yj (t - 1) + yk (t - 1), t, 1  t  n + m - 1. However a similar translation in Case III, with death equations such as � � a �i  b j bk , will result in a non-linear constraint of the form xi (t)  yj (t - 1)yk (t - 1), t, 1  t  n + m - 1. Fortunately, a non-linear constraint of this form can be replaced a linear constraint such as 2xi (t)  yj (t - 1) + yk (t - 1), t, 1 
+Theorem 4. The Subset Cover problem is NP-complete.
+Proof: We prove that the Subset Cover problem is NPcomplete by giving a transformation from the well known
+Clique problem. It may be recalled that an instance of the
+Clique problem is specified by a graph G = (V, E) and an
+integer K. The decision question is whether or not a clique of
+size at least K exists in the graph G = (V, E). We show that
+a clique of size K exists in graph G = (V, E) iff the Subset
+Cover problem instance has a p element subset S 0 of S that
+completely covers at least q elements of the set S.
+From an instance of the Clique problem, we create an
+instance of the Subset Cover problem in the following way.
+Corresponding to every vertex vi , 1 ≤ i ≤ n of the graph
+G = (V, E) (V = {v1 , . . . , vn }), we create an element
+in the set S = {s1 , . . . , sn }. Corresponding to every edge
+ei , 1 ≤ i ≤ m, we create m subsets of S, i.e., S =
+{S1 , . . . , Sm }, where Si corresponds to a two element subset
+of nodes, corresponding to the end vertices of the edge ei . We
+set the parameters p = K and q = K(K − 1)/2. Next we
+show that in the instance of the subset cover problem created
+by the above construction process, a p element subset S 0 of
+S exists that completely covers at least q elements of the set
+S, iff the graph G = (V, E) has a clique of size at least K.
+Suppose that the graph G = (V, E) has a clique of size
+K. It is clear that in the created instance of the subset cover
+problem, we will have K(K − 1)/2 elements in the set S,
+that will be completely covered by a K element subset of
+the set S. The K element subset of S corresponds to the set
+of K nodes that make up the clique in G = (V, E) and the
+K(K − 1)/2 elements in the set S corresponds to the edges
+of the graph G = (V, E) that corresponds to the edges of
+the clique. Conversely, suppose that the instance of the Subset
+Cover problem has K element subset of S that completely
+covers K(K − 1)/2 elements of the set S. Since the elements
+of S corresponds to the edges in G, in order to completely
+cover K(K − 1)/2 edges, at least K nodes (elements of the
+set S) will be necessary. As such, this set of K nodes will
+constitute a clique in the graph G = (V, E).
+2) Optimal Solution with Integer Linear
+Programming: If
+Pq
+the live equation is in the form xi ← k=1 yj then the “death
+equation” (obtained by taking negation
+of the live equation)
+Qq
+will be in the product form x̄i ← j=1 ȳj . If the live equation
+is given as ai ← bj + bk , then the death equation will be given
+as a¯i ← b¯j b¯k .
+By associating binary indicator variables xi and yi to
+capture the state of the entities ai and bi , we can follow almost
+identical procedure as in Case II, with only one exception.
+It may be recalled that in Case II, the death equations such
+as a¯i ← b¯j + b¯k was translated into a linear constraint
+xi (t) ≤ yj (t − 1) + yk (t − 1), ∀t, 1 ≤ t ≤ n + m − 1. However
+a similar translation in Case III, with death equations such as
+a¯i ← b¯j b¯k , will result in a non-linear constraint of the form
+xi (t) ≤ yj (t − 1)yk (t − 1), ∀t, 1 ≤ t ≤ n + m − 1. Fortunately,
+a non-linear constraint of this form can be replaced a linear
+constraint such as 2xi (t) ≤ yj (t − 1) + yk (t − 1), ∀t, 1 ≤
 
-t  n + m - 1. After this transformation, we can compute the optimal solution using integer linear programming. D. Case IV: Problem Instance with an Arbitrary Number of Min-terms of Arbitrary Size 1) Computational Complexity: Since both Case II and Case III are special cases of Case IV, the computational complexity of finding the K most vulnerable nodes in the multilayer network in NP-complete in Case IV also. 2) Optimal Solution with Integer Linear Programming: The optimal solution to this version of the problem can be computed by combining the techniques developed for the solution of the versions of the problems considered in Cases II and III. IV. E XPERIMENTAL RESULTS We applied our model to study multilayer vulnerability issues in Maricopa County, the most densely populated county of Arizona with approximately 60% of Arizonas population residing in it. Specifically, we wanted to find out if some regions of Maricopa County were more vulnerable to failure than some other regions. The data for our multi-layered network were obtained from different sources. We obtained the data for the power network (network A) from Platts (http://www.platts.com/). Our power network dataset consists of 70 power plants and 470 transmission lines. Our communication network (network B) data were obtained from GeoTel (http://www.geo-tel.com/). Our communication network data consists of 2, 690 cell towers and 7, 100 fiber-lit buildings as well as 42, 723 fiber links. Snapshots of our power network data and communication network data are shown in figure 2. In the power network snapshot of sub-figure(a), the orange markers show locations of powerplants while the yellow continuous lines represent the transmission lines. In the communication network snapshot of sub-figure (b) the pink markers show the location of fiber-lit buildings, the orange markers show the location of cell towers and the green continuous lines represent the fiber links. In our dataset, `load' in the Power Network is divided into Cell towers and Fiber-lit buildings. Although there exists various other physical entities which also draw electric power and hence can be viewed as load to the power network, as they are not relevant to our study on interdependency between power and communication networks, we ignore such entities. Thus in network A, we have the three types of Power Network Entities (PNE's) - Generators, Load (consisting of Cell towers and Fiber-lit buildings) and Transmission lines (denoted by a1 , a2 , a3 respectively). For the Communication Network, we have the following Communication Network Entities (CNE's) - Cell Towers, Fiber-lit buildings and Fiber links (denoted by b1 , b2 , b3 respectively). We consider the Fiber-lit buildings as a communication network entities as they house routers which definitely are communication network entities. From the raw data we construct Implication Set(A) and Implication Set(B), by following the rules stated below: Rules: We consider that a PNE is dependent on a set of CNEs for being in the active state (`alive') or being in the
+t ≤ n + m − 1. After this transformation, we can compute the
+optimal solution using integer linear programming.
+D. Case IV: Problem Instance with an Arbitrary Number of
+Min-terms of Arbitrary Size
+1) Computational Complexity: Since both Case II and Case
+III are special cases of Case IV, the computational complexity
+of finding the K most vulnerable nodes in the multilayer
+network in NP-complete in Case IV also.
+2) Optimal Solution with Integer Linear Programming:
+The optimal solution to this version of the problem can be
+computed by combining the techniques developed for the
+solution of the versions of the problems considered in Cases
+II and III.
+IV. E XPERIMENTAL RESULTS
+We applied our model to study multilayer vulnerability
+issues in Maricopa County, the most densely populated county
+of Arizona with approximately 60% of Arizonas population
+residing in it. Specifically, we wanted to find out if some
+regions of Maricopa County were more vulnerable to failure
+than some other regions. The data for our multi-layered
+network were obtained from different sources. We obtained
+the data for the power network (network A) from Platts
+(http://www.platts.com/). Our power network dataset consists
+of 70 power plants and 470 transmission lines. Our communication network (network B) data were obtained from GeoTel
+(http://www.geo-tel.com/). Our communication network data
+consists of 2, 690 cell towers and 7, 100 fiber-lit buildings as
+well as 42, 723 fiber links. Snapshots of our power network
+data and communication network data are shown in figure 2. In
+the power network snapshot of sub-figure(a), the orange markers show locations of powerplants while the yellow continuous
+lines represent the transmission lines. In the communication
+network snapshot of sub-figure (b) the pink markers show the
+location of fiber-lit buildings, the orange markers show the
+location of cell towers and the green continuous lines represent
+the fiber links. In our dataset, ‘load’ in the Power Network is
+divided into Cell towers and Fiber-lit buildings. Although there
+exists various other physical entities which also draw electric
+power and hence can be viewed as load to the power network,
+as they are not relevant to our study on interdependency
+between power and communication networks, we ignore such
+entities. Thus in network A, we have the three types of Power
+Network Entities (PNE’s) - Generators, Load (consisting of
+Cell towers and Fiber-lit buildings) and Transmission lines
+(denoted by a1 , a2 , a3 respectively). For the Communication
+Network, we have the following Communication Network
+Entities (CNE’s) - Cell Towers, Fiber-lit buildings and Fiber
+links (denoted by b1 , b2 , b3 respectively). We consider the
+Fiber-lit buildings as a communication network entities as they
+house routers which definitely are communication network
+entities. From the raw data we construct Implication Set(A)
+and Implication Set(B), by following the rules stated below:
+Rules: We consider that a PNE is dependent on a set of
+CNEs for being in the active state (‘alive’) or being in the
 
 6
 
@@ -74,13 +661,83 @@ t  n + m - 1. After this transformation, we can compute the optimal solution usi
 
 Fig. 2: Snapshots of power network and communication network in Maricopa County)
 
-inactive state (`dead'). Similarly, a CNE is dependent on a set of PNEs for being active or inactive state. For simplicity we consider the live equations with at most two minterms. For the same reason we consider the size of each minterm is at most two. Generators (a1,i , 1  i  p, where p is the total number of generators): We consider that each generator (a1.i ) is dependent on the nearest Cell Tower (b1,j ) or the nearest Fiber-lit building (b2,k ) and the corresponding Fiber link (b3,l ) connecting b2,k and a1,i . Thus, we have a1,i  b1,j + b2,k � b3,l Load (a2,i , 1  i  q , where q is the total number of loads): We consider that the loads in the power network do not depend on any CNE. Transmission Lines (a3,i , 1  i  r, where r is the total number of transmission lines): We consider that the transmission lines do not depend on any CNE. Cell Towers (b1,i , 1  i  s, where s is the total number of cell towers): We consider the cell towers depend on the nearest pair of generators and the corresponding transmission line connecting the generator to the cell tower. Thus, we have b1,i  a1,j � a3,k + a1,j � a3,k Fiber-lit Buildings (b2,i , 1  i  t, where t is the total number of fiber-lit buildings): We consider that the fiber-lit buildings depend on the nearest pair of generators and the corresponding transmission lines connecting the generators to the cell tower. Thus, we have b2,i  a1,j � a3,k + a1,j � a3,k Fiber Links (b3,i , 1  i  u, where u is the total number of fiber links)): We consider that the fiber links do not depend on any PNE. Because of experimental resource limitation, we have considered 5 regions of Maricopa County for our experiments. We used IBM CPLEX Optimizer 12.5 to run the formulated ILP's on the experimental dataset. We show our results in the figure 3. We observe that in each of the regions there is a specific budget threshold beyond which each additional increment in budget results in the death of only one entity. The reason for this behavior is our assumption that entities such as the transmission lines and the fiberlinks are not dependent on any other entities. We notice that all the entities of the two networks can be destroyed with a budget of about 60%
+inactive state (‘dead’). Similarly, a CNE is dependent on a set
+of PNEs for being active or inactive state. For simplicity we
+consider the live equations with at most two minterms. For
+the same reason we consider the size of each minterm is at
+most two.
 
-of the number of entities of the two networks A and B . Most importantly, we find that the degree of vulnerability of all the five regions considered in our study are close and no one region stands out as being extremely vulnerable.
+of the number of entities of the two networks A and B. Most
+importantly, we find that the degree of vulnerability of all
+the five regions considered in our study are close and no one
+region stands out as being extremely vulnerable.
 
-Fig. 3: Experimental results of failure vulnerability across five regions of Maricopa county
+Generators (a1,i , 1 ≤ i ≤ p, where p is the total number
+of generators): We consider that each generator (a1.i ) is
+dependent on the nearest Cell Tower (b1,j ) or the nearest
+Fiber-lit building (b2,k ) and the corresponding Fiber link (b3,l )
+connecting b2,k and a1,i . Thus, we have
+a1,i ← b1,j + b2,k × b3,l
+Load (a2,i , 1 ≤ i ≤ q, where q is the total number of loads):
+We consider that the loads in the power network do not depend
+on any CNE.
+Transmission Lines (a3,i , 1 ≤ i ≤ r, where r is the total number of transmission lines): We consider that the transmission
+lines do not depend on any CNE.
+Cell Towers (b1,i , 1 ≤ i ≤ s, where s is the total number
+of cell towers): We consider the cell towers depend on the
+nearest pair of generators and the corresponding transmission
+line connecting the generator to the cell tower. Thus, we have
+b1,i ← a1,j × a3,k + a1,j 0 × a3,k0
+Fiber-lit Buildings (b2,i , 1 ≤ i ≤ t, where t is the total number
+of fiber-lit buildings): We consider that the fiber-lit buildings
+depend on the nearest pair of generators and the corresponding
+transmission lines connecting the generators to the cell tower.
+Thus, we have b2,i ← a1,j × a3,k + a1,j 0 × a3,k0
+Fiber Links (b3,i , 1 ≤ i ≤ u, where u is the total number of
+fiber links)): We consider that the fiber links do not depend
+on any PNE.
+Because of experimental resource limitation, we have considered 5 regions of Maricopa County for our experiments.
+We used IBM CPLEX Optimizer 12.5 to run the formulated
+ILP’s on the experimental dataset. We show our results in
+the figure 3. We observe that in each of the regions there
+is a specific budget threshold beyond which each additional
+increment in budget results in the death of only one entity. The
+reason for this behavior is our assumption that entities such
+as the transmission lines and the fiberlinks are not dependent
+on any other entities. We notice that all the entities of the
+two networks can be destroyed with a budget of about 60%
+
+Fig. 3: Experimental results of failure vulnerability across five regions
+of Maricopa county
 
 R EFERENCES
-[1] S. V. Buldyrev, R. Parshani, G. Paul, H. E. Stanley, and S. Havlin, "Catastrophic cascade of failures in interdependent networks," Nature, vol. 464, no. 7291, pp. 1025�1028, 2010. [2] J. Gao, S. V. Buldyrev, H. E. Stanley, and S. Havlin, "Networks formed from interdependent networks," Nature Physics, vol. 8, no. 1, pp. 40�48, 2011. [3] J. Shao, S. V. Buldyrev, S. Havlin, and H. E. Stanley, "Cascade of failures in coupled network systems with multiple support-dependence relations," Physical Review E, vol. 83, no. 3, p. 036116, 2011. [4] V. Rosato, L. Issacharoff, F. Tiriticco, S. Meloni, S. Porcellinis, and R. Setola, "Modelling interdependent infrastructures using interacting dynamical models," International Journal of Critical Infrastructures, vol. 4, no. 1, pp. 63�79, 2008. [5] P. Zhang, S. Peeta, and T. Friesz, "Dynamic game theoretic model of multi-layer infrastructure networks," Networks and Spatial Economics, vol. 5, no. 2, pp. 147�178, 2005. [6] M. Parandehgheibi and E. Modiano, "Robustness of interdependent networks: The case of communication networks and the power grid," arXiv preprint arXiv:1304.0356, 2013. [7] D. T. Nguyen, Y. Shen, and M. T. Thai, "Detecting critical nodes in interdependent power networks for vulnerability assessment," 2013. [8] A. Bernstein, D. Bienstock, D. Hay, M. Uzunoglu, and G. Zussman, "Power grid vulnerability to geographically correlated failures-analysis and control implications," arXiv preprint arXiv:1206.1099, 2012. [9] J.-F. Castet and J. H. Saleh, "Interdependent multi-layer networks: Modeling and survivability analysis with applications to space-based networks," PloS one, vol. 8, no. 4, p. e60402, 2013. [10] A. Fudenberg and J. Tirole, Game Theory. Ane Books, 2010.
+[1] S. V. Buldyrev, R. Parshani, G. Paul, H. E. Stanley, and S. Havlin,
+“Catastrophic cascade of failures in interdependent networks,” Nature,
+vol. 464, no. 7291, pp. 1025–1028, 2010.
+[2] J. Gao, S. V. Buldyrev, H. E. Stanley, and S. Havlin, “Networks formed
+from interdependent networks,” Nature Physics, vol. 8, no. 1, pp. 40–48,
+2011.
+[3] J. Shao, S. V. Buldyrev, S. Havlin, and H. E. Stanley, “Cascade of
+failures in coupled network systems with multiple support-dependence
+relations,” Physical Review E, vol. 83, no. 3, p. 036116, 2011.
+[4] V. Rosato, L. Issacharoff, F. Tiriticco, S. Meloni, S. Porcellinis, and
+R. Setola, “Modelling interdependent infrastructures using interacting
+dynamical models,” International Journal of Critical Infrastructures,
+vol. 4, no. 1, pp. 63–79, 2008.
+[5] P. Zhang, S. Peeta, and T. Friesz, “Dynamic game theoretic model of
+multi-layer infrastructure networks,” Networks and Spatial Economics,
+vol. 5, no. 2, pp. 147–178, 2005.
+[6] M. Parandehgheibi and E. Modiano, “Robustness of interdependent
+networks: The case of communication networks and the power grid,”
+arXiv preprint arXiv:1304.0356, 2013.
+[7] D. T. Nguyen, Y. Shen, and M. T. Thai, “Detecting critical nodes in
+interdependent power networks for vulnerability assessment,” 2013.
+[8] A. Bernstein, D. Bienstock, D. Hay, M. Uzunoglu, and G. Zussman,
+“Power grid vulnerability to geographically correlated failures-analysis
+and control implications,” arXiv preprint arXiv:1206.1099, 2012.
+[9] J.-F. Castet and J. H. Saleh, “Interdependent multi-layer networks:
+Modeling and survivability analysis with applications to space-based
+networks,” PloS one, vol. 8, no. 4, p. e60402, 2013.
+[10] A. Fudenberg and J. Tirole, Game Theory. Ane Books, 2010.
 
 

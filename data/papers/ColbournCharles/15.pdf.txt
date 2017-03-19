@@ -2,257 +2,1365 @@
 
 Hierarchical Recovery in Compressive Sensing
 Charles J. Colbourn, Daniel Horsley, and Violet R. Syrotiuk, Senior Member, IEEE
-Abstract A combinatorial approach to compressive sensing based on a deterministic column replacement technique is proposed. Informally, it takes as input a pattern matrix and ingredient measurement matrices, and results in a larger measurement matrix by replacing elements of the pattern matrix with columns from the ingredient matrices. This hierarchical technique yields great flexibility in sparse signal recovery. Specifically, recovery for the resulting measurement matrix does not depend on any fixed algorithm but rather on the recovery scheme of each ingredient matrix. In this paper, we investigate certain trade-offs for signal recovery, considering the computational investment required. Coping with noise in signal recovery requires additional conditions, both on the pattern matrix and on the ingredient measurement matrices. Index Terms compressive sensing, hierarchical signal recovery, deterministic column replacement, hash families
 
 arXiv:1403.1835v1 [cs.IT] 4 Mar 2014
 
-I. I NTRODUCTION Nyquist's sampling theorem provides a sufficient condition for full recovery of a band-limited signal: sample the signal at a rate that is twice the band-limit. However, there are cases when full recovery may be achieved with a sub-Nyquist sampling rate. This occurs with signals that are sparse (or compressible) in some domain, such as those that arise in applications in sensing, imaging, and communications, and has given rise to the field of compressive sensing [2], [6] (also called compressive sampling). Consider the following framework for compressive sensing. An admissible signal of dimension n is a vector in Rn that is known a priori to be taken from a given set   Rn . A measurement matrix A is a matrix from Rm�n . Sampling a signal x  Rn corresponds to computing the product Ax = b. Once sampled, recovery involves determining the unique signal x   that satisfies Ax = b using only A and b. If  = Rn , recovery can be accomplished only if A has rank n, and hence m  n. However for more restrictive admissible sets , recovery may be accomplished when m < n. Given a measurement matrix A, an equivalence relation A is defined so that for signals x, y  Rn , we have x A y if and only if Ax = Ay. If for every equivalence class P under A , the set P   contains at most one signal then in principle recovery is possible. Because Ax = Ay ensures that A(x - y) = 0, this can be stated more simply: An equivalence class P of A can be represented as {x + y : y  N (A)} for any x  P , where N (A) is the null space of A, i.e., the set {x  Rn : Ax = 0}. Recoverability is therefore equivalent to requiring that, for every signal x  , there is no y  N (A) \{0} with x + y  . In order to make use of these observations, a reasonable a priori restriction on the signals to be sampled is identified, suitable measurement matrices with m  n are formed, and a reasonably efficient computational strategy for recovering the signal is provided. A signal is t-sparse if at most t of its n coordinates are nonzero. The recovery of t-sparse signals is the domain of compressive sensing. An admissible set of signals  has sparsity t when every signal in  is t-sparse. An admissible set of signals  is t-sparsifiable if there is a full rank matrix B  Rn�n for which {B x : x  } has sparsity t. We assume throughout that when the signals are sparsifiable, a change of basis B is applied so that the admissible signals have sparsity t. A measurement matrix has (0 , t)-recoverability when it permits exact recovery of all t-sparse signals. A basic problem is to design measurement matrices with (0 , t)-recoverability where m  n such that recovery can be accomplished efficiently. Suppose that measurement matrix A has (0 , t)-recoverability. Then in principle, given A and b, recovery of the signal x can be accomplished by solving the 0 -minimization problem min{||x||0 : Ax = b}. To do so the possible supports of signals from fewest nonzero entries to most are first listed. For each, reduce A to A and x to x by eliminating coordinates in the signal assumed to be zero. Examine the now overdetermined system A x = b. When equality holds, a solution is found; we are guaranteed to find one by considering all possible supports with at most t nonzero entries. Such an enumerative strategy is prohibitively time-consuming, examining as many as n t linear systems when the signal has sparsity t. Natarajan [27] showed that we cannot expect to find a substantially more efficient solution, because the problem is NP-hard. Instead of the 0 -minimization problem, Chen, Donoho, Huo, and Saunders [11], [18] suggest considering the 1 -minimization problem min{||x||1 : Ax = b}. While this can be solved using standard linear programming techniques, to be effective it is necessary that for each t-sparse signal x, the unique solution to min{||z||1 : Az = Ax} is x. This property is (1 , t)recoverability. A necessary and sufficient condition for (1 , t)-recoverability has been explored, beginning with Donoho and Huo [18] and subsequently in [19]�[21], [24], [30], [31], [33].
-C. J. Colbourn and V. R. Syrotiuk are with the School of Computing, Informatics, and Decision Systems Engineering, Arizona State University, Tempe, AZ, U.S.A., 85287-8809, {colbourn,syrotiuk}@asu.edu D. Horsley is with the School of Mathematical Sciences, Monash University, Vic 3800, Australia, daniel.horsley@monash.edu
+Abstract
+A combinatorial approach to compressive sensing based on a deterministic column replacement technique is proposed.
+Informally, it takes as input a pattern matrix and ingredient measurement matrices, and results in a larger measurement matrix
+by replacing elements of the pattern matrix with columns from the ingredient matrices. This hierarchical technique yields great
+flexibility in sparse signal recovery. Specifically, recovery for the resulting measurement matrix does not depend on any fixed
+algorithm but rather on the recovery scheme of each ingredient matrix. In this paper, we investigate certain trade-offs for signal
+recovery, considering the computational investment required. Coping with noise in signal recovery requires additional conditions,
+both on the pattern matrix and on the ingredient measurement matrices.
+Index Terms
+compressive sensing, hierarchical signal recovery, deterministic column replacement, hash families
+
+I. I NTRODUCTION
+Nyquist’s sampling theorem provides a sufficient condition for full recovery of a band-limited signal: sample the signal at a
+rate that is twice the band-limit. However, there are cases when full recovery may be achieved with a sub-Nyquist sampling
+rate. This occurs with signals that are sparse (or compressible) in some domain, such as those that arise in applications in
+sensing, imaging, and communications, and has given rise to the field of compressive sensing [2], [6] (also called compressive
+sampling).
+Consider the following framework for compressive sensing. An admissible signal of dimension n is a vector in Rn that is
+known a priori to be taken from a given set Φ ⊆ Rn . A measurement matrix A is a matrix from Rm×n . Sampling a signal
+x ∈ Rn corresponds to computing the product Ax = b. Once sampled, recovery involves determining the unique signal x ∈ Φ
+that satisfies Ax = b using only A and b. If Φ = Rn , recovery can be accomplished only if A has rank n, and hence m ≥ n.
+However for more restrictive admissible sets Φ, recovery may be accomplished when m < n.
+Given a measurement matrix A, an equivalence relation ≡A is defined so that for signals x, y ∈ Rn , we have x ≡A y
+if and only if Ax = Ay. If for every equivalence class P under ≡A , the set P ∩ Φ contains at most one signal then in
+principle recovery is possible. Because Ax = Ay ensures that A(x − y) = 0, this can be stated more simply: An equivalence
+class P of ≡A can be represented as {x + y : y ∈ N (A)} for any x ∈ P , where N (A) is the null space of A, i.e., the set
+{x ∈ Rn : Ax = 0}. Recoverability is therefore equivalent to requiring that, for every signal x ∈ Φ, there is no y ∈ N (A)\{0}
+with x + y ∈ Φ.
+In order to make use of these observations, a reasonable a priori restriction on the signals to be sampled is identified, suitable
+measurement matrices with m ≪ n are formed, and a reasonably efficient computational strategy for recovering the signal is
+provided. A signal is t-sparse if at most t of its n coordinates are nonzero. The recovery of t-sparse signals is the domain
+of compressive sensing. An admissible set of signals Φ has sparsity t when every signal in Φ is t-sparse. An admissible set
+of signals Φ is t-sparsifiable if there is a full rank matrix B ∈ Rn×n for which {Bx : x ∈ Φ} has sparsity t. We assume
+throughout that when the signals are sparsifiable, a change of basis B is applied so that the admissible signals have sparsity t.
+A measurement matrix has (ℓ0 , t)-recoverability when it permits exact recovery of all t-sparse signals. A basic problem is
+to design measurement matrices with (ℓ0 , t)-recoverability where m ≪ n such that recovery can be accomplished efficiently.
+Suppose that measurement matrix A has (ℓ0 , t)-recoverability. Then in principle, given A and b, recovery of the signal x can
+be accomplished by solving the ℓ0 -minimization problem min{||x||0 : Ax = b}. To do so the possible supports of signals
+from fewest nonzero entries to most are first listed. For each, reduce A to A′ and x to x′ by eliminating coordinates in the
+signal assumed to be zero. Examine the now overdetermined system A′ x′ = b. When equality holds, a solution is found; we
+are guaranteed to find one by considering all possible supports
+with at most t nonzero entries. Such an enumerative strategy is
+
+prohibitively time-consuming, examining as many as nt linear systems when the signal has sparsity t. Natarajan [27] showed
+that we cannot expect to find a substantially more efficient solution, because the problem is NP-hard.
+Instead of the ℓ0 -minimization problem, Chen, Donoho, Huo, and Saunders [11], [18] suggest considering the ℓ1 -minimization
+problem min{||x||1 : Ax = b}. While this can be solved using standard linear programming techniques, to be effective it
+is necessary that for each t-sparse signal x, the unique solution to min{||z||1 : Az = Ax} is x. This property is (ℓ1 , t)recoverability. A necessary and sufficient condition for (ℓ1 , t)-recoverability has been explored, beginning with Donoho and
+Huo [18] and subsequently in [19]–[21], [24], [30], [31], [33].
+C. J. Colbourn and V. R. Syrotiuk are with the School of Computing, Informatics, and Decision Systems Engineering, Arizona State University, Tempe,
+AZ, U.S.A., 85287-8809, {colbourn,syrotiuk}@asu.edu
+D. Horsley is with the School of Mathematical Sciences, Monash University, Vic 3800, Australia, daniel.horsley@monash.edu
 
 2
 
-A measurement matrix A meets the (0 , t)-null space condition if and only if N (A) \ {0} contains no (2t)-sparse vector. For y  Rn and C  {1, . . . , n}, define y|C  Rn to be the vector such that (y|C ) = y if   C and (y|C ) = 0 otherwise. A measurement matrix A meets the (1 , t)-null space condition if and only if for every y  N (A) \ {0} and every C  {1, . . . , n} with |C | = t, ||y|C ||1 < 1 2 ||y||1 . Lemma 1: ([13], for example) Measurement matrix A  Rm�n has (0 , t)-recoverability if and only if A meets the (0 , t)null space condition. Lemma 2: ([33], for example) Measurement matrix A  Rm�n has (1 , t)-recoverability if and only if A meets the (1 , t)null space condition.
+A measurement matrix A meets the (ℓ0 , t)-null space condition if and only if N (A) \ {0} contains no (2t)-sparse vector.
+For y ∈ Rn and C ⊂ {1, . . . , n}, define y|C ∈ Rn to be the vector such that (y|C )γ = yγ if γ ∈ C and (y|C )γ = 0
+otherwise. A measurement matrix A meets the (ℓ1 , t)-null space condition if and only if for every y ∈ N (A) \ {0} and every
+C ⊂ {1, . . . , n} with |C| = t, ||y|C ||1 < 12 ||y||1 .
+Lemma 1: ([13], for example) Measurement matrix A ∈ Rm×n has (ℓ0 , t)-recoverability if and only if A meets the (ℓ0 , t)null space condition.
 
-To establish (1 , t)-recoverability, and hence also (0 , t)-recoverability, Cand` es and Tao [7], [9] introduced the Restricted Isometry Property (RIP). For A  Rm�n , the dth RIP parameter of A, d (A), is the smallest  so that, for some constant R > 0, (1 -  )R(||x||2 )2  (||Ax||2 )2  (1 +  )R(||x||2 )2 , for all x with ||x||0  d. The dth RIP parameter is better when d (A) is smaller as the bounds are tighter. The RIP parameters have been employed extensively to establish (1 , t)-recoverability, particularly for randomly generated measurement matrices [8]�[10], but also for those generated using deterministic con structions [12], [17]. Commonly, 2t < 2 - 1 is required for (1 , t)-recoverability; see [7] for example. The property of (1 , t)-recoverability in the presence of noise has also been considered. Conditions on the RIP parameters are sufficient but in general not necessary for recoverability. Combinatorial approaches to compressive sensing are detailed in [3], [16], [22], [23], [25], [26], [32]. We pursue a different combinatorial approach here, using a deterministic column replacement technique based on hash families. The use of an heterogeneous hash family provides an explicit hierarchical construction of a large measurement matrix from a library of small ingredient matrices. Strengthening hash families provide a means to increase the level of sparsity supporte, allowing the ingredient matrices to be designed for lower sparsity than the larger measurement matrix produced. In this paper we show that the heterogeneity extends to signal recovery: it is interesting that the ingredient measurement matrices need not all employ the same recovery algorithm. This enables hierarchical recovery for the large measurement matrix; however, this can be computationally prohibitive. By restricting the hash family to be linear, recovery for the large measurement matrix can be achieved in sublinear time even when computationally intensive methods are used for each ingredient matrix. To be practical, recovery methods based on hash families must deal with noise in the signal effectively. Suitable restrictions on the hash family and on each ingredient matrix used in the hierarchical method are shown to be sufficient to permit recovery in the presence of noise. The rest of this paper is organized as follows. The results on homogeneous hash families in Section II demonstrate that a recovery scheme based on (0 , t)- or (1 , t)-recoverability can be `lifted' from the ingredient measurement matrices to the matrix resulting from column replacement. Section III considers a generalization of hash families to allow for ingredient matrices with other recovery algorithms, and the computational investment to recover the signal. Signal recovery without noise is considered first, and the conditions for a sublinear time recovery algorithm described. Section IV considers the recovery of almost-sparse signals to deal with noise in the signal. Finally, Section V draws relevant conclusions. II. H ASH FAMILIES
+Lemma 2: ([33], for example) Measurement matrix A ∈ Rm×n has (ℓ1 , t)-recoverability if and only if A meets the (ℓ1 , t)null space condition.
+
+To establish (ℓ1 , t)-recoverability, and hence also (ℓ0 , t)-recoverability, Candès and Tao [7], [9] introduced the Restricted
+Isometry Property (RIP). For A ∈ Rm×n , the dth RIP parameter of A, δd (A), is the smallest δ so that, for some constant R > 0,
+(1 − δ)R(||x||2 )2 ≤ (||Ax||2 )2 ≤ (1 + δ)R(||x||2 )2 , for all x with ||x||0 ≤ d. The dth RIP parameter is better when δd (A)
+is smaller as the bounds are tighter. The RIP parameters have been employed extensively to establish (ℓ1 , t)-recoverability,
+particularly for randomly generated measurement
+matrices [8]–[10], but also for those generated using deterministic con√
+structions [12], [17]. Commonly, δ2t < 2 − 1 is required for (ℓ1 , t)-recoverability; see [7] for example. The property of
+(ℓ1 , t)-recoverability in the presence of noise has also been considered. Conditions on the RIP parameters are sufficient but in
+general not necessary for recoverability.
+Combinatorial approaches to compressive sensing are detailed in [3], [16], [22], [23], [25], [26], [32]. We pursue a different
+combinatorial approach here, using a deterministic column replacement technique based on hash families. The use of an
+heterogeneous hash family provides an explicit hierarchical construction of a large measurement matrix from a library of
+small ingredient matrices. Strengthening hash families provide a means to increase the level of sparsity supporte, allowing the
+ingredient matrices to be designed for lower sparsity than the larger measurement matrix produced.
+In this paper we show that the heterogeneity extends to signal recovery: it is interesting that the ingredient measurement
+matrices need not all employ the same recovery algorithm. This enables hierarchical recovery for the large measurement matrix;
+however, this can be computationally prohibitive. By restricting the hash family to be linear, recovery for the large measurement
+matrix can be achieved in sublinear time even when computationally intensive methods are used for each ingredient matrix. To
+be practical, recovery methods based on hash families must deal with noise in the signal effectively. Suitable restrictions on
+the hash family and on each ingredient matrix used in the hierarchical method are shown to be sufficient to permit recovery
+in the presence of noise.
+The rest of this paper is organized as follows. The results on homogeneous hash families in Section II demonstrate that
+a recovery scheme based on (ℓ0 , t)- or (ℓ1 , t)-recoverability can be ‘lifted’ from the ingredient measurement matrices to the
+matrix resulting from column replacement. Section III considers a generalization of hash families to allow for ingredient
+matrices with other recovery algorithms, and the computational investment to recover the signal. Signal recovery without noise
+is considered first, and the conditions for a sublinear time recovery algorithm described. Section IV considers the recovery of
+almost-sparse signals to deal with noise in the signal. Finally, Section V draws relevant conclusions.
+II. H ASH FAMILIES
+
 AND
 
 C OMPRESSIVE S ENSING
 
-A. Column Replacement and Hash Families for Compressive Sensing Let A  Rr�k , A = (aij ), be an ingredient matrix. Let P  {1, . . . , k }m�n , P = (pij ), be a pattern matrix. The columns of A are indexed by elements of P . For each row i of P , replace element pij with a copy of column pij of A. The result is an rm � n matrix B , the column replacement of A into P . Fig. 1 gives an example of column replacement.   a11 a12 a13 a11  a21 a22 a23 a21  1231 a11 a12 a13  B= P = A=  a13 a11 a12 a11  a21 a22 a23 3121 a23 a21 a22 a21
-B is the column replacement of A into P .
+A. Column Replacement and Hash Families for Compressive Sensing
+Let A ∈ Rr×k , A = (aij ), be an ingredient matrix. Let P ∈ {1, . . . , k}m×n , P = (pij ), be a pattern matrix. The columns
+of A are indexed by elements of P . For each row i of P , replace element pij with a copy of column pij of A. The result is
+an rm × n matrix B, the column replacement of A into P . Fig. 1 gives an example of column replacement.
+
+
+a11 a12 a13 a11
+
+
+
+
+ a21 a22 a23 a21 
+1231
+a11 a12 a13
+
+B=
+P =
+A=
+ a13 a11 a12 a11 
+a21 a22 a23
+3121
+a23 a21 a22 a21
 
 Fig. 1.
 
-When the ingredient matrix A is a measurement matrix that meets one of the null space conditions for a given sparsity, our interest is to ensure that the sparsity supported by B is at least that of A. Not every pattern matrix P suffices for this purpose. Therefore, we examine the requirements on P . Let m, n, and k be positive integers. An hash family HF(m; n, k ), P = (pij ), is an m � n array, in which each cell contains one symbol from a set of k symbols. An hash family is perfect of strength t, denoted PHF(m; n, k, t), if in every m � t
+B is the column replacement of A into P .
+
+When the ingredient matrix A is a measurement matrix that meets one of the null space conditions for a given sparsity, our
+interest is to ensure that the sparsity supported by B is at least that of A. Not every pattern matrix P suffices for this purpose.
+Therefore, we examine the requirements on P .
+Let m, n, and k be positive integers. An hash family HF(m; n, k), P = (pij ), is an m × n array, in which each cell contains
+one symbol from a set of k symbols. An hash family is perfect of strength t, denoted PHF(m; n, k, t), if in every m × t
 
 3
 
-subarray of P at least one row consists of distinct symbols; see [1], [28]. Fig. 2 gives an example of a perfect hash family PHF(6; 12, 3, 3). For example, for the 6 � 3 subarray involving columns 4, 5, and 6, only the fourth row consists of distinct symbols.  2 0 2 1 1 2  1 2 2 2 2 1  2 2 2 0 1 1
+subarray of P at least one row consists of distinct symbols; see [1], [28]. Fig. 2 gives an example of a perfect hash family
+PHF(6; 12, 3, 3). For example, for the 6 × 3 subarray involving columns 4, 5, and 6, only the fourth row consists of distinct
+symbols.
 
+→
+Fig. 2.
 
-Fig. 2. A perfect hash family PHF(6; 12, 3, 3).
+0
+0
+1
+2
+2
+2
 
-0 0 1 2 2 2
+1
+2
+0
+0
+0
+0
 
-1 2 0 0 0 0
+↓
+2
+0
+2
+1
+1
+2
 
-2 1 0 1 2 1
+2
+1
+0
+1
+2
+1
 
-2 2 1 2 0 2
+↓
+1
+2
+2
+2
+2
+1
 
-0 1 1 0 2 2
+↓
+2
+2
+2
+0
+1
+1
 
-1 0 2 1 2 0
+2
+2
+1
+2
+0
+2
 
-1 1 1 1 1 1
+0
+1
+1
+0
+2
+2
 
-0 2 0 2 1 2
+1
+0
+2
+1
+2
+0
 
-0 1 2 1 0 1
+1
+1
+1
+1
+1
+1
 
-A perfect hash family has at least one row that separates the t columns into t parts in every m � t subarray. A weaker condition separates the t columns into classes. A {w1 , . . . , ws }-separating hash family, denoted SHF(m; n, k, {w1 , . . . , ws }), s with t = i=1 wi , is an m � n array on k symbols in which for every m � t subarray, and every way to partition the t columns into classes of sizes w1 , . . . , ws , there is at least one row in which no two classes contain the same symbol; see [4], [29]. A W -separating hash family, denoted SHF(m; n, k, W ), is a {w1 , . . . , ws }-separating hash family for each {w1 , . . . , ws }  W . Fig. 3 gives an example of a {1, 2}-separating hash family SHF(3; 16, 4, {1, 2}). For the 3 � 3 subarray consisting of columns 11, 15, and 16, for example, the last row separates columns {11, 16} from column {15}. 1 1 1 1 2 2 1 3 3 1 4 4 2 1 2 2 2 1 2 3 4 2 4 3 3 1 3 3 2 4  3 3 1 3 4 2 4 1 4 4 2 3  4 3 2  4 4 1
+0
+2
+0
+2
+1
+2
 
+0
+1
+2
+1
+0
+1
 
+A perfect hash family PHF(6; 12, 3, 3).
+
+A perfect hash family has at least one row that separates the t columns into t parts in every m × t subarray. A weaker
+conditionP
+separates the t columns into classes. A {w1 , . . . , ws }-separating hash family, denoted SHF(m; n, k, {w1 , . . . , ws }),
+s
+with t = i=1 wi , is an m × n array on k symbols in which for every m × t subarray, and every way to partition the t columns
+into classes of sizes w1 , . . . , ws , there is at least one row in which no two classes contain the same symbol; see [4], [29]. A
+W-separating hash family, denoted SHF(m; n, k, W), is a {w1 , . . . , ws }-separating hash family for each {w1 , . . . , ws } ∈ W.
+Fig. 3 gives an example of a {1, 2}-separating hash family SHF(3; 16, 4, {1, 2}). For the 3 × 3 subarray consisting of columns
+11, 15, and 16, for example, the last row separates columns {11, 16} from column {15}.
+
+→
 Fig. 3.
 
+1
+1
+1
+
+1
+2
+2
+
+1
+3
+3
+
+1
+4
+4
+
+2
+1
+2
+
+2
+2
+1
+
+2
+3
+4
+
+2
+4
+3
+
+3
+1
+3
+
+↓
+3
+3
+1
+
+3
+2
+4
+
+3
+4
+2
+
+4
+1
+4
+
+4
+2
+3
+
+↓
+4
+3
+2
+
+↓
+4
+4
+1
+
 A {1, 2}-separating hash family SHF(3; 16, 4, {1, 2}).
-s
 
-A distributing hash family DHF(m; n, k, t, s) is an SHF(m; n, k, W ) with W = {{w1 , . . . , ws } : t = i=1 wi }. Fig. 4 gives an example of a DHF(10; 13, 9, 5, 2). For the 10 � 5 subarray consisting of columns 8 through 12, row 4 separates columns {8, 9, 10, 11} from column {12} (a {1, 4}-separation), and row 5 separates columns {8, 9, 12} from columns {10, 11} (a {2, 3}-separation). 6 3 8 0 0 1 1 1 0 0 7 1 5 2 0 1 0 1 0 0 8 1 1 0 2 2 1 0 3 0 3 7 4 2 1 2 2 1 0 0 4 2 2 2 1 2 0 0 1 0 0 6 3 0 1 0 0 4 0 1 2 8 2 0 2 1 2 2 0 0  2 4 6 1 0 0 0 0 2 0  3 3 7 1 0 0 0 2 4 1  0 0 0 1 2 2 1 0 0 0  5 2 1 1 2 1 2 1 0 0  1 0 3 2 0 0 2 0 1 0 1 5 0 0 1 0 1 2 0 1
+Ps
+A distributing hash family DHF(m; n, k, t, s) is an SHF(m; n, k, W) with W = {{w1 , . . . , ws } : t = i=1 wi }. Fig. 4
+gives an example of a DHF(10; 13, 9, 5, 2). For the 10 × 5 subarray consisting of columns 8 through 12, row 4 separates
+columns {8, 9, 10, 11} from column {12} (a {1, 4}-separation), and row 5 separates columns {8, 9, 12} from columns {10, 11}
+(a {2, 3}-separation).
 
-a {1, 4}-separation  a {2, 3}-separation 
+a {1, 4}-separation →
+a {2, 3}-separation →
 
 Fig. 4.
 
+6
+3
+8
+0
+0
+1
+1
+1
+0
+0
+
+7
+1
+5
+2
+0
+1
+0
+1
+0
+0
+
+8
+1
+1
+0
+2
+2
+1
+0
+3
+0
+
+3
+7
+4
+2
+1
+2
+2
+1
+0
+0
+
+4
+2
+2
+2
+1
+2
+0
+0
+1
+0
+
+0
+6
+3
+0
+1
+0
+0
+4
+0
+1
+
+2
+8
+2
+0
+2
+1
+2
+2
+0
+0
+
+↓
+2
+4
+6
+1
+0
+0
+0
+0
+2
+0
+
+↓
+3
+3
+7
+1
+0
+0
+0
+2
+4
+1
+
+↓
+0
+0
+0
+1
+2
+2
+1
+0
+0
+0
+
+↓
+5
+2
+1
+1
+2
+1
+2
+1
+0
+0
+
+↓
+1
+0
+3
+2
+0
+0
+2
+0
+1
+0
+
+1
+5
+0
+0
+1
+0
+1
+2
+0
+1
+
 A distributing hash family DHF(10; 13, 9, 5, 2).
 
-Now, we are in a position to state the requirements on a pattern matrix P that ensure that the sparsity supported by the matrix B resulting from column replacement is at least that of A. Theorem 1: [13] Suppose that A is an r � k measurement matrix that meets the (0 , t)-null space condition, that P is an SHF(m; n, k, {1, t}), and that B is the column replacement of A into P . Then B is an rm � n measurement matrix that meets the (0 , t)-null space condition.
+Now, we are in a position to state the requirements on a pattern matrix P that ensure that the sparsity supported by the
+matrix B resulting from column replacement is at least that of A.
+Theorem 1: [13] Suppose that A is an r × k measurement matrix that meets the (ℓ0 , t)-null space condition, that P is an
+SHF(m; n, k, {1, t}), and that B is the column replacement of A into P . Then B is an rm × n measurement matrix that meets
+the (ℓ0 , t)-null space condition.
 
-Theorem 2: [13] Suppose that A is an r � k measurement matrix that meets the (1 , t)-null space condition, that P is a DHF(m; n, k, t + 1, 2), and that B is the column replacement of A into P . Then B is an rm � n measurement matrix that meets the (1 , t)-null space condition.
+Theorem 2: [13] Suppose that A is an r × k measurement matrix that meets the (ℓ1 , t)-null space condition, that P is a
+DHF(m; n, k, t + 1, 2), and that B is the column replacement of A into P . Then B is an rm × n measurement matrix that
+meets the (ℓ1 , t)-null space condition.
 
 4
 
-B. Exploiting Heterogeneity in Column Replacement All the standard definitions of hash families may be generalized by replacing k by k = (k1 , . . . , km ), a tuple of positive integers. Now, an heterogeneous hash family HF(m; n, k), P = (pij ), is an m � n array in which each cell from row i contains one symbol from a set of ki symbols, 1  i  m. Column replacement may be extended to exploit heterogeneity in an hash family. Let P = (pij ) be an HF(m; n, k) and, for 1  i  m, let Ai be an ri � ki ingredient matrix whose columns are indexed by the ki elements in row i of P . For each row i of P , replace the element pij with a copy of column pij of Ai , 1  j  n. The result is a ( m i=1 ri ) � n matrix B , the column replacement of A1 , . . . , Am into P . Fig. 5 gives an example of column replacement using an heterogeneous hash family.  1 1 1 1 1 a1 11 a13 a12 a11 a12 a13 1 1 1 1 1   a1 21 a23 a22 a21 a22 a23  B= 2 2 2 2 2   a2 11 a11 a11 a12 a12 a12 2 2 2 2 2 a2 21 a21 a21 a22 a22 a22 
+B. Exploiting Heterogeneity in Column Replacement
+All the standard definitions of hash families may be generalized by replacing k by k = (k1 , . . . , km ), a tuple of positive
+integers. Now, an heterogeneous hash family HF(m; n, k), P = (pij ), is an m × n array in which each cell from row i contains
+one symbol from a set of ki symbols, 1 ≤ i ≤ m.
+Column replacement may be extended to exploit heterogeneity in an hash family. Let P = (pij ) be an HF(m; n, k) and, for
+1 ≤ i ≤ m, let Ai be an ri × ki ingredient matrix whose columns are indexed by the ki elements P
+in row i of P . For each
+row i of P , replace the element pij with a copy of column pij of Ai , 1 ≤ j ≤ n. The result is a ( m
+i=1 ri ) × n matrix B,
+the column replacement of A1 , . . . , Am into P . Fig. 5 gives an example of column replacement using an heterogeneous hash
+family.
 
 P =
 
-132123 111222
+Fig. 5.
+
+
+
+132123
+111222
+
+
 
 A1 =
 
-1 1 a1 11 a12 a13 1 1 1 a21 a22 a23
+
 
-A2 =
-
-2 a2 11 a12 2 2 a21 a22
-
-Fig. 5.
+a111 a112 a113
+a121 a122 a123
 
 B is the column replacement of A1 , A2 into P .
 
-An hierarchical method for compressive sensing is obtained using column replacement in an heterogeneous hash family. Suppose that Ai is a measurement matrix for a signal of dimension ki supporting the recovery of sparsity qi , for 1  i  m. We now describe the properties the pattern matrix needs to satisfy to support recovery of signals of dimension n and sparsity t. In Section II-A, we saw that a perfect hash family separates t columns into t parts, and that a separating hash family separates t columns into classes. We now define a particular type of separating hash family in which the number of symbols used to accomplish the separations is restricted. Let d = (d1 , . . . , dm ) be a tuple of positive integers, and let  be a positive integer. Let W = {W1 , . . . , Wr }, where for si 1  i  r, Wi = {wi1 , . . . , wisi } is a multiset of nonnegative integers, and i = j =1 wij . An SHF(m; n, k, W ), P = (pij ), is (d,  )-strengthening if whenever 1  i  r, � C is a set of i columns, � C1 , . . . , Csi is a partition of C with |Cj | = wij for 1  j  si , and � T is a set of  columns with |C  T | = min(i ,  ), there exists a row  for which px = py whenever x  Ce , y  Cf and e = f and the multiset {px : x  T } contains no more than d different symbols. When  = max{i : 1  i  r}, we omit  and write d-strengthening. Because rows of P can be arbitrarily permuted (while permuting the ingredient matrices in the same manner), the order of elements in k and d is us 1 inconsequential. Hence we often use exponential notation, writing xu 1 � � � xs , with ui a non-negative integer for 1  i  s,  -1  s s for a vector (y1 , . . . , y j=1 uj ) in which y = xj for j =1 uj <   j =1 uj for 1    j =1 uj . Fig. 6 gives a heterogeneous d-strengthening DHF(19; 13, k, 5, 2) with k = (56 41 312 ) and d = (46 313 ). This is equivalent to a d-strengthening SHF(19; 13, k, {{1, 4}, {2, 3}}). Consider the separation of columns {1, 7} from columns {2, 6, 11}. Row 8 accomplishes the required separation because it uses no more than d8 = 3 symbols. Consider instead columns {1, . . . , 5}. While the first row separates {1, 2, 3} from {4, 5}, it uses 5 symbols instead of d1 = 4 and so does not accomplish the required separation; this separation is accomplished in row 3. Next the properties are determined for an heterogeneous hash family to support recovery of signals of dimension n and sparsity t using a column replacement technique. Theorem 3: [14] Let k = (k1 , . . . , km ) and q = (q1 , . . . , qm ) be tuples of positive integers. Let d = (2q1 , . . . , 2qm ). For 1  i  m, let Ai  Rri �ki be a measurement matrix that meets the (0 , qi )-null space condition. Let P be a (d, 2t)strengthening SHF(m; n, k, {1, t}), and let B be the column replacement of A1 , . . . , Am into P . Then B meets the (0 , t)-null space condition. Theorem 4: [14] Let k = (k1 , . . . , km ) and q = (q1 , . . . , qm ) be tuples of positive integers. For 1  i  m, let Ai  Rri �ki be a measurement matrix that meets the (1 , qi )-null space condition. Let P be a (q, t)-strengthening DHF(m; n, k, t + 1, 2), and let B be the column replacement of A1 , . . . , Am into P . Then B meets the (1 , t)-null space condition.
+
 
-Revisiting the d-strengthening DHF(19; 13, k, 5, 2) pattern matrix in Fig. 6, the results of Theorems 3 and 4 indicate that the number of symbols in each row need not be the same. In general, there may be as many ingredient matrices Ai as there are rows of the pattern matrix P . Moreover, the strength of each ingredient matrix Ai may be different! In this example, the
+A2 =
+
+
+
+a211 a212
+a221 a222
+
+
+
+
+a111 a113 a112 a111 a112 a113
+ a121 a123 a122 a121 a122 a123 
+
+B=
+ a211 a211 a211 a212 a212 a212 
+a221 a221 a221 a222 a222 a222
+
+
+An hierarchical method for compressive sensing is obtained using column replacement in an heterogeneous hash family.
+Suppose that Ai is a measurement matrix for a signal of dimension ki supporting the recovery of sparsity qi , for 1 ≤ i ≤ m.
+We now describe the properties the pattern matrix needs to satisfy to support recovery of signals of dimension n and sparsity
+t.
+In Section II-A, we saw that a perfect hash family separates t columns into t parts, and that a separating hash family
+separates t columns into classes. We now define a particular type of separating hash family in which the number of symbols
+used to accomplish the separations is restricted.
+Let d = (d1 , . . . , dm ) be a tuple of positive integers, and let τ be a positive P
+integer. Let W = {W1 , . . . , Wr }, where for
+si
+1 ≤ i ≤ r, Wi = {wi1 , . . . , wisi } is a multiset of nonnegative integers, and σi = j=1
+wij . An SHF(m; n, k, W), P = (pij ),
+is (d, τ )-strengthening if whenever 1 ≤ i ≤ r,
+• C is a set of σi columns,
+• C1 , . . . , Csi is a partition of C with |Cj | = wij for 1 ≤ j ≤ si , and
+• T is a set of τ columns with |C ∩ T | = min(σi , τ ),
+there exists a row ρ for which pρx 6= pρy whenever x ∈ Ce , y ∈ Cf and e 6= f and the multiset {pρx : x ∈ T } contains no
+more than dρ different symbols. When τ = max{σi : 1 ≤ i ≤ r}, we omit τ and write d-strengthening. Because rows of P
+can be arbitrarily permuted (while permuting the ingredient matrices in the same manner), the order of elements in k and d is
+inconsequential. Hence we often use exponential notation, writing xu1 1 · · · xus s , with ui a non-negative integer for 1 ≤ i ≤ s,
+Pℓ−1
+Pℓ
+Ps
+for a vector (y1 , . . . , yPsj=1 uj ) in which yℓ = xj for j=1 uj < ℓ ≤ j=1 uj for 1 ≤ ℓ ≤ j=1 uj .
+Fig. 6 gives a heterogeneous d-strengthening DHF(19; 13, k, 5, 2) with k = (56 41 312 ) and d = (46 313 ). This is equivalent
+to a d-strengthening SHF(19; 13, k, {{1, 4}, {2, 3}}). Consider the separation of columns {1, 7} from columns {2, 6, 11}. Row
+8 accomplishes the required separation because it uses no more than d8 = 3 symbols. Consider instead columns {1, . . . , 5}.
+While the first row separates {1, 2, 3} from {4, 5}, it uses 5 symbols instead of d1 = 4 and so does not accomplish the required
+separation; this separation is accomplished in row 3.
+Next the properties are determined for an heterogeneous hash family to support recovery of signals of dimension n and
+sparsity t using a column replacement technique.
+Theorem 3: [14] Let k = (k1 , . . . , km ) and q = (q1 , . . . , qm ) be tuples of positive integers. Let d = (2q1 , . . . , 2qm ). For
+1 ≤ i ≤ m, let Ai ∈ Rri ×ki be a measurement matrix that meets the (ℓ0 , qi )-null space condition. Let P be a (d, 2t)strengthening SHF(m; n, k, {1, t}), and let B be the column replacement of A1 , . . . , Am into P . Then B meets the (ℓ0 , t)-null
+space condition.
+Theorem 4: [14] Let k = (k1 , . . . , km ) and q = (q1 , . . . , qm ) be tuples of positive integers. For 1 ≤ i ≤ m, let Ai ∈ Rri ×ki
+be a measurement matrix that meets the (ℓ1 , qi )-null space condition. Let P be a (q, t)-strengthening DHF(m; n, k, t + 1, 2),
+and let B be the column replacement of A1 , . . . , Am into P . Then B meets the (ℓ1 , t)-null space condition.
+
+Revisiting the d-strengthening DHF(19; 13, k, 5, 2) pattern matrix in Fig. 6, the results of Theorems 3 and 4 indicate that
+the number of symbols in each row need not be the same. In general, there may be as many ingredient matrices Ai as there
+are rows of the pattern matrix P . Moreover, the strength of each ingredient matrix Ai may be different! In this example, the
 
 5
 
-k1 = . . . = k6 = 5 symbols; d1 = . . . = d6 = 4 used to separate
+k1 = . . . = k6 = 5 symbols;
+d1 = . . . = d6 = 4 used to separate
 
-k2 = 4 symbols; d2 = 3 used to separate 
+k2 = 4 symbols; d2 = 3 used to separate
+→
 
-k8 = . . . = k19 = 3 symbols; d8 = . . . = d19 = 3 used to separate
-
- 4 0 0 2 2 3 0 0 1 0 0 0 2 2 0 1 1 2 0
-
- 0 0 2 4 1 4 0 1 0 1 2 1 1 1 0 2 0 2 0
-
-2 1 4 1 2 0 1 0 2 2 2 1 0 2 0 0 2 0 2
-
-1 1 1 0 2 1 0 1 0 2 2 0 1 0 1 1 1 0 1
-
-3 2 1 3 4 0 0 1 0 1 1 1 2 2 0 1 1 1 1
-
- 3 3 2 0 0 3 2 2 2 2 2 2 0 2 1 1 0 2 0
-
- 0 1 0 3 0 2 2 0 1 1 0 1 1 0 1 2 0 1 1
-
-0 3 1 1 4 4 0 2 1 0 0 0 2 0 2 2 2 0 2
-
-1 2 2 1 0 2 0 0 0 0 1 0 0 1 0 0 0 0 0
-
-4 4 3 4 1 1 1 0 2 0 1 2 2 0 1 0 0 1 2
-
- 2 2 0 2 1 1 3 2 0 1 0 0 0 0 2 0 2 2 2
-
-2 0 3 0 3 2 0 1 2 0 0 2 0 1 2 2 1 1 1
-
-1 4 4 2 3 0 0 2 1 2 1 2 1 1 2 0 0 2 1
+k8 = . . . = k19 = 3 symbols;
+d8 = . . . = d19 = 3 used to separate
 
 Fig. 6.
 
+⇓
+4
+0
+0
+2
+2
+3
+0
+0
+1
+0
+0
+0
+2
+2
+0
+1
+1
+2
+0
+
+↓
+0
+0
+2
+4
+1
+4
+0
+1
+0
+1
+2
+1
+1
+1
+0
+2
+0
+2
+0
+
+2
+1
+4
+1
+2
+0
+1
+0
+2
+2
+2
+1
+0
+2
+0
+0
+2
+0
+2
+
+1
+1
+1
+0
+2
+1
+0
+1
+0
+2
+2
+0
+1
+0
+1
+1
+1
+0
+1
+
+3
+2
+1
+3
+4
+0
+0
+1
+0
+1
+1
+1
+2
+2
+0
+1
+1
+1
+1
+
+↓
+3
+3
+2
+0
+0
+3
+2
+2
+2
+2
+2
+2
+0
+2
+1
+1
+0
+2
+0
+
+⇓
+0
+1
+0
+3
+0
+2
+2
+0
+1
+1
+0
+1
+1
+0
+1
+2
+0
+1
+1
+
+0
+3
+1
+1
+4
+4
+0
+2
+1
+0
+0
+0
+2
+0
+2
+2
+2
+0
+2
+
+1
+2
+2
+1
+0
+2
+0
+0
+0
+0
+1
+0
+0
+1
+0
+0
+0
+0
+0
+
+4
+4
+3
+4
+1
+1
+1
+0
+2
+0
+1
+2
+2
+0
+1
+0
+0
+1
+2
+
+↓
+2
+2
+0
+2
+1
+1
+3
+2
+0
+1
+0
+0
+0
+0
+2
+0
+2
+2
+2
+
+2
+0
+3
+0
+3
+2
+0
+1
+2
+0
+0
+2
+0
+1
+2
+2
+1
+1
+1
+
+1
+4
+4
+2
+3
+0
+0
+2
+1
+2
+1
+2
+1
+1
+2
+0
+0
+2
+1
+
 A heterogeneous d-strengthening DHF(19; 13, k, 5, 2) with k = (56 41 312 ) and d = (46 313 ).
 
-first 6 rows use 4 symbols to separate, so the corresponding ingredient matrices must have strength at least 4. The remaining rows use 3 symbols to separate, so the corresponding ingredient matrices must have strength at least 3. In [14], we showed that heterogeneity gives great flexibility in construction of measurement matrices using column replacement. The hierarchical structure of the measurement matrices produced by column replacement can also aid in recovery, and be used to support hybrid recovery schemes. We examine this problem next, considering a generalization of hash families that removes the restriction to those strategies based only on (0 , t)- or (1 , t)-recoverability. We also consider the computational investment required to recover the signal. III. H ASH FAMILIES FOR R ECOVERY In order to tackle signal recovery, we require another generalization of hash families. As before, let k = (k1 , . . . , km ) be a tuple of positive integers. An HF (m; n, k) is an m � n array, P = (pij ), in which each cell contains one symbol, and for each row 1  i  m, {pij : 1  j  n}  {, 1, . . . , ki }. The symbol , when present, is interpreted as representing a `missing' entry. When the pattern matrix P = (pij ) is an HF (m; n, k), and for 1  i  m the ingredient matrix Ai is ri � ki with columns indexed by the ki symbols in row i of P other than , the column replacement of A1 , . . . , Am into P is as before, except that when pij = , it is replaced with an all zero column vector of length ri . As we will see, the separating properties of the hash families we use allow us to locate the nonzero coordinates of the signal and hence perform the recovery. The definition of a W -separating hash family encompasses perfect, {w1 , . . . , ws }-separating, and distributing hash families. Therefore, we need only extend the definition of W -separating hash families to include the  symbol. To do so, we allow some of the elements of the multisets in W to be marked with a  superscript to form a set of marked multisets W  ; the multisets in W  are indexed. Then an HF (m; n, k) is W  -separating if, for each {w1 , . . . , ws }  W (with some elements possibly marked), s � whenever C is a set of i=1 wi columns, and � C1 , . . . , Cs is an (indexed) partition of C with |Ci | = wi for 1  i  s then there exists a row that separates C1 , . . . , Cs in which, for 1  j  s, if  appears in a column in Cj then wj is marked. As we will see, to recover the signal, the idea is to effect a separation where a significant coordinate of the signal is present in one class such that any other class does not prevent its recovery. A. Signal Recovery without Noise Theorems 3 and 4 suggest that a recovery scheme based on (0 , t)- or (1 , t)-recoverability can be `lifted' from the ingredient measurement matrices A1 , . . . , Am to the larger measurement matrix B obtained from column replacement. However, such a method appears to have two main drawbacks. First, it is restricted to recovery strategies based on (0 , t)- or (1 , t)-recoverability. Secondly, and perhaps more importantly, it appears to necessitate a large computational investment to recover the signal, given B.
+first 6 rows use 4 symbols to separate, so the corresponding ingredient matrices must have strength at least 4. The remaining
+rows use 3 symbols to separate, so the corresponding ingredient matrices must have strength at least 3.
+In [14], we showed that heterogeneity gives great flexibility in construction of measurement matrices using column replacement. The hierarchical structure of the measurement matrices produced by column replacement can also aid in recovery, and
+be used to support hybrid recovery schemes. We examine this problem next, considering a generalization of hash families that
+removes the restriction to those strategies based only on (ℓ0 , t)- or (ℓ1 , t)-recoverability. We also consider the computational
+investment required to recover the signal.
+III. H ASH FAMILIES FOR R ECOVERY
+In order to tackle signal recovery, we require another generalization of hash families. As before, let k = (k1 , . . . , km ) be a
+tuple of positive integers. An HF◦ (m; n, k) is an m × n array, P = (pij ), in which each cell contains one symbol, and for each
+row 1 ≤ i ≤ m, {pij : 1 ≤ j ≤ n} ⊆ {◦, 1, . . . , ki }. The symbol ◦, when present, is interpreted as representing a ‘missing’
+entry. When the pattern matrix P = (pij ) is an HF◦ (m; n, k), and for 1 ≤ i ≤ m the ingredient matrix Ai is ri × ki with
+columns indexed by the ki symbols in row i of P other than ◦, the column replacement of A1 , . . . , Am into P is as before,
+except that when pij = ◦, it is replaced with an all zero column vector of length ri . As we will see, the separating properties
+of the hash families we use allow us to locate the nonzero coordinates of the signal and hence perform the recovery.
+The definition of a W-separating hash family encompasses perfect, {w1 , . . . , ws }-separating, and distributing hash families.
+Therefore, we need only extend the definition of W-separating hash families to include the ◦ symbol. To do so, we allow
+some of the elements of the multisets in W to be marked with a ◦ superscript to form a set of marked multisets W ′ ; the
+multisets in W ′ are indexed. Then an HF◦ (m; n, k) is W ′ -separating if, for each {w1 , . . . , ws } ∈ W (with some elements
+possibly marked),
+Ps
+• whenever C is a set of
+i=1 wi columns, and
+• C1 , . . . , Cs is an (indexed) partition of C with |Ci | = wi for 1 ≤ i ≤ s
+then there exists a row that separates C1 , . . . , Cs in which, for 1 ≤ j ≤ s, if ◦ appears in a column in Cj then wj is marked.
+As we will see, to recover the signal, the idea is to effect a separation where a significant coordinate of the signal is present
+in one class such that any other class does not prevent its recovery.
+A. Signal Recovery without Noise
+Theorems 3 and 4 suggest that a recovery scheme based on (ℓ0 , t)- or (ℓ1 , t)-recoverability can be ‘lifted’ from the ingredient
+measurement matrices A1 , . . . , Am to the larger measurement matrix B obtained from column replacement. However, such a
+method appears to have two main drawbacks. First, it is restricted to recovery strategies based on (ℓ0 , t)- or (ℓ1 , t)-recoverability.
+Secondly, and perhaps more importantly, it appears to necessitate a large computational investment to recover the signal, given
+B.
 
 6
 
-In order to overcome these problems, we consider two cases. The positive case arises when the signal is known a priori to be in Rn 0 . The general case arises when the signal can be positive, negative, or zero. In each case we develop a recovery scheme for the matrix B resulting from column replacement that does not depend on any fixed algorithm, but rather on the recovery schemes for the ingredient matrices A1 , . . . , Am . We suppose that P = (pij ) is an HF (m; n, k). For each 1  i  m, we suppose that Ai is an ri � ki measurement matrix that has (0 , t)-recoverability, equipped with a recovery algorithm Ri that determines the unique t-sparse vector zi that solves Ai zi = yi . We further suppose that B is the column replacement of A1 , . . . , Am into P , and that y is the result of sampling an (unknown) t-sparse vector x = (x1 , . . . , xn ) using B . For 1  i  m, the ith row of P induces a partition {Si , Si1 , . . . , Siki } of the column indices {1, . . . , n}, where Si = {j : pij = , 1  j  n} for   {, 1, . . . , ki }. Assume that we have employed the recovery algorithms Ri to find solutions zi . For 1  i  m and   {, 1, . . . , ki }, the partition class Si is discarded if  = , insignificant if  =  and zi = 0, significant positive if zi > 0, and significant negative if zi < 0. For 1  i  m, let wi = (wi1 , . . . , wiki ) where wi = j Si xj . The vector wi can be considered as a projection of x induced by the symbol pattern in row i of P . These facts follow: i � For 1  i  m, by the definition of B and because Bi x = yi , zi = wi is a solution to A zi = yi . i � For 1  i  m, because A has (0 , t)-recoverability and wi is t-sparse (because x is t-sparse), zi = wi is the unique solution to Ai zi = yi , and so Ri returns wi . We now consider the positive case and the general case for recovery in succession. B. Signal Recovery: The Positive Case We establish that in the positive case with t-sparse signals, it suffices to use a separating hash family of suitable strength, along with suitable ingredient matrices. An SHF (m; n, k, {1, t }) separates t + 1 columns into two parts, one part of size one that cannot include the symbol , and the other of size t that may include . Theorem 5: Suppose that P is an SHF (m; n, k, {1, t }). For 1  i  m, let Ai  Rri �ki be a measurement matrix that has (0 , t)-recoverability equipped with a recovery algorithm Ri that determines the unique t-sparse vector zi that solves Ai zi = yi . Further suppose that B is the column replacement of measurement matrices A1 , . . . , Am into P and that y is the result of sampling an (unknown) t-sparse vector x = (x1 , . . . , xn )  Rn 0 using B . Then the t-sparse solution x to B x = y can be recovered.
+In order to overcome these problems, we consider two cases. The positive case arises when the signal is known a priori to
+be in Rn≥0 . The general case arises when the signal can be positive, negative, or zero. In each case we develop a recovery
+scheme for the matrix B resulting from column replacement that does not depend on any fixed algorithm, but rather on the
+recovery schemes for the ingredient matrices A1 , . . . , Am .
+We suppose that P = (pij ) is an HF◦ (m; n, k). For each 1 ≤ i ≤ m, we suppose that Ai is an ri × ki measurement matrix
+that has (ℓ0 , t)-recoverability, equipped with a recovery algorithm Ri that determines the unique t-sparse vector zi that solves
+Ai zi = yi . We further suppose that B is the column replacement of A1 , . . . , Am into P , and that y is the result of sampling
+an (unknown) t-sparse vector x = (x1 , . . . , xn ) using B.
+For 1 ≤ i ≤ m, the ith row of P induces a partition {Si◦ , Si1 , . . . , Siki } of the column indices {1, . . . , n}, where Siσ =
+{j : pij = σ, 1 ≤ j ≤ n} for σ ∈ {◦, 1, . . . , ki }. Assume that we have employed the recovery algorithms Ri to find solutions
+zi . For 1 ≤ i ≤ m and σ ∈ {◦, 1, . . . , ki }, the partition class Siσ is discarded if σ = ◦, insignificant if σ 6= ◦ and ziσ = 0,
+significant positive if ziσ > 0, and significant negative if ziσ
+P< 0.
+For 1 ≤ i ≤ m, let wi = (wi1 , . . . , wiki ) where wiσ = j∈Siσ xj . The vector wi can be considered as a projection of x
+induced by the symbol pattern in row i of P . These facts follow:
+i
+• For 1 ≤ i ≤ m, by the definition of B and because Bi x = yi , zi = wi is a solution to A zi = yi .
+i
+• For 1 ≤ i ≤ m, because A has (ℓ0 , t)-recoverability and wi is t-sparse (because x is t-sparse), zi = wi is the unique
+solution to Ai zi = yi , and so Ri returns wi .
+We now consider the positive case and the general case for recovery in succession.
+B. Signal Recovery: The Positive Case
+We establish that in the positive case with t-sparse signals, it suffices to use a separating hash family of suitable strength,
+along with suitable ingredient matrices. An SHF◦ (m; n, k, {1, t◦ }) separates t + 1 columns into two parts, one part of size one
+that cannot include the symbol ◦, and the other of size t that may include ◦.
+Theorem 5: Suppose that P is an SHF◦ (m; n, k, {1, t◦ }). For 1 ≤ i ≤ m, let Ai ∈ Rri ×ki be a measurement matrix that
+has (ℓ0 , t)-recoverability equipped with a recovery algorithm Ri that determines the unique t-sparse vector zi that solves
+Ai zi = yi . Further suppose that B is the column replacement of measurement matrices A1 , . . . , Am into P and that y is the
+result of sampling an (unknown) t-sparse vector x = (x1 , . . . , xn ) ∈ Rn≥0 using B. Then the t-sparse solution x to Bx = y
+can be recovered.
 
-Proof: It suffices to determine whether xi is positive or zero for each 1  i  n, because once this is accomplished we can find the values of the positive xi by solving the overdetermined system that remains. For 1  i  m, apply recovery algorithm Ri to find the unique t-sparse vector zi such that Ai zi = yi . We claim that, for 1    n, x is positive if and only if for each i  {1, . . . , m} the partition class that contains  is either significant positive or discarded. Suppose first that x is positive. If Si is a partition class that contains , then either  =  and Si is insignificant or  = , zi = j Si xj  x > 0, and Si is significant positive. Now suppose that x = 0. Let C = {j : xj > 0, 1  j  n}; |C |  t. There must be a row  of P that separates C from {} such that p = . Let  = p . Then   S and S  C = , so S is insignificant. One useful application of Theorem 5 takes the pattern matrix P to be an SHF (m; n, 1, {1, t }), and each Ai to be a 1 � 1 matrix whose only element is 1; in this case, column replacement yields a matrix B isomorphic to P . In P for every column  and every set C of t columns with   C , there is a row in which all columns of C contain , while column  contains 1. Then the measurement matrices Ai have (0 , t)-recoverability and the recovery algorithms Ri are trivial. Hence in these cases, a matrix isomorphic to P itself supports recovery. Theorem 5 leads to a straightforward recovery algorithm. First, Ri is used to solve Ai zi = yi for 1  i  m. Then the classes Sij are classified as positive when zij > 0, discarded when j = , and insignificant when j =  and zij = 0; this can m be done in O( i=1 ki ) time. We need only compute, for each row, the complement of the union of the insignificant classes, and then compute the intersection over all rows of these complements. However, without additional structure this appears to require the examination of each coordinate; hence, this gives an (n) lower bound. It is not difficult, nevertheless, to obtain sublinear recovery times by restricting the hash family; we return to this problem in Section III-D. C. Signal Recovery: The General Case When the signal takes on both positive and negative values, cancellation of positive and negative contributions can yield a zero measurement despite the presence of a signal. Nevertheless, an additional requirement on the structure of the hash family
+Proof: It suffices to determine whether xi is positive or zero for each 1 ≤ i ≤ n, because once this is accomplished we
+can find the values of the positive xi by solving the overdetermined system that remains. For 1 ≤ i ≤ m, apply recovery
+algorithm Ri to find the unique t-sparse vector zi such that Ai zi = yi . We claim that, for 1 ≤ ℓ ≤ n, xℓ is positive if and
+only if for each i ∈ {1, . . . , m} the partition class that contains ℓ is either significant positive or discarded.
+Suppose
+P first that xℓ is positive. If Siσ is a partition class that contains ℓ, then either σ = ◦ and Siσ is insignificant or σ 6= ◦,
+ziσ = j∈Siσ xj ≥ xℓ > 0, and Siσ is significant positive. Now suppose that xℓ = 0. Let C = {j : xj > 0, 1 ≤ j ≤ n};
+|C| ≤ t. There must be a row ρ of P that separates C from {ℓ} such that pρℓ 6= ◦. Let σ = pρℓ . Then ℓ ∈ Sρσ and Sρσ ∩C = ∅,
+so Sρσ is insignificant.
+One useful application of Theorem 5 takes the pattern matrix P to be an SHF◦ (m; n, 1, {1, t◦ }), and each Ai to be a 1 × 1
+matrix whose only element is 1; in this case, column replacement yields a matrix B isomorphic to P . In P for every column
+γ and every set C of t columns with γ 6∈ C, there is a row in which all columns of C contain ◦, while column γ contains
+1. Then the measurement matrices Ai have (ℓ0 , t)-recoverability and the recovery algorithms Ri are trivial. Hence in these
+cases, a matrix isomorphic to P itself supports recovery.
+Theorem 5 leads to a straightforward recovery algorithm. First, Ri is used to solve Ai zi = yi for 1 ≤ i ≤ m. Then the
+classes Sij areP
+classified as positive when zij > 0, discarded when j = ◦, and insignificant when j 6= ◦ and zij = 0; this can
+m
+be done in O( i=1 ki ) time. We need only compute, for each row, the complement of the union of the insignificant classes,
+and then compute the intersection over all rows of these complements. However, without additional structure this appears to
+require the examination of each coordinate; hence, this gives an Ω(n) lower bound.
+It is not difficult, nevertheless, to obtain sublinear recovery times by restricting the hash family; we return to this problem
+in Section III-D.
+C. Signal Recovery: The General Case
+When the signal takes on both positive and negative values, cancellation of positive and negative contributions can yield a
+zero measurement despite the presence of a signal. Nevertheless, an additional requirement on the structure of the hash family
 
 7
 
-suffices to address this problem, as we show next. Theorem 6: Suppose that P is an SHF (m; n, k, {{, (t + 1 -  ) } : 1    t}). For 1  i  m, let Ai  Rri �ki be a measurement matrix that has (0 , t)-recoverability equipped with a recovery algorithm Ri that determines the unique t-sparse vector zi that solves Ai zi = yi . Further suppose that B is the column replacement of measurement matrices A1 , . . . , Am into P and that y is the result of sampling an (unknown) t-sparse vector x = (x1 , . . . , xn ) using B . Then the t-sparse solution x to B x = y can be recovered.
+suffices to address this problem, as we show next.
+Theorem 6: Suppose that P is an SHF◦ (m; n, k, {{τ, (t + 1 − τ )◦ } : 1 ≤ τ ≤ t}). For 1 ≤ i ≤ m, let Ai ∈ Rri ×ki be a
+measurement matrix that has (ℓ0 , t)-recoverability equipped with a recovery algorithm Ri that determines the unique t-sparse
+vector zi that solves Ai zi = yi . Further suppose that B is the column replacement of measurement matrices A1 , . . . , Am into
+P and that y is the result of sampling an (unknown) t-sparse vector x = (x1 , . . . , xn ) using B. Then the t-sparse solution x
+to Bx = y can be recovered.
 
-Proof: As in the proof of Theorem 5, it suffices to determine whether xi is nonzero or zero for each 1  i  n, because once this is accomplished we can find the values of the nonzero xi by solving the overdetermined system that remains. For 1  i  m, apply recovery algorithm Ri to find the unique t-sparse vector zi such that Ai zi = yi . Let - z+ i = (max(0, zij ) : 1  j  ki ) and zi = (min(0, zij ) : 1  j  ki ). +  A row i of P is maximum positive if ||z+ i ||1  ||zi ||1 for 1  i  m. Let M  {1, . . . , m} index the maximum positive rows. We claim that a coordinate x is positive if and only if, for every   M ,  is in a significant positive class of the partition induced by row . Suppose first that x is positive and let   M . Because  indexes a maximum positive row, the partition class induced by row  that contains  is not discarded and does not contain the index of any negative variable. Thus it is in a significant positive partition class. Now suppose that x  0. Because P is an SHF (m; n, k, {{, (t + 1 -  ) } : 1    t}) and x is t-sparse, there is a row  of P that separates {j : xj > 0, 1  j  n} from {j : xj < 0, 1  j  n}  {} in which the symbol  only appears in a subset of the columns indexed by {j : xj < 0, 1  j  n}  {}. It follows that  is a maximum positive row of P and that the partition class induced by  containing  does not contain the index of any positive coordinate. So   M , but  is not in a significant positive class of the partition induced by row . In the same manner, all negative coordinates can be identified using maximum negative rows.
+Proof: As in the proof of Theorem 5, it suffices to determine whether xi is nonzero or zero for each 1 ≤ i ≤ n,
+because once this is accomplished we can find the values of the nonzero xi by solving the overdetermined system that
+remains. For 1 ≤ i ≤ m, apply recovery algorithm Ri to find the unique t-sparse vector zi such that Ai zi = yi . Let
+−
+z+
+i = (max(0, zij ) : 1 ≤ j ≤ ki ) and zi = (min(0, zij ) : 1 ≤ j ≤ ki ).
++
+′
+A row i of P is maximum positive if ||z+
+i ||1 ≥ ||zi′ ||1 for 1 ≤ i ≤ m. Let M ⊆ {1, . . . , m} index the maximum positive
+rows. We claim that a coordinate xℓ is positive if and only if, for every ρ ∈ M , ℓ is in a significant positive class of the
+partition induced by row ρ.
+Suppose first that xℓ is positive and let ρ ∈ M . Because ρ indexes a maximum positive row, the partition class induced
+by row ρ that contains ℓ is not discarded and does not contain the index of any negative variable. Thus it is in a significant
+positive partition class.
+Now suppose that xℓ ≤ 0. Because P is an SHF◦ (m; n, k, {{τ, (t + 1 − τ )◦ } : 1 ≤ τ ≤ t}) and x is t-sparse, there is a row
+ρ of P that separates {j : xj > 0, 1 ≤ j ≤ n} from {j : xj < 0, 1 ≤ j ≤ n} ∪ {ℓ} in which the symbol ◦ only appears in a
+subset of the columns indexed by {j : xj < 0, 1 ≤ j ≤ n} ∪ {ℓ}. It follows that ρ is a maximum positive row of P and that
+the partition class induced by ρ containing ℓ does not contain the index of any positive coordinate. So ρ ∈ M , but ℓ is not in
+a significant positive class of the partition induced by row ρ.
+In the same manner, all negative coordinates can be identified using maximum negative rows.
 
-Again a straightforward recovery algorithm is given by Theorem 6 but, as in the positive case, it naively involves examining each of the n coordinates. D. Sublinear Time Signal Recovery Recovery can be accomplished in time that is sublinear in k when the hash family has suitable structure; we develop a general approach, and one example, here. In each case, for some subset M of the rows of P , sets are identified that must contain the indices of all positive coordinates (the indices of the negative coordinates, if they exist, can be located similarly). Recall from Section III-A, that the positive case arises when the signal is known a priori to be in Rn 0 and the general case arises when the signal can be positive, negative, or zero. In the positive case, M contains all rows and for   M , the candidate indices are V+ = { : p = , or x  Sj and zj > 0}. In the general case, M contains all rows that index maximum positive rows, and for   M , the candidate indices are V+ = { : x  Sj and zj > 0}. In both cases, we are to determine + + M V . In order to avoid the examination of each coordinate, we do not list the members of V explicitly, but rather use + an implicit representation to list the members of M V . First we give an implicit representation of an hash family HF(q + 1; q  , q ), P , where q is a prime power and 2    q . Let {0 , . . . , q-1 } be the elements of the finite field of order q , Fq . Index the rows of P by {}  {0 , . . . , q-1 }. Index the columns of P by the q  polynomials of degree less than  in indeterminate x, with coefficients in Fq . Now the entry of P with row index  and column indexed by polynomial f (x) is determined as f ( ) when   {0 , . . . , q-1 }, and as the coefficient of x-1 in f (x) when  = . By deleting rows, we form an HF(m; q  , q ) for some 1  m  q + 1. An hash family is linear if it is obtained in this way. The separation properties of such an hash family are crucial [1], [5]. For our purposes, the observation of interest is from [15]: if m  ( - 1)w1 w2 + 1, then a linear HF(m; n, q ) is {w1 , w2 }-separating. (This can be established by a simple argument: When two polynomials of degree less than  evaluate to the same value at  different points, they are the same polynomial.) In some cases, fewer rows suffice to ensure separation. In particular, Blackburn and Wild [5] establish that when q is sufficiently large, one needs at most (w1 + w2 - 1) rows; and in [15] specific small separations are examined to determine the set of prime powers for which various numbers of rows less than ( - 1)w1 w2 + 1 suffice. We proceed with the general statement so as not to impose additional conditions. When m  ( - 1)t + 1, P is {1, t}-separating; in addition, every {1, t - 1}-separation is accomplished in at least  rows. t+1 When m  ( - 1) t+1 2  2  + 1, P is {w, t + 1 - w}-separating for each 1  w  t; in addition, every {w, t - w}-separation t+1 t t t+1 is accomplished in at least  rows, because  t+1 2  2  =  2  2  +  2 . Thus in either case, M contains at least  rows of P .
+Again a straightforward recovery algorithm is given by Theorem 6 but, as in the positive case, it naively involves examining
+each of the n coordinates.
+D. Sublinear Time Signal Recovery
+Recovery can be accomplished in time that is sublinear in k when the hash family has suitable structure; we develop a
+general approach, and one example, here. In each case, for some subset M of the rows of P , sets are identified that must
+contain the indices of all positive coordinates (the indices of the negative coordinates, if they exist, can be located similarly).
+Recall from Section III-A, that the positive case arises when the signal is known a priori to be in Rn≥0 and the general case
+arises when the signal can be positive, negative, or zero. In the positive case, M contains all rows and for ρ ∈ M , the candidate
+indices are Vρ+ = {ℓ : pρℓ = ◦, or xℓ ∈ Sρj and zρj > 0}. In the general case, M contains all rows that index maximum
+positive rows, and for ρ ∈ M , the candidate indices are Vρ+ = {ℓ : xℓ ∈ Sρj and zρj > 0}. In both cases, we are to determine
+T
++
+we do not list the members of Vρ+ explicitly, but rather use
+ρ∈M Vρ . In order to avoid the examination of each
+T coordinate,
++
+an implicit representation to list the members of ρ∈M Vρ .
+First we give an implicit representation of an hash family HF(q + 1; q α , q), P , where q is a prime power and 2 ≤ α ≤ q.
+Let {ω0 , . . . , ωq−1 } be the elements of the finite field of order q, Fq . Index the rows of P by {∞} ∪ {ω0 , . . . , ωq−1 }. Index
+the columns of P by the q α polynomials of degree less than α in indeterminate x, with coefficients in Fq . Now the entry of
+P with row index β and column indexed by polynomial f (x) is determined as f (β) when β ∈ {ω0 , . . . , ωq−1 }, and as the
+coefficient of xα−1 in f (x) when β = ∞.
+By deleting rows, we form an HF(m; q α , q) for some 1 ≤ m ≤ q + 1. An hash family is linear if it is obtained in this way.
+The separation properties of such an hash family are crucial [1], [5]. For our purposes, the observation of interest is from [15]:
+if m ≥ (α − 1)w1 w2 + 1, then a linear HF(m; n, q) is {w1 , w2 }-separating. (This can be established by a simple argument:
+When two polynomials of degree less than α evaluate to the same value at α different points, they are the same polynomial.) In
+some cases, fewer rows suffice to ensure separation. In particular, Blackburn and Wild [5] establish that when q is sufficiently
+large, one needs at most α(w1 + w2 − 1) rows; and in [15] specific small separations are examined to determine the set of
+prime powers for which various numbers of rows less than (α − 1)w1 w2 + 1 suffice. We proceed with the general statement
+so as not to impose additional conditions.
+When m ≥ (α − 1)t + 1, P is {1, t}-separating; in addition, every {1, t − 1}-separation is accomplished in at least α rows.
+t+1
+When m ≥ (α − 1)⌊ t+1
+2 ⌋⌈ 2 ⌉+ 1, P is {w, t+ 1 − w}-separating for each 1 ≤ w ≤ t; in addition, every {w, t− w}-separation
+t+1
+t
+t
+t+1
+is accomplished in at least α rows, because ⌊ t+1
+2 ⌋⌈ 2 ⌉ = ⌊ 2 ⌋⌈ 2 ⌉ + ⌊ 2 ⌋. Thus in either case, M contains at least α rows
+of P .
 
 8
 
-+ + | vectors V + = Choose any  rows U = {1 , . . .  }  M . Now consider the sets {V :   U }. Define U |V + + {(g1 , . . . , g ) : gi  {pi  :   Vi } for 1  i  }. Each (g1 , . . . , g )  V defines a unique column of the hash family, corresponding to the unique polynomial L of degree at most  - 1 satisfying L(i ) = gi for 1  i  . Any column that does not arise in this way from a member of V + cannot be the column for a positive coordinate, because in the partition induced by one of the selected maximum rows it is not in a significant positive class. However, columns arising from vectors in V + need not arise from positive coordinates, because we may not have examined all of the rows of M . Nevertheless, we can now generate each of the columns arising from vectors in V + , and check for each whether it occurs in positive classes for all rows of M , not just the  selected. Now |V + | is O(t ), so when t is o(q ), the size of V + is o(n) (because n = q  ). For concreteness, taking q = t for t a prime power, we can permit  to be as large as t -2 . (For the positive case, we can permit  to be as large as t -1 . ) Hence, by restricting the hash family to one that is linear, it is possible to obtain recovery of the signal in sublinear time. In general, a hash family together with its ingredient matrices can be represented more concisely compared to a random measurement matrix for signal recovery. Furthermore, the hash family is an integer matrix, not a matrix of real numbers, and may therefore be easier to encode. When the hash family is linear an implicit representation of it may be used, further compacting its representation. The results of this section provide some evidence that column replacement enables recoverability conditions to be met. In Section IV, we show that it also preserves the basic machinery to deal with noise in the signal.
+Q
+Choose any α rows U = {ψ1 , . . . ψα } ⊆ M . Now consider the sets {Vψ+ : ψ ∈ U }. Define ψ∈U |Vψ+ | vectors V + =
+{(g1 , . . . , gα ) : gi ∈ {pψi ℓ : ℓ ∈ Vψ+i } for 1 ≤ i ≤ α}. Each (g1 , . . . , gα ) ∈ V + defines a unique column of the hash family,
+corresponding to the unique polynomial L of degree at most α − 1 satisfying L(ψi ) = gi for 1 ≤ i ≤ α. Any column that does
+not arise in this way from a member of V + cannot be the column for a positive coordinate, because in the partition induced
+by one of the selected maximum rows it is not in a significant positive class. However, columns arising from vectors in V +
+need not arise from positive coordinates, because we may not have examined all of the rows of M . Nevertheless, we can now
+generate each of the columns arising from vectors in V + , and check for each whether it occurs in positive classes for all rows
+of M , not just the α selected.
+Now |V + | is O(tα ), so when t is o(q), the size of V + is o(n) (because n = q α ). For concreteness, taking q = tβ for t a
+prime power, we can permit α to be as large as tβ−2 . (For the positive case, we can permit α to be as large as tβ−1 . ) Hence,
+by restricting the hash family to one that is linear, it is possible to obtain recovery of the signal in sublinear time.
+In general, a hash family together with its ingredient matrices can be represented more concisely compared to a random
+measurement matrix for signal recovery. Furthermore, the hash family is an integer matrix, not a matrix of real numbers,
+and may therefore be easier to encode. When the hash family is linear an implicit representation of it may be used, further
+compacting its representation.
+The results of this section provide some evidence that column replacement enables recoverability conditions to be met. In
+Section IV, we show that it also preserves the basic machinery to deal with noise in the signal.
+E. Adding Strengthening
+As the signal length increases, it is natural to support high sparsity. Yet the techniques developed until this point only
+preserve sparsity. Strengthening hash families provide a means to increase the level of sparsity supported.
+Theorem 7: Suppose that P is a d-strengthening SHF(m; n, k, {{τ, (t + 1 − τ )} : 1 ≤ τ ≤ t}). For each 1 ≤ i ≤ m, we
+suppose that Ai is an ri × ki measurement matrix that has (ℓ1 , di )-recoverability, equipped with a recovery algorithm Ri , that
+either determines the unique di -sparse vector zi that solves Ai zi = yi or indicates that no such vector exists. Further suppose
+that B is the column replacement of A1 , . . . , Am into P , and that y is the result of sampling an (unknown) t-sparse vector
+x = (x1 , . . . , xn ) using B. Then the t-sparse solution x to Bx = y can be recovered.
 
-E. Adding Strengthening As the signal length increases, it is natural to support high sparsity. Yet the techniques developed until this point only preserve sparsity. Strengthening hash families provide a means to increase the level of sparsity supported. Theorem 7: Suppose that P is a d-strengthening SHF(m; n, k, {{, (t + 1 -  )} : 1    t}). For each 1  i  m, we suppose that Ai is an ri � ki measurement matrix that has (1 , di )-recoverability, equipped with a recovery algorithm Ri , that either determines the unique di -sparse vector zi that solves Ai zi = yi or indicates that no such vector exists. Further suppose that B is the column replacement of A1 , . . . , Am into P , and that y is the result of sampling an (unknown) t-sparse vector x = (x1 , . . . , xn ) using B . Then the t-sparse solution x to B x = y can be recovered.
+Proof: Again it suffices to locate the nonzero coordinates of x. For 1 ≤ i ≤ m, if recovery algorithm Ri returns a solution
+zi such that ||zi ||1 ≥ ||z||1 for any solution z returned by an oracle Rj , then zi is a maximum solution, and row i of P is a
+maximum row. Because P is a d-strengthening SHF(m; n, k, {{τ, (t + 1 − τ )} : 1 ≤ τ ≤ t}), and x is t-sparse, there is a row
+ρ of P that separates {j : xj > 0, 1 ≤ j ≤ n} from {j : xj < 0, 1 ≤ j ≤ n} with the property that at most dρ symbols appear
+in the columns indexed by {j : xj 6= 0, 1 ≤ j ≤ n}. So the projected vector wρ is dρ -sparse and it is the solution returned by
+Rρ . By the definition of ρ, ||wρ ||1 = ||x||1 . It follows that the ℓ1 -norm of any maximum solution is at least ||x||1 .
+We claim that if Ri returns a maximum solution zi , then zi = wi . Suppose otherwise. Then, because zi is a maximum
+solution, we have ||zi ||1 ≥ ||x||1 . Further, it is clear from the definition of ||wi || that ||wi ||1 ≤ ||x||1 . Thus Ai zi = Ai wi , zi
+is di -sparse, and ||zi ||1 ≥ ||wi ||1 , which is a contradiction to the fact that Ai has (ℓ1 , di )-recoverability.
+Having established our claim, we can now use arguments similar to those used in the proof of Theorem 6 to show that
+a coordinate xℓ is positive (negative) if and only if, for every maximum row in P , ℓ is in a significant positive (significant
+negative) class of the partition induced by that row.
+IV. R ECOVERY
 
-Proof: Again it suffices to locate the nonzero coordinates of x. For 1  i  m, if recovery algorithm Ri returns a solution zi such that ||zi ||1  ||z||1 for any solution z returned by an oracle Rj , then zi is a maximum solution, and row i of P is a maximum row. Because P is a d-strengthening SHF(m; n, k, {{, (t + 1 -  )} : 1    t}), and x is t-sparse, there is a row  of P that separates {j : xj > 0, 1  j  n} from {j : xj < 0, 1  j  n} with the property that at most d symbols appear in the columns indexed by {j : xj = 0, 1  j  n}. So the projected vector w is d -sparse and it is the solution returned by R . By the definition of , ||w ||1 = ||x||1 . It follows that the 1 -norm of any maximum solution is at least ||x||1 . We claim that if Ri returns a maximum solution zi , then zi = wi . Suppose otherwise. Then, because zi is a maximum solution, we have ||zi ||1  ||x||1 . Further, it is clear from the definition of ||wi || that ||wi ||1  ||x||1 . Thus Ai zi = Ai wi , zi is di -sparse, and ||zi ||1  ||wi ||1 , which is a contradiction to the fact that Ai has (1 , di )-recoverability. Having established our claim, we can now use arguments similar to those used in the proof of Theorem 6 to show that a coordinate x is positive (negative) if and only if, for every maximum row in P ,  is in a significant positive (significant negative) class of the partition induced by that row. IV. R ECOVERY
 WITH
 
 N OISE
 
-We now treat the recovery of signals with noise. A signal (x1 , . . . , xn ) is (s, t)-almost sparse if there is a set T of at most t coordinate indices such that i{1...,n}\T |xi | < s. Theorem 8: Suppose that P is an SHF(m; n, k, {{, (t + 1 -  )} : 1    t}). For each 1  i  m, we suppose that Ai is an ri � ki measurement matrix, equipped with recovery algorithm Ri , which, when applied to the sample obtained from an (s, t)-almost sparse signal xi , returns a vector zi such that ||zi - xi ||1 < . Further suppose that B is the column replacement of A1 , . . . , Am into P , and that y is the result of sampling an (unknown) (s, t)-almost sparse vector x = (x1 , . . . , xn ) using B .    Then, a (perfectly) t-sparse vector x = (x 1 , . . . , xn ) such that for 1  i  n, |xi | < 2(s + ) if xi = 0, and |xi - xi | < s +    if xi > 0, and such that B x = y, can be recovered. Proof: We provide a sketch first, and then the details. The idea is to write each coordinate of z as a sum of the signal coordinates in T that contribute to it, and of a noise term e that includes both the small contributions from coordinates outside T and the error less than  from the recovery algorithm. For each row  of P , we then split this sum into two parts: one part
+We now treat the recovery ofPsignals with noise. A signal (x1 , . . . , xn ) is (s, t)-almost sparse if there is a set T of at most
+t coordinate indices such that i∈{1...,n}\T |xi | < s.
+
+Theorem 8: Suppose that P is an SHF(m; n, k, {{τ, (t + 1 − τ )} : 1 ≤ τ ≤ t}). For each 1 ≤ i ≤ m, we suppose that Ai
+is an ri × ki measurement matrix, equipped with recovery algorithm Ri , which, when applied to the sample obtained from an
+(s, t)-almost sparse signal xi , returns a vector zi such that ||zi − xi ||1 < ǫ. Further suppose that B is the column replacement
+of A1 , . . . , Am into P , and that y is the result of sampling an (unknown) (s, t)-almost sparse vector x = (x1 , . . . , xn ) using B.
+Then, a (perfectly) t-sparse vector x∗ = (x∗1 , . . . , x∗n ) such that for 1 ≤ i ≤ n, |xi | < 2(s + ǫ) if x∗i = 0, and |xi − x∗i | < s + ǫ
+if x∗i > 0, and such that Bx∗ = y, can be recovered.
+Proof: We provide a sketch first, and then the details. The idea is to write each coordinate of z as a sum of the signal
+coordinates in T that contribute to it, and of a noise term e that includes both the small contributions from coordinates outside
+T and the error less than ǫ from the recovery algorithm. For each row ρ of P , we then split this sum into two parts: one part
 
 9
 
-  containing terms with the same sign as the z coordinate to which they contribute (indexed by sets T and E ), and another part   containing terms with the opposite sign to the z coordinate to which they contribute (indexed by sets T and E ). The key 1 1  observation is that the sum of the terms with indices in T can be approximated by 2 (||x|| - ||z ||) and hence by 2 (q - ||z ||)   because if T is empty then z has norm close to ||x||, and every term with index in T reduces ||z ||. + Let T be a set of at most t coordinate indices such that i{1...,n}\T |xi | < s. Let T = {i  T : xi  0}, T - = {i  T : xi < 0} and q  = iT |xi |. For 1  i  m, apply Ri to yi to find a vector zi such that ||zi - wi ||1 < . For i  {1, . . . , m}, call ||zi ||1 the signature of row i of P and let q be the maximum signature of any row of P . For 1  i  n, we calculate upper and lower estimates u(i) and (i) for xi . For each row index   {1, . . . , m} and each symbol   {1, . . . , k } we define u and  as follows. 1 1 � If z  0, then u = |z | + 2 (q - ||z ||1 ) and  = - 2 (q - ||z ||1 ). 1 1 � If z < 0, then u = 2 (q - ||z ||1 ) and  = -|z | - 2 (q - ||z ||1 ). For each i  {1, . . . , n} define u (i) = u and  (i) =  , where  is the symbol in row  of P such that i  S , and define u(i) = min{u (i) : 1    m} and (i) = max{ (i) : 1    m}. By first examining a row of maximum signature,  we can immediately conclude for each i  {1, . . . , n} either that u(i) = 0 or that (i) = 0. Define a vector x = (x 1 , . . . , xn )   by setting xi = 0 if |ui |, |i |  s + , and otherwise setting xi equal to whichever of u(i) or (i) has the greater absolute value. We claim that x satisfies the required conditions. To establish this claim we prove that, for 1  j  n, (i) for each   {1, . . . , m},  (j ) - (s + ) < xj < u (j ) + (s + ); (ii) there is some   {1, . . . , m} such that  (j ) > -(s + ) if xj  0 and u (j ) < s +  if xj < 0; and (iii) there is some   {1, . . . , m} such that u (j ) - (s + ) < xj if xj  0 and xj <  (j ) + (s + ) if xj < 0. We begin with some observations used throughout the proof. Let  be a row of P . For 1    k , we have z = k  + : zpi  0}  {i  T - : zpi < 0} ( iT S |xi |) + e for some e . Note that  =1 |e |  s + . Let T = {i  T      and let T = T \ T . Further, let E = {  {1, . . . , k } : e , z  0 or e , z < 0} and let E = {1, . . . , k } \ E . For 1    k , we have that       where  = 1 if   E and  = -1 if   E . Summing over the symbols in row  of P , we see      
-
-|z | = 
-
- S iT 
-
-|xi | - 
-
- S iT 
-
-|xi | +  |e |
-
+containing terms with the same sign as the z coordinate to which they contribute (indexed by sets Tρ′ and Eρ′ ), and another part
+containing terms with the opposite sign to the z coordinate to which they contribute (indexed by sets Tρ′′ and Eρ′′ ). The key
+observation is that the sum of the terms with indices in Tρ′′ can be approximated by 12 (||x|| − ||zρ ||) and hence by 21 (q − ||zρ ||)
+′′
+because if Tρ′′ is empty then zρ has norm close to ||x||, and
+Pevery term with index in T+ρ reduces ||zρ ||.
+Let T be a set of at most t coordinate indices such that i∈{1...,n}\T |xi | < s. Let T = {i ∈ T : xi ≥ 0}, T − = {i ∈ T :
+P
+xi < 0} and q † = i∈T |xi |. For 1 ≤ i ≤ m, apply Ri to yi to find a vector zi such that ||zi − wi ||1 < ǫ. For i ∈ {1, . . . , m},
+call ||zi ||1 the signature of row i of P and let q be the maximum signature of any row of P .
+For 1 ≤ i ≤ n, we calculate upper and lower estimates u(i) and ℓ(i) for xi . For each row index ρ ∈ {1, . . . , m} and each
+symbol σ ∈ {1, . . . , kρ } we define uρσ and ℓρσ as follows.
+1
+1
+• If zρσ ≥ 0, then uρσ = |zρσ | + 2 (q − ||zρ ||1 ) and ℓρσ = − 2 (q − ||zρ ||1 ).
+1
+1
+• If zρσ < 0, then uρσ = 2 (q − ||zρ ||1 ) and ℓρσ = −|zρσ | − 2 (q − ||zρ ||1 ).
+For each i ∈ {1, . . . , n} define uρ (i) = uρπ and ℓρ (i) = ℓρπ , where π is the symbol in row ρ of P such that i ∈ Sρπ , and
+define u(i) = min{uρ (i) : 1 ≤ ρ ≤ m} and ℓ(i) = max{ℓρ (i) : 1 ≤ ρ ≤ m}. By first examining a row of maximum signature,
+we can immediately conclude for each i ∈ {1, . . . , n} either that u(i) = 0 or that ℓ(i) = 0. Define a vector x∗ = (x∗1 , . . . , x∗n )
+by setting x∗i = 0 if |ui |, |ℓi | ≤ s + ǫ, and otherwise setting x∗i equal to whichever of u(i) or ℓ(i) has the greater absolute
+value. We claim that x∗ satisfies the required conditions.
+To establish this claim we prove that, for 1 ≤ j ≤ n,
+(i) for each ρ ∈ {1, . . . , m}, ℓρ (j) − (s + ǫ) < xj < uρ (j) + (s + ǫ);
+(ii) there is some ρ ∈ {1, . . . , m} such that ℓρ (j) > −(s + ǫ) if xj ≥ 0 and uρ (j) < s + ǫ if xj < 0; and
+(iii) there is some ρ ∈ {1, . . . , m} such that uρ (j) − (s + ǫ) < xj if xj ≥ 0 and xj < ℓρ (j) + (s + ǫ) if xj < 0.
+We begin with some observations used throughout the proof. Let ρ be a row of P . For 1 ≤ σ ≤ kρ , we have zρσ =
+Pkρ
+P
+|eρσ | ≤ s + ǫ. Let Tρ′ = {i ∈ T + : zρpρi ≥ 0} ∪ {i ∈ T − : zρpρi < 0}
+( i∈T ∩Sρσ |xi |) + eρσ for some eρσ . Note that σ=1
+′′
+′
+′
+and let Tρ = T \ Tρ . Further, let Eρ = {σ ∈ {1, . . . , kρ } : eρσ , zρσ ≥ 0 or eρσ , zρσ < 0} and let Eρ′′ = {1, . . . , kρ } \ Eρ′ . For
+1 ≤ π ≤ kρ , we have that
+
+ 
+
+X
+X
+|zρπ | = 
+|xi | − 
+|xi | + δρπ |eρπ |
 (1)
+i∈Tρ′ ∩Sρπ
 
-||z ||1 = q  - 2  - ||z ||1 ) =  
+i∈Tρ′′ ∩Sρπ
 
- iT
+where δρπ = 1 if π ∈ Eρ′ and δρπ = −1 if π ∈ Eρ′′ . Summing over the symbols in row ρ of P , we see
+
+ 
+ 
+
+X
+X
+X
+||zρ ||1 = q † − 2 
+|xi | + 
+|eρσ | − 
+|eρσ |
+i∈Tρ′′
 
-|xi | +  
+and it follows that
+1 †
+2 (q
 
-  E
+
 
-|e | -  
+− ||zρ ||1 ) = 
 
-  E
-
-|e |
+σ∈Eρ′
 
 (2)
 
-and it follows that
-1  2 (q
+σ∈Eρ′′
 
-iT
+
+
+
+
+X
+X
+1
+1
+|eρσ | + 
+|eρσ | .
+|xi | − 
+2
+2
+′
+′′
+′′
+
 
- 1 |xi | -  2  
- \S iT 
+X
 
-  E
+σ∈Eρ
 
- 1 |e | +  2 1 2 
-  E
-
-  E
-
-|e | . 1 2 
-  E
-
-
+i∈Tρ
 
 (3)
 
+σ∈Eρ
+
 Adding (1) to (3), we obtain
-  |z | + 1 2 (q - ||z ||1 ) =
+
 
+|zρπ | + 12 (q † − ||zρ ||1 ) = 
 
- S iT 
+X
 
-|xi | + 
+i∈Tρ′ ∩Sρπ
 
+
 
+
 
-|xi | -
+|xi | + 
 
+X
 
+i∈Tρ′′ \Sρπ
 
-|e | +
+
 
+|xi | −
 
+
 
-|e | +  |e |.
+1
+2
 
+X
 
+σ∈Eρ′
+
+
+
+|eρσ | +
+
+
+
+1
+2
+
+X
+
+σ∈Eρ′′
+
+
+
+|eρσ | + δρπ |eρπ |.
 
 (4)
 
-It follows from (2) that each row of P has signature less than q  + (s + ) and that any row of P that separates T + from T - has signature greater than q  - (s + ). Thus, q  - (s + ) < q < q  + (s + ) and hence
-1 2 (q 1  1 1 - ||z ||1 ) - 1 2 (s + ) < 2 (q - ||z ||1 ) < 2 (q - ||z ||1 ) + 2 (s + ).
+It follows from (2) that each row of P has signature less than q † + (s + ǫ) and that any row of P that separates T + from T −
+has signature greater than q † − (s + ǫ). Thus, q † − (s + ǫ) < q < q † + (s + ǫ) and hence
+1
+2 (q
+
+− ||zρ ||1 ) − 12 (s + ǫ) < 12 (q † − ||zρ ||1 ) < 12 (q − ||zρ ||1 ) + 12 (s + ǫ).
 
 (5)
 
-Let j  {1, . . . , n}. We next show that (i), (ii) and (iii) hold in the case where xj  0. The proof in the case where xj < 0 is similar. Proof of (i). Let  index any row of P and let S be the partition class induced by row  of P that contains j . Now  (j ) - (s + ) < xj because  (j )  0. If j  / T , then xj < s and xj < u (j ) + (s + ) because u (j )  0. If j  T and 1 z < 0, then xj  iT  |xi | and we see from (3) and (5) that xj < 2 (q - ||z ||1 ) + (s + ). If j  T and z  0, then  1 |xi | and we see from (4) and (5) that xj < |z | + 2 (q - ||z ||1 ) + (s + ). xj  iT  S  Proof of (ii). Let  index a row of P that separates T +  {j } from T - and let S be the partition class induced by row   or T  S = .  of P that contains j . If z  0, then, for 1    k , either iT  S |xi |  |e | and   E  1   . Using this, it follows from (3) and (5) that  (j ) = - 2 (q - ||z ||1 ) > -(s + ). If z < 0, then T  S =  and   E   Furthermore, for   {1, . . . , k } \ { }, either iT  S |xi | < |e | and   E or T  S = . Using these facts, it  follows from (4) and (5) that  (j ) = -|z | - 1 2 (q - ||z ||1 ) > -(s + ).
+Let j ∈ {1, . . . , n}. We next show that (i), (ii) and (iii) hold in the case where xj ≥ 0. The proof in the case where xj < 0
+is similar.
+Proof of (i). Let ρ index any row of P and let Sρπ be the partition class induced by row ρ of P that contains j. Now
+ℓρ (j) − (s + ǫ) < xjPbecause ℓρ (j) ≤ 0. If j ∈
+/ T , then xj < s and xj < uρ (j) + (s + ǫ) because uρ (j) ≥ 0. If j ∈ T and
+zρπ < 0, then xj ≤ i∈T ′′ |xi | and we see from (3) and (5) that xj < 21 (q − ||zρ ||1 ) + (s + ǫ). If j ∈ T and zρπ ≥ 0, then
+ρ
+P
+xj ≤ i∈Tρ′ ∩Sρπ |xi | and we see from (4) and (5) that xj < |zρπ | + 12 (q − ||zρ ||1 ) + (s + ǫ).
+−
+Proof of (ii). Let ρ index a row of P that separates T + ∪ {j} from
+induced by row
+P T and let Sρπ be the partition class
+ρ of P that contains j. If zρπ ≥ 0, then, for 1 ≤ σ ≤ kρ , either i∈T ′′ ∩Sρσ |xi | ≤ |eρσ | and σ ∈ Eρ′ or Tρ′′ ∩ Sρσ = ∅.
+ρ
+Using this, it follows from (3) and (5) that ℓρ (j)P= − 21 (q − ||zρ ||1 ) > −(s + ǫ). If zρπ < 0, then Tρ′ ∩ Sρπ = ∅ and π ∈ Eρ′ .
+Furthermore, for σ ∈ {1, . . . , kρ } \ {π}, either i∈T ′′ ∩Sρσ |xi | < |eρσ | and σ ∈ Eρ′ or Tρ′′ ∩ Sρσ = ∅. Using these facts, it
+ρ
+follows from (4) and (5) that ℓρ (j) = −|zπρ | − 12 (q − ||zρ ||1 ) > −(s + ǫ).
 
 10
 
-Proof of (iii). Let  index a row of P that separates T + \ {j } from T -  {j } and let S be the partition class induced by row  of P that contains j . If z < 0, then iT  S |xi |  xj . Furthermore, for each symbol   {1, . . . , k } \ { }, either  1   |xi |  |e | and   E or T S = . Then, it follows from (3) and (5) that u (j ) = 2 (q -||z ||1 )-(s+) < xj .  S iT  If z  0, then iT  S |xi |  xj . Furthermore, for each symbol   {1, . . . , k } \ { }, either iT |xi |  |e |  S    and   E or T  S = . Then, it follows from (4) and (5) that u (j ) = |z | + 1 ( q - || z || ) - ( s +  ) < x  1 j. 2 V. C ONCLUSION Hierarchical construction of measurement matrices by column replacement permits the explicit construction of large measurement matrices from small ones. The use of heterogeneous hash families supports the use of a library of smaller ingredient matrices, while the use of strengthening hash families allows the ingredient matrices to be designed for lower sparsity than the larger measurement matrix produced. Perhaps surprisingly, the ingredient measurement matrices need not all employ the same recovery algorithm; rather recovery for the large measurement matrix can use arbitrary routines for recovery that are provided with the ingredient matrices. In this way, computationally intensive recovery methods can be used for the ingredient matrices, which permits the selection of smaller matrices in general, while still enabling recovery for the large measurement matrix. Nevertheless, recovery using the large measurement matrix can be computationally prohibitive without further restrictions. Therefore it is shown that using a standard construction of linear hash families over the finite field, recovery for the large measurement matrix can be effected in sublinear time. Indeed sublinear recovery time can be obtained even when computationally intensive methods are used for each ingredient matrix. A practical implementation of these recovery methods requires that the methods deal effectively with noise in the signal. Suitable restrictions on the hash family and on each ingredient matrix used in column replacement are shown to be sufficient to permit recovery even in the presence of such noise. Measurement matrices that result from one column replacement have been studied here. Because recovery does not depend on the method by which recovery is done for the ingredient matrices, it is possible that the ingredient matrices themselves are constructed by column replacement from even smaller ingredient matrices. The merits and demerits of repeated column replacement deserve further study. ACKNOWLEDGEMENTS The work of D. Horsley and C. J. Colbourn is supported in part by the Australian Research Council through grant DP120103067. R EFERENCES
-[1] N. Alon. Explicit construction of exponential sized families of k -independent sets. Discrete Mathematics, 58:191�193, 1986. [2] R. Baraniuk. Compressive sensing. IEEE Signal Processing Magazine, 24:227�234, 2007. [3] R. Berinde, A. C. Gilbert, P. Indyk, H. Karloff, and M. J. Strauss. Combining geometry and combinatorics: A unified approach to sparse signal recovery. In Proceedings of the 46th Annual Allerton Conference on Communication, Control, and Computing, pages 798�805, 2008. [4] S. R. Blackburn, T. Etzion, D. R. Stinson, and G. M. Zaverucha. A bound on the size of separating hash families. Journal of Combinatorial Theory, Series A, 115((7):1246�1256, 2008. [5] S. R. Blackburn and P. R. Wild. Optimal linear perfect hash families. Journal of Combinatorial Theory, Series A, 83:233�250, 1998. [6] E. J. Cand` es. Compressive sampling. In International Congress of Mathematicians, volume 3, pages 1433�1452, 2006. [7] E. J. Cand` es. The restricted isometry property and its implications for compressed sensing. Compte Rendus de l'Academie des Sciences, Series I, 346:589�592, 2008. [8] E. J. Cand` es, J. Romberg, and T. Tao. Robust uncertainty principles: Exact signal reconstruction from highly incomplete frequency information. IEEE Transactions on Information Theory, 52:489�509, 2006. [9] E. J. Cand` es and T. Tao. Decoding by linear programming. IEEE Transactions on Information Theory, 51:4203�4215, 2005. [10] E. J. Cand` es and T. Tao. Near optimal signal recovery from random projections: Universal encoding strategies. IEEE Transactions on Information Theory, 52:5406�5425, 2006. [11] S. S. Chen, D. L. Donoho, and M. A. Saunders. Atomic decomposition by basis pursuit. SIAM Journal on Scientific Computing, 20(1):33�61, 1998. [12] A. Cohen, W. Dahmen, and R. A. DeVore. Compressed sensing and best k -term approximation. Journal of the American Mathematical Society, 22:211�231, 2009. [13] C. J. Colbourn, D. Horsley, and C. McLean. Compressive sensing matrices and hash families. IEEE Transactions on Communications, 59(7):1840�1845, 2011. [14] C. J. Colbourn, D. Horsley, and V. R. Syrotiuk. Strengthening hash families and compressive sensing. Journal of Discrete Algorithms, 16:170�186, 2012. [15] C. J. Colbourn and A. C. H. Ling. Linear hash families and forbidden configurations. Designs, Codes and Cryptography, 59:25�55, 2009. [16] G. Cormode and S. Muthukrishnan. Combinatorial algorithms for compressed sensing. In Lecture Notes in Computer Science, volume 4056, pages 280�294, 2006. [17] R. A. DeVore. Deterministic constructions of compressed sensing matrices. Journal of Complexity, 23:918�925, 2007. [18] D. L. Donoho and X. Huo. Uncertainty principles and ideal atomic decomposition. IEEE Transactions on Information Theory, 47:2845�2862, 2001. [19] M. Elad and A. M. Bruckstein. A generalized uncertainty principle and sparse representation in pairs of bases. IEEE Transactions on Information Theory, 48:2558�2567, 2002. [20] J. J. Fuchs. On sparse representations in arbitrary redundant bases. IEEE Transactions on Information Theory, 50:1341�1344, 2004. [21] J. J. Fuchs. Recovery of exact sparse representations in the presence of bounded noise. IEEE Transactions on Information Theory, 51:3601�3608, 2005. [22] A. C. Gilbert, M. A. Iwen, and M. J. Strauss. Group testing and sparse signal recovery. In Proceedings of the 42nd Asilomar Conference on Signals, Systems, pages 1059�1063, 2008. [23] A. C. Gilbert, M. J. Strauss, J. Tropp, and R. Vershynin. One sketch for all: Fast algorithms for compressed sensing. In Proceedings of the ACM Symposium on Theory of Computing, pages 237�246, 2007.
+Proof of (iii). Let ρ index a row of P thatP
+separates T + \ {j} from T − ∪ {j} and let Sρπ be the partition class induced by
+row ρ of P that contains j. If zρπ < 0, then i∈T ′′ ∩Sρπ |xi | ≤ xj . Furthermore, for each symbol σ ∈ {1, . . . , kρ } \ {π}, either
+ρ
+P
+|eρσ | and σ ∈ Eρ′ or Tρ′′ ∩Sρσ = ∅. Then, it follows from (3) and (5) that uρ (j) = 21 (q−||zρ ||1 )−(s+ǫ) < xj .
+i∈Tρ′′ ∩Sρσ |xi | ≤
+P
+P
+If zρπ ≥ 0, then i∈T ′ ∩Sρπ |xi | ≤ xj . Furthermore, for each symbol σ ∈ {1, . . . , kρ } \ {π}, either i∈Tρ′′ ∩Sρσ |xi | ≤ |eρσ |
+and σ ∈ Eρ′ or Tρ′′ ∩ Sρσ = ∅. Then, it follows from (4) and (5) that uρ (j) = |zπρ | + 12 (q − ||zρ ||1 ) − (s + ǫ) < xj .
+V. C ONCLUSION
+Hierarchical construction of measurement matrices by column replacement permits the explicit construction of large measurement matrices from small ones. The use of heterogeneous hash families supports the use of a library of smaller ingredient
+matrices, while the use of strengthening hash families allows the ingredient matrices to be designed for lower sparsity than
+the larger measurement matrix produced. Perhaps surprisingly, the ingredient measurement matrices need not all employ
+the same recovery algorithm; rather recovery for the large measurement matrix can use arbitrary routines for recovery that
+are provided with the ingredient matrices. In this way, computationally intensive recovery methods can be used for the
+ingredient matrices, which permits the selection of smaller matrices in general, while still enabling recovery for the large
+measurement matrix. Nevertheless, recovery using the large measurement matrix can be computationally prohibitive without
+further restrictions. Therefore it is shown that using a standard construction of linear hash families over the finite field, recovery
+for the large measurement matrix can be effected in sublinear time. Indeed sublinear recovery time can be obtained even when
+computationally intensive methods are used for each ingredient matrix. A practical implementation of these recovery methods
+requires that the methods deal effectively with noise in the signal. Suitable restrictions on the hash family and on each ingredient
+matrix used in column replacement are shown to be sufficient to permit recovery even in the presence of such noise.
+Measurement matrices that result from one column replacement have been studied here. Because recovery does not depend
+on the method by which recovery is done for the ingredient matrices, it is possible that the ingredient matrices themselves
+are constructed by column replacement from even smaller ingredient matrices. The merits and demerits of repeated column
+replacement deserve further study.
+ACKNOWLEDGEMENTS
+The work of D. Horsley and C. J. Colbourn is supported in part by the Australian Research Council through grant
+DP120103067.
+R EFERENCES
+[1] N. Alon. Explicit construction of exponential sized families of k-independent sets. Discrete Mathematics, 58:191–193, 1986.
+[2] R. Baraniuk. Compressive sensing. IEEE Signal Processing Magazine, 24:227–234, 2007.
+[3] R. Berinde, A. C. Gilbert, P. Indyk, H. Karloff, and M. J. Strauss. Combining geometry and combinatorics: A unified approach to sparse signal recovery.
+In Proceedings of the 46th Annual Allerton Conference on Communication, Control, and Computing, pages 798–805, 2008.
+[4] S. R. Blackburn, T. Etzion, D. R. Stinson, and G. M. Zaverucha. A bound on the size of separating hash families. Journal of Combinatorial Theory,
+Series A, 115((7):1246–1256, 2008.
+[5] S. R. Blackburn and P. R. Wild. Optimal linear perfect hash families. Journal of Combinatorial Theory, Series A, 83:233–250, 1998.
+[6] E. J. Candès. Compressive sampling. In International Congress of Mathematicians, volume 3, pages 1433–1452, 2006.
+[7] E. J. Candès. The restricted isometry property and its implications for compressed sensing. Compte Rendus de l’Academie des Sciences, Series I,
+346:589–592, 2008.
+[8] E. J. Candès, J. Romberg, and T. Tao. Robust uncertainty principles: Exact signal reconstruction from highly incomplete frequency information. IEEE
+Transactions on Information Theory, 52:489–509, 2006.
+[9] E. J. Candès and T. Tao. Decoding by linear programming. IEEE Transactions on Information Theory, 51:4203–4215, 2005.
+[10] E. J. Candès and T. Tao. Near optimal signal recovery from random projections: Universal encoding strategies. IEEE Transactions on Information
+Theory, 52:5406–5425, 2006.
+[11] S. S. Chen, D. L. Donoho, and M. A. Saunders. Atomic decomposition by basis pursuit. SIAM Journal on Scientific Computing, 20(1):33–61, 1998.
+[12] A. Cohen, W. Dahmen, and R. A. DeVore. Compressed sensing and best k-term approximation. Journal of the American Mathematical Society,
+22:211–231, 2009.
+[13] C. J. Colbourn, D. Horsley, and C. McLean. Compressive sensing matrices and hash families. IEEE Transactions on Communications, 59(7):1840–1845,
+2011.
+[14] C. J. Colbourn, D. Horsley, and V. R. Syrotiuk. Strengthening hash families and compressive sensing. Journal of Discrete Algorithms, 16:170–186,
+2012.
+[15] C. J. Colbourn and A. C. H. Ling. Linear hash families and forbidden configurations. Designs, Codes and Cryptography, 59:25–55, 2009.
+[16] G. Cormode and S. Muthukrishnan. Combinatorial algorithms for compressed sensing. In Lecture Notes in Computer Science, volume 4056, pages
+280–294, 2006.
+[17] R. A. DeVore. Deterministic constructions of compressed sensing matrices. Journal of Complexity, 23:918–925, 2007.
+[18] D. L. Donoho and X. Huo. Uncertainty principles and ideal atomic decomposition. IEEE Transactions on Information Theory, 47:2845–2862, 2001.
+[19] M. Elad and A. M. Bruckstein. A generalized uncertainty principle and sparse representation in pairs of bases. IEEE Transactions on Information
+Theory, 48:2558–2567, 2002.
+[20] J. J. Fuchs. On sparse representations in arbitrary redundant bases. IEEE Transactions on Information Theory, 50:1341–1344, 2004.
+[21] J. J. Fuchs. Recovery of exact sparse representations in the presence of bounded noise. IEEE Transactions on Information Theory, 51:3601–3608, 2005.
+[22] A. C. Gilbert, M. A. Iwen, and M. J. Strauss. Group testing and sparse signal recovery. In Proceedings of the 42nd Asilomar Conference on Signals,
+Systems, pages 1059–1063, 2008.
+[23] A. C. Gilbert, M. J. Strauss, J. Tropp, and R. Vershynin. One sketch for all: Fast algorithms for compressed sensing. In Proceedings of the ACM
+Symposium on Theory of Computing, pages 237–246, 2007.
 
 11
 
-[24] R. Gribonval and M. Nielsen. Sparse representations in unions of bases. IEEE Transactions on Information Theory, 49:3320�3325, 2003. [25] M. A. Iwen. Combinatorial sublinear-time Fourier algorithms. Foundations of Computational Mathematics, 10:303�338, 2010. [26] S. Jafarpour, W. Xu, B. Hassibi, and R. Calderbank. Efficient and robust compressed sensing using optimized expander graphs. IEEE Transactions on Information Theory, 55:4299�4308, 2009. [27] B. K. Natarajan. Sparse approximate solutions to linear systems. SIAM Journal on Computing, 24:227�234, 1995. [28] D. R. Stinson, Tran Van Trung, and R. Wei. Secure frameproof codes, key distribution patterns, group testing algorithms and related structures. Journal of Statistical Planning and Inference, 86:595�617, 2000. [29] D. R. Stinson, R. Wei, and K. Chen. On generalized separating hash families. Journal of Combinatorial Theory, Series A, 115:105�120, 2008. [30] M. Stojnic, W. Xu, and B. Hassibi. Compressed sensing-probabilistic analysis of a null-space characterization. In Proceedings of the International Conference on Acoustics, Speech, and Signal Processing, pages 3377�3380, 2008. [31] J. A. Tropp. Recovery of short, complex linear combinations via l1 minimization. IEEE Transactions on Information Theory, 51:1568�1570, 2005. [32] W. Xu and B. Hassibi. Efficient compressive sensing with deterministic guarantees using expander graphs. In Proceedings of IEEE Information Theory Workshop, 2007. [33] Y. Zhang. On theory of compressive sensing via 1 -minimization: Simple derivations and extensions. Technical Report Technical Report CAAM TR08-11, Rice University, 2008.
+[24] R. Gribonval and M. Nielsen. Sparse representations in unions of bases. IEEE Transactions on Information Theory, 49:3320–3325, 2003.
+[25] M. A. Iwen. Combinatorial sublinear-time Fourier algorithms. Foundations of Computational Mathematics, 10:303–338, 2010.
+[26] S. Jafarpour, W. Xu, B. Hassibi, and R. Calderbank. Efficient and robust compressed sensing using optimized expander graphs. IEEE Transactions on
+Information Theory, 55:4299–4308, 2009.
+[27] B. K. Natarajan. Sparse approximate solutions to linear systems. SIAM Journal on Computing, 24:227–234, 1995.
+[28] D. R. Stinson, Tran Van Trung, and R. Wei. Secure frameproof codes, key distribution patterns, group testing algorithms and related structures. Journal
+of Statistical Planning and Inference, 86:595–617, 2000.
+[29] D. R. Stinson, R. Wei, and K. Chen. On generalized separating hash families. Journal of Combinatorial Theory, Series A, 115:105–120, 2008.
+[30] M. Stojnic, W. Xu, and B. Hassibi. Compressed sensing-probabilistic analysis of a null-space characterization. In Proceedings of the International
+Conference on Acoustics, Speech, and Signal Processing, pages 3377–3380, 2008.
+[31] J. A. Tropp. Recovery of short, complex linear combinations via l1 minimization. IEEE Transactions on Information Theory, 51:1568–1570, 2005.
+[32] W. Xu and B. Hassibi. Efficient compressive sensing with deterministic guarantees using expander graphs. In Proceedings of IEEE Information Theory
+Workshop, 2007.
+[33] Y. Zhang. On theory of compressive sensing via ℓ1 -minimization: Simple derivations and extensions. Technical Report Technical Report CAAM
+TR08-11, Rice University, 2008.
 
 

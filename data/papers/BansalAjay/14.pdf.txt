@@ -1,147 +1,567 @@
 Automatic Composition of Semantic Web Services
-Srividya Kona, Ajay Bansal, Gopal Gupta Department of Computer Science The University of Texas at Dallas Richardson, TX 75083 Thomas D. Hite Metallect Corp. 2400 Dallas Parkway Plano, TX 75093
+Srividya Kona, Ajay Bansal, Gopal Gupta
+Department of Computer Science
+The University of Texas at Dallas
+Richardson, TX 75083
 
 Abstract
-Service-oriented computing is gaining wider acceptance. For Web services to become practical, an infrastructure needs to be supported that allows users and applications to discover, deploy, compose and synthesize services automatically. For this automation to be effective, formal semantic descriptions of Web services should be available. In this paper we formally define the Web service discovery and composition problem and present an approach for automatic service discovery and composition based on semantic description of Web services. We also report on an implementation of a semantics-based automated service discovery and composition engine that we have developed. This engine employs a multi-step narrowing algorithm and is efficiently implemented using the constraint logic programming technology. The salient features of our engine are its scalability, i.e., its ability to handle very large service repositories, and its extremely efficient processing times for discovery and composition queries. We evaluate our engine for automated discovery and composition on repositories of different sizes and present the results.
+Service-oriented computing is gaining wider acceptance. For Web services to become practical, an infrastructure needs to be supported that allows users and applications to discover, deploy, compose and synthesize services
+automatically. For this automation to be effective, formal
+semantic descriptions of Web services should be available.
+In this paper we formally define the Web service discovery
+and composition problem and present an approach for automatic service discovery and composition based on semantic
+description of Web services. We also report on an implementation of a semantics-based automated service discovery and composition engine that we have developed. This
+engine employs a multi-step narrowing algorithm and is efficiently implemented using the constraint logic programming technology. The salient features of our engine are
+its scalability, i.e., its ability to handle very large service
+repositories, and its extremely efficient processing times for
+discovery and composition queries. We evaluate our engine
+for automated discovery and composition on repositories of
+different sizes and present the results.
 
 1
 
 Introduction
 
-A Web service is a program accessible over the web that may effect some action or change in the world (i.e., causes a side-effect). Examples of such side-effects include a webbase being updated because of a plane reservation made over the Internet, a device being controlled, etc. An important future milestone in the Web's evolution is making services ubiquitously available. As automation increases, these Web services will be accessed directly by the applications rather than by humans [8]. In this context, a Web service can be regarded as a "programmatic interface" that makes application to application communication possible. An infrastructure that allows users to discover, deploy, synthesize and compose services automatically is needed in order to make Web services more practical. To make services ubiquitously available we need a
+A Web service is a program accessible over the web that
+may effect some action or change in the world (i.e., causes
+a side-effect). Examples of such side-effects include a webbase being updated because of a plane reservation made
+over the Internet, a device being controlled, etc. An important future milestone in the Web‚Äôs evolution is making services ubiquitously available. As automation increases, these
+Web services will be accessed directly by the applications
+rather than by humans [8]. In this context, a Web service
+can be regarded as a ‚Äúprogrammatic interface‚Äù that makes
+application to application communication possible. An infrastructure that allows users to discover, deploy, synthesize
+and compose services automatically is needed in order to
+make Web services more practical.
+To make services ubiquitously available we need a
 
-semantics-based approach such that applications can reason about a service's capability to a level of detail that permits their discovery, deployment, composition and synthesis [3]. Informally, a service is characterized by its input parameters, the outputs it produces, and the side-effect(s) it may cause. The input parameter may be further subject to some pre-conditions, and likewise, the outputs produced may have to satisfy certain post-conditions. For discovery, composition, etc., one could take the syntactic approach in which the services being sought in response to a query simply have their inputs syntactically match those of the query, or, alternatively, one could take the semantic approach in which the semantics of inputs and outputs, as well as a semantic description of the side-effect is considered in the matching process. Several efforts are underway to build an infrastructure [17, 23, 15] for service discovery, composition, etc. These efforts include approaches based on the semantic web (such as USDL [1], OWL-S [4], WSML [5], WSDL-S [6]) as well as those based on XML, such as Web Services Description Language (WSDL [7]). Approaches such as WSDL are purely syntactic in nature, that is, they only address the syntactical aspects of a Web service [14]. Given a formal description of the context in which a service is needed, the service(s) that will precisely fulfill that need can be automatically determined. This task is called discovery. If the service is not found, the directory can be searched for two or more services that can be composed to synthesize the required service. This task is called composition. In this paper we present an approach for automatic discovery and composition of Web services using their semantic descriptions. Our research makes the following novel contributions: (i) We formally define the discovery and composition problems; to the best of our knowledge, the formal description of the generalized composition problem has been given for the first time; (ii) We present efficient and scalable algorithms for solving the discovery and composition problem that take semantics of services into account; our algorithm automatically selects the individual services involved in composition for a given query, without the need for manual intervention;
+Thomas D. Hite
+Metallect Corp.
+2400 Dallas Parkway
+Plano, TX 75093
 
-and, (iii) we present a prototype implementation based on constraint logic programming that works efficiently on large repositories. The rest of the paper is organized as follows. Section 2 describes the two major Web services tasks, namely, discovery and composition with their formal definitions. In section 3 and 4, we present our multi-step narrowing solution and implementation for automatic service discovery and composition. Finally we present our performance results, related work and conclusions.
+semantics-based approach such that applications can reason about a service‚Äôs capability to a level of detail that permits their discovery, deployment, composition and synthesis [3]. Informally, a service is characterized by its input
+parameters, the outputs it produces, and the side-effect(s)
+it may cause. The input parameter may be further subject
+to some pre-conditions, and likewise, the outputs produced
+may have to satisfy certain post-conditions. For discovery,
+composition, etc., one could take the syntactic approach in
+which the services being sought in response to a query simply have their inputs syntactically match those of the query,
+or, alternatively, one could take the semantic approach in
+which the semantics of inputs and outputs, as well as a semantic description of the side-effect is considered in the
+matching process. Several efforts are underway to build an
+infrastructure [17, 23, 15] for service discovery, composition, etc. These efforts include approaches based on the
+semantic web (such as USDL [1], OWL-S [4], WSML [5],
+WSDL-S [6]) as well as those based on XML, such as Web
+Services Description Language (WSDL [7]). Approaches
+such as WSDL are purely syntactic in nature, that is, they
+only address the syntactical aspects of a Web service [14].
+Given a formal description of the context in which a service is needed, the service(s) that will precisely fulfill that
+need can be automatically determined. This task is called
+discovery. If the service is not found, the directory can be
+searched for two or more services that can be composed to
+synthesize the required service. This task is called composition. In this paper we present an approach for automatic
+discovery and composition of Web services using their semantic descriptions.
+Our research makes the following novel contributions:
+(i) We formally define the discovery and composition problems; to the best of our knowledge, the formal description of
+the generalized composition problem has been given for the
+first time; (ii) We present efficient and scalable algorithms
+for solving the discovery and composition problem that take
+semantics of services into account; our algorithm automatically selects the individual services involved in composition
+for a given query, without the need for manual intervention;
 
-Q
+Q
 
-CI',I'
-
-CI,I
-
-CO,O S
-
-CO',O'
-
-where CI' ==> CI, I' I,
-
-CO ==> CO', O O'
-
-Figure 1. Substitutable Service Definition (Service): A service is a 6-tuple of its preconditions, inputs, side-effect, affected object, outputs and « « «) is the reprepost-conditions. À = ( ¡ ¡ sentation of a service where ¡ is the pre-conditions, ¡ is the input list, is the service's side-effect, « is the affected object, « is the output list, and « is the postconditions. Definition (Repository of Services): Repository is a set of Web services. Definition (Query): The query service is defined as … = ( ¡ º ¡ º º «º «º «º ) where ¡ º is the preconditions, ¡ º is the input list, º is the service affect, «º is the affected object, «º is the output list, and «º is the post-conditions. These are all the parameters of the requested service. Definition (Discovery): Given a repository   and a query …, the Discovery problem can be defined as automatically finding a set À of services from   such that À = ◊ ◊ ¥ ¡ ¡ « « «µ, s æ  , ¡ º µ ¡ , ¡ ⁄ ¡ º, º , « «º , « µ «º , « € «º . The meaning of ⁄ is the subsumption (subsumes) relation and µ is the implication relation. For example, say ‹ and › are input and output parameters respectively of a service. If a query has ¥‹ µ as a pre-condition and ¥›  ‹µ as postcondition, then a service with pre-condition ¥‹ ºµ and post-condition ¥› ‹µ can satisfy the query as ¥‹ µµ ¥‹ ºµ and ¥› ‹µ µ ¥›  ‹µ since ¥‹ ºµ. In other words, the discovery problem involves finding suitable services from the repository that match the query requirements. Valid solutions have to produce at least those output parameters specified in the query, satisfy the query pre and post-conditions, use at most those input parameters that are provided by the query, and produce the same side-effect as the query requirement. Figure 1 explains the discovery problem pictorially.
+and, (iii) we present a prototype implementation based on
+constraint logic programming that works efficiently on large
+repositories.
+The rest of the paper is organized as follows. Section
+2 describes the two major Web services tasks, namely, discovery and composition with their formal definitions. In
+section 3 and 4, we present our multi-step narrowing solution and implementation for automatic service discovery
+and composition. Finally we present our performance results, related work and conclusions.
 
 2
 
-Automated Web service Discovery and Composition
+Automated Web service Discovery and
+Composition
 
-Discovery and Composition are two important tasks related to Web services. In this section we formally describe these tasks. We also develop the requirements of an ideal Discovery/Composition engine.
+Discovery and Composition are two important tasks related to Web services. In this section we formally describe
+these tasks. We also develop the requirements of an ideal
+Discovery/Composition engine.
 
 2.1
 
 The Discovery Problem
 
-Given a repository of Web services, and a query requesting a service (we refer to it as the query service in the rest of the text), automatically finding a service from the repository that matches the query requirements is the Web service Discovery problem. Valid solutions to the query satisfy the following conditions: (i) they produce at least the query output parameters and satisfy the query post-conditions; (ii) they use only from the provided input parameters and satisfy the query pre-conditions; (iii) they produce the query side-effects. Some of the solutions may be over-qualified, but they are still considered valid as long as they fulfill input and output parameters, pre/post conditions, and side-effects requirements. Example 1: Say we are looking for a service to buy a book and the directory of services contains services ÀΩ and Àæ . The table 1 shows the input/output parameters of the query and services ÀΩ and Àæ. In this example service Àæ satisfies the query, but ÀΩ does not as it requires BookISBN as an input but that is not provided by the query. Our query requires ConfirmationNumber as the output and Àæ produces ConfirmationNumber and TrackingNumber. The extra output produced can be ignored. Also the semantic descriptions of the service input/output parameters should be the same as the query parameters or have the subsumption relation. The discovery engine should be able to infer that the query parameter BookTitle and input parameter BookName of service Àæ are semantically the same concepts. This can be inferred using semantics from the ontology provided. The query also has a pre-condition that the CreditCardNumber is numeric which should logically imply the pre-condition of the discovered service.
+Given a repository of Web services, and a query requesting a service (we refer to it as the query service in
+the rest of the text), automatically finding a service from
+the repository that matches the query requirements is the
+Web service Discovery problem. Valid solutions to the
+query satisfy the following conditions: (i) they produce
+at least the query output parameters and satisfy the query
+post-conditions; (ii) they use only from the provided input
+parameters and satisfy the query pre-conditions; (iii) they
+produce the query side-effects. Some of the solutions may
+be over-qualified, but they are still considered valid as
+long as they fulfill input and output parameters, pre/post
+conditions, and side-effects requirements.
+Example 1: Say we are looking for a service to buy a book
+and the directory of services contains services S1 and S2 .
+The table 1 shows the input/output parameters of the query
+and services S1 and S2.
+In this example service S2 satisfies the query, but
+S1 does not as it requires BookISBN as an input but
+that is not provided by the query. Our query requires
+ConfirmationNumber as the output and S2 produces ConfirmationNumber and TrackingNumber. The extra output
+produced can be ignored. Also the semantic descriptions
+of the service input/output parameters should be the same
+as the query parameters or have the subsumption relation.
+The discovery engine should be able to infer that the query
+parameter BookTitle and input parameter BookName of
+service S2 are semantically the same concepts. This can be
+inferred using semantics from the ontology provided. The
+query also has a pre-condition that the CreditCardNumber
+is numeric which should logically imply the pre-condition
+of the discovered service.
+
+CI‚Äô,I‚Äô
+
+CO,O
+
+CI,I
+
+S
+
+where CI‚Äô ==> CI,
+I‚Äô
+I,
+
+CO‚Äô,O‚Äô
+
+CO ==> CO‚Äô,
+O
+O‚Äô
+
+Figure 1. Substitutable Service
+Definition (Service): A service is a 6-tuple of its preconditions, inputs, side-effect, affected object, outputs and
+post-conditions. S = (CI ; I ; A; AO; O; CO) is the representation of a service where CI is the pre-conditions, I
+is the input list, A is the service‚Äôs side-effect, AO is the
+affected object, O is the output list, and CO is the postconditions.
+Definition (Repository of Services): Repository is a set of
+Web services.
+Definition (Query): The query service is defined as
+Q = (CI 0; I 0; A0; AO0 ; O0; CO0 ) where CI 0 is the preconditions, I 0 is the input list, A0 is the service affect,
+AO0 is the affected object, O0 is the output list, and CO0
+is the post-conditions. These are all the parameters of the
+requested service.
+Definition (Discovery): Given a repository R and a query
+Q, the Discovery problem can be defined as automatically
+finding a set S of services from R such that S = fs j s =
+(CI ; I ; A; AO ; O ; CO ), s 2 R, CI 0 ) CI , I v I 0 , A =
+A0 , AO = AO0 , CO ) CO0 , O w O0 g. The meaning
+of v is the subsumption (subsumes) relation and ) is the
+implication relation. For example, say x and y are input
+and output parameters respectively of a service. If a query
+has (x > 5) as a pre-condition and (y > x) as postcondition, then a service with pre-condition (x > 0) and
+post-condition (y > x) can satisfy the query as (x > 5) )
+(x > 0) and (y > x) ) (y > x) since (x > 0).
+In other words, the discovery problem involves finding
+suitable services from the repository that match the query
+requirements. Valid solutions have to produce at least those
+output parameters specified in the query, satisfy the query
+pre and post-conditions, use at most those input parameters that are provided by the query, and produce the same
+side-effect as the query requirement. Figure 1 explains the
+discovery problem pictorially.
 
 2.2
 
 The Composition Problem
 
-Given a repository of service descriptions, and a query with the requirements of the requested service, in case a matching service is not found, the composition problem involves automatically finding a directed acyclic graph of services that can be composed to obtain the desired service. Figure 2 shows an example composite service made up of
+Given a repository of service descriptions, and a query
+with the requirements of the requested service, in case a
+matching service is not found, the composition problem involves automatically finding a directed acyclic graph of services that can be composed to obtain the desired service.
+Figure 2 shows an example composite service made up of
 
-Service Query
+Service
+Query
 
-ÀΩ Àæ
+S1
+S2
 
-Input Parameters BookTitle,CreditCardNumber, AuthorName,CreditCardType BookName,AuthorName BookISBN,CreditCardNumber BookName, CreditCardNumber
+Input Parameters
+BookTitle,CreditCardNumber,
+AuthorName,CreditCardType
+BookName,AuthorName
+BookISBN,CreditCardNumber
+BookName,
+CreditCardNumber
 
-Pre-conditions IsNumeric(Credit CardNumber)
+Pre-conditions
+IsNumeric(Credit
+CardNumber)
 
-Output Parameters Post-Cond ConfirmationNumber ConfirmationNumber
+Output Parameters
+Post-Cond
+ConfirmationNumber
+ConfirmationNumber
 
-IsNumeric(Credit CardNumber)
+IsNumeric(Credit
+CardNumber)
 
-ConfirmationNumber, TrackingNumber
+ConfirmationNumber,
+TrackingNumber
 
-Table 1. Example Scenario for Discovery problem graph represents a service in the composition. Each outgoing edge of a node (service) represents the outputs and postconditions produced by the service. Each incoming edge of a node represents the inputs and pre-conditions of the service. The following conditions should hold on the nodes of the graph: À æ Œ where À has zero incoming edges, 1. ¡º € ¡ , ¡º µ ¡ . 2. À æ Œ where À has zero outgoing edges, «º ⁄ « , «º ¥ « . À æ Œ where À has at least one incoming edge, 3. let À Ω, À æ , ..., À — be the nodes such that there is a directed edge from each of these nodes to À . Then « ¡ º , ¡ ¥ ( « Ω « æ « — ¡ º). ¡ ⁄ The meaning of the ⁄ is the subsumption (subsumes) relation and µ is the implication relation. In other words, a service at any stage in the composition can potentially have as its inputs all the outputs from its predecessors as well as the query inputs. The services in the first stage of composition can only use the query inputs. The union of the outputs produced by the services in the last stage of composition should contain all the outputs that the query requires to be produced. Also the post-conditions of services at any stage in composition should imply the pre-conditions of services in the next stage. Figure 4 explains one instance of the composition problem pictorially. When the number of nodes in the graph is equal to one, the composition problem reduces to the discovery problem. When all nodes in the graph have not more than one incoming edge and not more than one outgoing edge, the problem reduces to a sequential composition problem (i.e., the graph is a linear chain of services).
+Table 1. Example Scenario for Discovery problem
 
-S2 S5 CI',I' S1 S3 S4 CO',O'
+S2
+S5
+CI‚Äô,I‚Äô
 
-Figure 2. Example of a Composite Service as a Directed Acyclic Graph
+CO‚Äô,O‚Äô
 
-À À
+S3
+S1
 
-GetAvailability BookISBN BookName, AuthorName GetISBN NumAvailable ConfNumber PurchaseBook
+S4
+
+Figure 2. Example of a Composite Service as
+a Directed Acyclic Graph
+
+GetAvailability
+BookISBN
+BookName,
+AuthorName
+GetISBN
+
+NumAvailable
 
 BookISBN
 
-À
+ConfNumber
+PurchaseBook
 
-AuthCode CreditCardNum AuthorizeCreditCard
+AuthCode
+CreditCardNum
 
-Figure 3. Example of a Composite Service five services ÀΩ to À . In the figure, ¡ º and ¡ º are the query input parameters and pre-conditions respectively. «º and º « are the query output parameters and post-conditions respectively. Informally, the directed arc between nodes À and À indicates that outputs of À constitute (some of) the inputs of À . Example 2: Suppose we are looking for a service to buy a book and the directory of services contains services GetISBN, GetAvailability, AuthorizeCreditCard, and PurchaseBook. The table 2 shows the input/output parameters of the query and these services. Suppose the repository does not find a single service that matches these criteria, then it synthesizes a composite service from among the set of services available in the repository. Figure 3 shows this composite service. The postconditions of the service GetAvailability should logically imply the pre-conditions of service PurchaseBook. Definition (Composition): The Composition problem can be defined as automatically finding a directed acyclic graph = ¥Œ µ of services from repository  , given query … = ( ¡ º ¡ º º «º «º «º ), where Œ is the set of vertices and is the set of edges of the graph. Each vertex in the
+AuthorizeCreditCard
+
+Figure 3. Example of a Composite Service
+five services S1 to S5 . In the figure, I 0 and C I 0 are the query
+input parameters and pre-conditions respectively. O0 and
+0
+C O are the query output parameters and post-conditions
+respectively. Informally, the directed arc between nodes Si
+and Sj indicates that outputs of Si constitute (some of) the
+inputs of Sj .
+Example 2: Suppose we are looking for a service to
+buy a book and the directory of services contains services
+GetISBN, GetAvailability, AuthorizeCreditCard, and PurchaseBook. The table 2 shows the input/output parameters
+of the query and these services.
+Suppose the repository does not find a single service that
+matches these criteria, then it synthesizes a composite service from among the set of services available in the repository. Figure 3 shows this composite service. The postconditions of the service GetAvailability should logically
+imply the pre-conditions of service PurchaseBook.
+Definition (Composition): The Composition problem can
+be defined as automatically finding a directed acyclic graph
+G = (V ; E ) of services from repository R, given query Q =
+(CI 0; I 0; A0; AO0 ; O0; CO0 ), where V is the set of vertices
+and E is the set of edges of the graph. Each vertex in the
+
+graph represents a service in the composition. Each outgoing edge of a node (service) represents the outputs and postconditions produced by the service. Each incoming edge of
+a node represents the inputs and pre-conditions of the service. The following conditions should hold on the nodes of
+the graph:
+1. 8i Si 2 V where Si has zero incoming edges,
+I 0 w i I i , CI 0 )^i CI i .
+2. 8i Si 2 V where Si has zero outgoing edges,
+O0 v i Oi , CO0 (^iCO i .
+3. 8i Si 2 V where Si has at least one incoming edge,
+let Si1, Si2 , ..., Sim be the nodes such that there is
+a directed edge from each of these nodes to Si . Then
+0
+0
+Ii v k Oik [ I , C I i ( (CO i1 ^CO i2 ::: ^COim ^ C I ).
+The meaning of the v is the subsumption (subsumes) relation and ) is the implication relation. In other words, a
+service at any stage in the composition can potentially have
+as its inputs all the outputs from its predecessors as well as
+the query inputs. The services in the first stage of composition can only use the query inputs. The union of the outputs
+produced by the services in the last stage of composition
+should contain all the outputs that the query requires to be
+produced. Also the post-conditions of services at any stage
+in composition should imply the pre-conditions of services
+in the next stage.
+Figure 4 explains one instance of the composition problem pictorially. When the number of nodes in the graph
+is equal to one, the composition problem reduces to the
+discovery problem. When all nodes in the graph have not
+more than one incoming edge and not more than one outgoing edge, the problem reduces to a sequential composition
+problem (i.e., the graph is a linear chain of services).
+
+S
+S
+
+S
 
 2.3
 
 Requirements of an ideal Engine
 
-Discovery and composition can be viewed as a single problem. Discovery is a simple case of composition where the number of services involved in composition is exactly equal to one. The features of an ideal Discovery/Composition engine are: Correctness: One of the most important requirements for an ideal engine is to produce correct results, i.e, the services discovered and composed by it should satisfy all the
+Discovery and composition can be viewed as a single problem. Discovery is a simple case of composition
+where the number of services involved in composition is
+exactly equal to one. The features of an ideal Discovery/Composition engine are:
+Correctness: One of the most important requirements for
+an ideal engine is to produce correct results, i.e, the services discovered and composed by it should satisfy all the
 
-Service Query
+Service
 
 Input Parameters
 
 Pre-Conditions
 
-BookTitle,CreditCardNum, AuthorName,CardType GetISBN BookName,AuthorName GetAvailability BookISBN AuthorizeCreditCard CreditCardNum PurchaseBook BookISBN, NumAvailable, AuthCode NumAvailable
-º
+Query
 
-Output Params ConfNumber
+Output
+Params
+ConfNumber
+
+PurchaseBook
+
+BookISBN
+NumAvailable NumAvailable > 0
+AuthCode
+AuthCode > 99^
+AuthCode < 1000
+ConfNumber
+
+BookTitle,CreditCardNum,
+AuthorName,CardType
+GetISBN
+BookName,AuthorName
+GetAvailability
+BookISBN
+AuthorizeCreditCard CreditCardNum
+BookISBN, NumAvailable, AuthCode
+
+NumAvailable > 0
 
 Post-Conditions
 
-BookISBN NumAvailable NumAvailable º AuthCode AuthCode AuthCode Ωººº ConfNumber
-
-Table 2. Example Scenario for Composition problem semantics-based Discovery and Composition engine described in the following sections.
+Table 2. Example Scenario for Composition problem
+semantics-based Discovery and Composition engine described in the following sections.
 
 2.4
 
+Figure 4. Composite Service
+requirements of the query. Also, the engine should be able
+to find all services that satisfy the query requirements.
+Small Query Execution Time: Querying a repository of
+services for a requested service should take a reasonable
+amount of (small) time, i.e., a few milliseconds. Here we
+assume that the repository of services may be pre-processed
+(indexing, change in format, etc.) and is ready for querying.
+In case services are not added incrementally, then time for
+pre-processing a service repository is a one-time effort that
+takes considerable amount of time, but gets amortized over
+a large number of queries.
+Incremental Updates: Adding or updating a service to an
+existing repository of services should take a small amount
+of time. A good Discovery/Composition engine should not
+pre-process the entire repository again, rather incrementally
+update the pre-processed data (indexes, etc.) of the repository for this new service added.
+Cost function: If there are costs associated with every service in the repository, then a good Discovery/Composition
+engine should be able to give results based on requirements
+(minimize, maximize, etc.) over the costs. We can extend
+this to services having an attribute vector associated with
+them and the engine should be able to give results based
+on maximizing or minimizing functions over this attribute
+vector.
+These requirements have driven the design of our
+
 Semantic Description of Web Services
 
-Figure 4. Composite Service requirements of the query. Also, the engine should be able to find all services that satisfy the query requirements. Small Query Execution Time: Querying a repository of services for a requested service should take a reasonable amount of (small) time, i.e., a few milliseconds. Here we assume that the repository of services may be pre-processed (indexing, change in format, etc.) and is ready for querying. In case services are not added incrementally, then time for pre-processing a service repository is a one-time effort that takes considerable amount of time, but gets amortized over a large number of queries. Incremental Updates: Adding or updating a service to an existing repository of services should take a small amount of time. A good Discovery/Composition engine should not pre-process the entire repository again, rather incrementally update the pre-processed data (indexes, etc.) of the repository for this new service added. Cost function: If there are costs associated with every service in the repository, then a good Discovery/Composition engine should be able to give results based on requirements (minimize, maximize, etc.) over the costs. We can extend this to services having an attribute vector associated with them and the engine should be able to give results based on maximizing or minimizing functions over this attribute vector. These requirements have driven the design of our
-
-A Web service is a software system designed to support interoperable machine-to-machine interaction over a network. It has an interface that is described in a machineprocessible format so that other systems can interact with the Web service through its interface using messages. The automation of Web service tasks (discovery, composition, etc.) can take place effectively only if formal semantic descriptions of Web services are available. Currently, there are a number of approaches for describing the semantics of Web services such as OWL-S [4], WSML [5], WSDL-S [6], and USDL [1].
+A Web service is a software system designed to support
+interoperable machine-to-machine interaction over a network. It has an interface that is described in a machineprocessible format so that other systems can interact with
+the Web service through its interface using messages. The
+automation of Web service tasks (discovery, composition,
+etc.) can take place effectively only if formal semantic descriptions of Web services are available. Currently, there
+are a number of approaches for describing the semantics of
+Web services such as OWL-S [4], WSML [5], WSDL-S [6],
+and USDL [1].
 
 3
 
 A Multi-step Narrowing Solution
 
-With the formal definition of the Discovery and Composition problem, presented in the previous section, one can see that there can be many approaches to solving the problem. Our approach is based on a multi-step narrowing of the list of candidate services using various constraints at each step. In this section we discuss our Composition algorithm in detail. As mentioned earlier, discovery is a simple case of Composition. When the number of services involved in the composition is exactly equal to one, the problem reduces to a discovery problem. Hence we use the same engine for both discovery and composition. We assume that a directory of services has already been compiled, and that this directory includes semantic descriptions for each service.
+With the formal definition of the Discovery and Composition problem, presented in the previous section, one can
+see that there can be many approaches to solving the problem. Our approach is based on a multi-step narrowing of the
+list of candidate services using various constraints at each
+step. In this section we discuss our Composition algorithm
+in detail. As mentioned earlier, discovery is a simple case of
+Composition. When the number of services involved in the
+composition is exactly equal to one, the problem reduces
+to a discovery problem. Hence we use the same engine for
+both discovery and composition. We assume that a directory of services has already been compiled, and that this
+directory includes semantic descriptions for each service.
 
 3.1
 
 The Service Composition Algorithm
 
-For service composition, the first step is finding the set of composable services. Using the discovery engine, individual services that make up the composed service can be selected. Part substitution techniques [2] can be used to find the different parts of a whole task and the selected services can be composed into one by applying the correct sequence of their execution. The correct sequence of execution can be determined by the pre-conditions and post-conditions of the
+For service composition, the first step is finding the set
+of composable services. Using the discovery engine, individual services that make up the composed service can be
+selected. Part substitution techniques [2] can be used to find
+the different parts of a whole task and the selected services
+can be composed into one by applying the correct sequence
+of their execution. The correct sequence of execution can be
+determined by the pre-conditions and post-conditions of the
 
-individual services. That is, if a subservice ÀΩ is composed with subservice Àæ , then the post-conditions of ÀΩ must imply the pre-conditions of Àæ. The goal is to derive a single solution, which is a directed acyclic graph of services that can be composed together to produce the requested service in the query. Figure 6 shows a pictorial representation of our composition engine. In order to produce the composite service which is the graph, as shown in the example figure 2, we filter out services that are not useful for the composition at multiple stages. Figure 5 shows the filtering technique for the particular instance shown in figure 2. The composition routine starts with the query input parameters. It finds all those services from the repository which require a subset of the query input parameters. In figure 5, ¡ ¡ are the preconditions and the input parameters provided by the query. ÀΩ and Àæ are the services found after step 1. «Ω is the union of all outputs produced by the services at the first stage. For the next stage, the inputs available are the query input parameters and all the outputs produced by the previous stage, i.e., ¡æ = «Ω ¡ . ¡æ is used to find services at the next stage, i.e., all those services that require a subset of ¡æ. In order to make sure we do not end up in cycles, we get only those services which require at least one parameter from the outputs produced in the previous stage. This filtering continues until all the query output parameters are produced. At this point we make another pass in the reverse direction to remove redundant services which do not directly or indirectly contribute to the query output parameters. This is done starting with the output parameters working our way backwards.
+individual services. That is, if a subservice S1 is composed
+with subservice S2 , then the post-conditions of S1 must imply the pre-conditions of S2. The goal is to derive a single
+solution, which is a directed acyclic graph of services that
+can be composed together to produce the requested service
+in the query. Figure 6 shows a pictorial representation of
+our composition engine.
+In order to produce the composite service which is the
+graph, as shown in the example figure 2, we filter out services that are not useful for the composition at multiple
+stages. Figure 5 shows the filtering technique for the particular instance shown in figure 2. The composition routine starts with the query input parameters. It finds all those
+services from the repository which require a subset of the
+query input parameters. In figure 5, C I ; I are the preconditions and the input parameters provided by the query.
+S1 and S2 are the services found after step 1. O1 is the
+union of all outputs produced by the services at the first
+stage. For the next stage, the inputs available are the query
+input parameters and all the outputs produced by the previous stage, i.e., I2 = O1 [ I . I2 is used to find services at
+the next stage, i.e., all those services that require a subset
+of I2. In order to make sure we do not end up in cycles,
+we get only those services which require at least one parameter from the outputs produced in the previous stage.
+This filtering continues until all the query output parameters are produced. At this point we make another pass in
+the reverse direction to remove redundant services which
+do not directly or indirectly contribute to the query output
+parameters. This is done starting with the output parameters
+working our way backwards.
 
-S1 Query described using USDL (S) Infer Sub-queries . . . Sn
+I=I
+CI, I
 
-Discovery Module (Discovery Engine + Service Directory + Term Generator) S1 Sn
+1
 
-.......................... Composition Engine (implemented using Constraint Logic Programming
+S1
+S2
+.
+.
+
+O1
+
+I=IUO
+2
+
+1
+
+1
+
+S
+.
+.
+
+O
+
+2
+
+3
+
+I=IUO
+3
+
+2
+
+2
+
+O
+S
+
+3
+
+I=IUO
+4
+
+3
+
+4
+
+.
+.
+
+3
+
+S
+
+O
+
+4
+
+O
+
+5
+
+.
+.
+
+Figure 5. Composite Service
+Algorithm: Composition
+Input: QI - QueryInputs, QO - QueryOutputs, QCI - PreCond, QCO - Post-Cond
+Output: Result - ListOfServices
+1. L NarrowServiceList(QI, QCI);
+2. O GetAllOutputParameters(L);
+3. CO GetAllPostConditions(L);
+4. While Not (O w QO)
+5.
+I = QI [ O; CI QCI ^ CO;
+6.
+L‚Äô NarrowServiceList(I, CI);
+7. End While;
+8. Result
+RemoveRedundantServices(QO, QCO);
+9.Return Result;
+
+S1
+Query
+described
+using
+USDL
+(S)
+
+Infer
+Sub-queries
+
+.
+.
+.
+Sn
+
+Discovery Module
+(Discovery Engine + Service
+Directory + Term Generator)
+S1
 
 Composed Service
 
-Pre-Cond(S) S1 Pre-Cond( S) 1
+Pre-Cond(S)
+S1
+Pre-Cond( S)1
 
-Post-Cond( S) 1 Pre-Cond( S) 2
+Post-Cond( S)1
+Pre-Cond( S)2
 
 S2
 
+..........................
+
+Sn
+
+Composition Engine
+(implemented using
+Constraint Logic
+Programming
+
 ................................. S n
 
-Post-Cond( S) n Post-Cond(S)
+Post-Cond( S)n
+Post-Cond(S)
 
 Figure 6. Composition Engine
 
@@ -149,91 +569,297 @@ Figure 6. Composition Engine
 
 Implementation
 
-I=I CI, I
-1
+Our discovery and composition engine is implemented
+using Prolog [11] with Constraint Logic Programming over
+finite domain [10], referred to as CLP(FD) hereafter. In
+our current implementation, we used semantic descriptions
+written in the language called USDL [1]. The repository of
+services contains one USDL description document for each
+service. USDL itself is used to specify the requirements of
+the service that an application developer is seeking.
+USDL is a language that service developers can use to
+specify formal semantics of Web services. In order to provide semantic descriptions of services, we need an ontology
+that is somewhat coarse-grained yet universal, and at a similar conceptual level to common real world concepts. USDL
+uses WordNet [9] which is a sufficiently comprehensive ontology that meets these criteria. Thus, the ‚Äúmeaning‚Äù of
+input parameters, outputs, and the side-effect induced by
+the service is given by mapping these syntactic terms to
+concepts in WordNet (see [1] for details of the representation). Inclusion of USDL descriptions, thus makes services
+directly ‚Äúsemantically‚Äù searchable. However, we still need
+a query language to search this directory, i.e., we need a language to frame the requirements on the service that an application developer is seeking. USDL itself can be used as
+such a query language. A USDL description of the desired
+service can be written, a query processor can then search
+the service directory for a ‚Äúmatching‚Äù service. Due to lack
+of space, we do not go into the details of the language in
+this paper. They are available in our previous work [2].
+These algorithms can be used with any other Semantic
+Web service description language as well. It will involve
+extending our implementation to work for other description
+formats, and we are looking into that as part of our future
+work.
+The software system is made up of the following components.
+Triple Generator: The triple generator module converts
 
-S1 S2 . .
+each service description into a triple. In this case, USDL
+descriptions are converted to triples like:
+(Pre-Conditions, affect-type(affected-object, I, O), PostConditions).
+The function symbol affect-type is the side-effect of the service and affected object is the object that changed due to the
+side-effect. I is the list of inputs and O is the list of outputs.
+Pre-Conditions are the conditions on the input parameters
+and Post-Conditions are the conditions on the output parameters. Services are converted to triples so that they can
+be treated as terms in first-order logic and specialized unification algorithms can be applied to obtain exact, generic,
+specific, part and whole substitutions [2]. In case conditions on a service are not provided, the Pre-Conditions and
+Post-Conditions in the triple will be null. Similarly if the
+affect-type is not available, this module assigns a generic
+affect to the service.
+Query Reader: This module reads the query file and passes
+it on to the Triple Generator. We use USDL itself as the
+query language. A USDL description of the desired service
+can be written, which is read by the query reader and converted to a triple. This module can be easily extended to
+read descriptions written in other languages.
+Semantic Relations Generator: We obtain the semantic
+relations from the OWL WordNet ontology. OWL WordNet ontology provides a number of useful semantic relations like synonyms, antonyms, hyponyms, hypernyms,
+meronyms, holonyms and many more. USDL descriptions
+point to OWL WordNet for the meanings of concepts. A
+theory of service substitution is described in detail in [2]
+which uses the semantic relations between basic concepts of
+WordNet, to derive the semantic relations between services.
+This module extracts all the semantic relations and creates
+a list of Prolog facts. We can also use any other domainspecific ontology to obtain semantic relations of concepts.
+We are currently looking into making the parser in this module more generic to handle any other ontology written in
+OWL.
+The query is parsed and converted into a Prolog query that
+looks as follows:
+discovery(sol(queryService, ListOfSolutionServices).
+The engine will try to find a list of SolutionServices that
+match the queryService.
+Composition Engine: The composition engine is written
+using Prolog with CLP(FD) library. It uses a repository of
+facts, which contains all the services, their input and output
+parameters and the semantic relations between the parameters. The following is the code snippet of our composition
+engine:
+composition(sol(Qname, Result)) :dQuery(Qname, QueryInputs, QueryOutputs),
+encodeParam(QueryOutputs, QO),
+getExtInpList(QueryInputs, InpList),
+encodeParam(InpList, QI),
+performForwardTask(QI, QO, LF),
 
-O1
+performBackwardTask(LF, QO, LR),
+getMinSolution(LR, QI, QO, A), reverse(A, RevA),
+confirmSolution(RevA, QI, QO), decodeSL(RevA, Result).
 
-I=IUO
-2 1
-
-1
-
-S . .
-
-O
-3
-
-2
-
-I=IUO
-3 2
-
-2
-
-O S . .
-4
-
-3
-
-I=IUO
-4 3
-
-3
-
-S . .
-
-O
-5
-
-4
-
-O
-
-Figure 5. Composite Service Algorithm: Composition Input: QI - QueryInputs, QO - QueryOutputs, QCI - PreCond, QCO - Post-Cond Output: Result - ListOfServices 1. L NarrowServiceList(QI, QCI); 2. O GetAllOutputParameters(L); 3. CO GetAllPostConditions(L); 4. While Not (O € QO) 5. I = QI O; CI QCI CO; 6. L' NarrowServiceList(I, CI); 7. End While; 8. Result RemoveRedundantServices(QO, QCO); 9.Return Result;
-
-Our discovery and composition engine is implemented using Prolog [11] with Constraint Logic Programming over finite domain [10], referred to as CLP(FD) hereafter. In our current implementation, we used semantic descriptions written in the language called USDL [1]. The repository of services contains one USDL description document for each service. USDL itself is used to specify the requirements of the service that an application developer is seeking. USDL is a language that service developers can use to specify formal semantics of Web services. In order to provide semantic descriptions of services, we need an ontology that is somewhat coarse-grained yet universal, and at a similar conceptual level to common real world concepts. USDL uses WordNet [9] which is a sufficiently comprehensive ontology that meets these criteria. Thus, the "meaning" of input parameters, outputs, and the side-effect induced by the service is given by mapping these syntactic terms to concepts in WordNet (see [1] for details of the representation). Inclusion of USDL descriptions, thus makes services directly "semantically" searchable. However, we still need a query language to search this directory, i.e., we need a language to frame the requirements on the service that an application developer is seeking. USDL itself can be used as such a query language. A USDL description of the desired service can be written, a query processor can then search the service directory for a "matching" service. Due to lack of space, we do not go into the details of the language in this paper. They are available in our previous work [2]. These algorithms can be used with any other Semantic Web service description language as well. It will involve extending our implementation to work for other description formats, and we are looking into that as part of our future work. The software system is made up of the following components. Triple Generator: The triple generator module converts
-
-each service description into a triple. In this case, USDL descriptions are converted to triples like: (Pre-Conditions, affect-type(affected-object, I, O), PostConditions). The function symbol affect-type is the side-effect of the service and affected object is the object that changed due to the side-effect. I is the list of inputs and O is the list of outputs. Pre-Conditions are the conditions on the input parameters and Post-Conditions are the conditions on the output parameters. Services are converted to triples so that they can be treated as terms in first-order logic and specialized unification algorithms can be applied to obtain exact, generic, specific, part and whole substitutions [2]. In case conditions on a service are not provided, the Pre-Conditions and Post-Conditions in the triple will be null. Similarly if the affect-type is not available, this module assigns a generic affect to the service. Query Reader: This module reads the query file and passes it on to the Triple Generator. We use USDL itself as the query language. A USDL description of the desired service can be written, which is read by the query reader and converted to a triple. This module can be easily extended to read descriptions written in other languages. Semantic Relations Generator: We obtain the semantic relations from the OWL WordNet ontology. OWL WordNet ontology provides a number of useful semantic relations like synonyms, antonyms, hyponyms, hypernyms, meronyms, holonyms and many more. USDL descriptions point to OWL WordNet for the meanings of concepts. A theory of service substitution is described in detail in [2] which uses the semantic relations between basic concepts of WordNet, to derive the semantic relations between services. This module extracts all the semantic relations and creates a list of Prolog facts. We can also use any other domainspecific ontology to obtain semantic relations of concepts. We are currently looking into making the parser in this module more generic to handle any other ontology written in OWL. The query is parsed and converted into a Prolog query that looks as follows: discovery(sol(queryService, ListOfSolutionServices). The engine will try to find a list of SolutionServices that match the queryService. Composition Engine: The composition engine is written using Prolog with CLP(FD) library. It uses a repository of facts, which contains all the services, their input and output parameters and the semantic relations between the parameters. The following is the code snippet of our composition engine:
-composition(sol(Qname, Result)) :dQuery(Qname, QueryInputs, QueryOutputs), encodeParam(QueryOutputs, QO), getExtInpList(QueryInputs, InpList), encodeParam(InpList, QI), performForwardTask(QI, QO, LF),
-
-performBackwardTask(LF, QO, LR), getMinSolution(LR, QI, QO, A), reverse(A, RevA), confirmSolution(RevA, QI, QO), decodeSL(RevA, Result).
-
-The query is converted into a Prolog query that looks as follows: composition(queryService, ListOfServices). The engine will try to find a ListOfServices that can be composed into the requested queryService. Our engine uses the built-in, higher order predicate 'bagof' to return all possible ListOfServices that can be composed to get the requested queryService. Output Generator: After the Composition engine finds a matching service, or the list of atomic services for a composed service, the results are sent to the output generator in the form of triples. This module generates the output files in any desired XML format.
+The query is converted into a Prolog query that looks as follows:
+composition(queryService, ListOfServices).
+The engine will try to find a ListOfServices that can be composed into the requested queryService. Our engine uses the
+built-in, higher order predicate ‚Äôbagof‚Äô to return all possible
+ListOfServices that can be composed to get the requested
+queryService.
+Output Generator: After the Composition engine finds a
+matching service, or the list of atomic services for a composed service, the results are sent to the output generator in
+the form of triples. This module generates the output files
+in any desired XML format.
 
 5
 
 Efficiency and Scalability Issues
 
-In this section we discuss the salient features of our system with respect to the efficiency and scalability issues related to Web service discovery and composition problem. It is because of these features, we decided on the multi-step narrowing based approach to solve these problems and implemented it using constraint logic programming. Correctness: Our system takes into account all the services that can be satisfied by the provided input parameters and pre-conditions at every step of our narrowing algorithm. So our search space has all the possible solutions. Our backward narrowing step, which removes the redundant services, does so taking into account the output parameters and post-conditions. So our algorithm will always find a correct solution (if one exists) in the minimum possible steps. The formal proof of correctness and minimality is beyond the scope of this paper. Pre-processing: Our system initially pre-processes the repository and converts all service descriptions into Prolog terms. The semantic relations are also processed and loaded as Prolog terms in memory. Once the pre-processing is done, then discovery or composition queries are run against all these Prolog terms and hence we obtain results quickly and efficiently. The built-in indexing scheme and constraints in CLP(FD) facilitate the fast execution of queries. During the pre-processing phase, we use the term representations of services to set up constraints on services and the individual input and output parameters. This further helped us in getting optimal results. Execution Efficiency: The use of CLP(FD) helped significantly in rapidly obtaining answers to the discovery and composition queries. We tabulated processing times for different size repositories and the results are shown in Section 6. As one can see, after pre-processing the repository, our system is quite efficient in processing the query. The query execution time is insignificant.
+In this section we discuss the salient features of our system with respect to the efficiency and scalability issues related to Web service discovery and composition problem. It
+is because of these features, we decided on the multi-step
+narrowing based approach to solve these problems and implemented it using constraint logic programming.
+Correctness: Our system takes into account all the services that can be satisfied by the provided input parameters and pre-conditions at every step of our narrowing algorithm. So our search space has all the possible solutions.
+Our backward narrowing step, which removes the redundant services, does so taking into account the output parameters and post-conditions. So our algorithm will always
+find a correct solution (if one exists) in the minimum possible steps. The formal proof of correctness and minimality
+is beyond the scope of this paper.
+Pre-processing: Our system initially pre-processes the
+repository and converts all service descriptions into Prolog
+terms. The semantic relations are also processed and loaded
+as Prolog terms in memory. Once the pre-processing is
+done, then discovery or composition queries are run against
+all these Prolog terms and hence we obtain results quickly
+and efficiently. The built-in indexing scheme and constraints in CLP(FD) facilitate the fast execution of queries.
+During the pre-processing phase, we use the term representations of services to set up constraints on services and the
+individual input and output parameters. This further helped
+us in getting optimal results.
+Execution Efficiency: The use of CLP(FD) helped significantly in rapidly obtaining answers to the discovery and
+composition queries. We tabulated processing times for different size repositories and the results are shown in Section
+6. As one can see, after pre-processing the repository, our
+system is quite efficient in processing the query. The query
+execution time is insignificant.
 
-Programming Efficiency: The use of Constraint Logic Programming helped us in coming up with a simple and elegant code. We used a number of built-in features such as indexing, set operations, and constraints and hence did not have to spend time coding these ourselves. This made our approach efficient in terms of programming time as well. Not only the whole system is about 200 lines of code, but we also managed to develop it in less than 2 weeks. Scalability: Our system allows for incremental updates on the repository, i.e., once the pre-processing of a repository is done, adding a new service or updating an existing one will not need re-execution of the entire pre-processing phase. Instead we can easily update the existing list of CLP(FD) terms loaded in the memory and run discovery and composition queries. Our estimate is that this update time will be negligible, perhaps a few milliseconds. With real-world services, it is likely that new services will get added often or updates might be made on existing services. In such a case, avoiding repeated pre-processing of the entire repository will definitely be needed and incremental update will be of great practical use. The efficiency of the incremental update operation makes our system highly scalable. Use of external Database: In case the repository grows extremely large in size, then saving off results from the preprocessing phase into some external database might be useful. This is part of our future work. With extremely large repositories, holding all the results of pre-processing in the main memory may not be feasible. In such a case we can query a database where all the information is stored. Applying incremental updates to the database is easily possible thus avoiding recomputation of pre-processed data . Searching for Optimal Solution: If there are any properties with respect to which the solutions can be ranked, then setting up global constraints to get the optimal solution is relatively easy with the constraint based approach. For example, if each service has an associated cost, then the discovery and the composition problem can be redefined to find the solutions with the minimal cost. Our system can be easily extended to take these global constraints into account.
-
-Repository Size (num of services) 2000 2000 2000 2500 2500 2500 3000 3000 3000
-
-Number of I/O parameters 4-8 16-20 32-36 4-8 16-20 32-36 4-8 16-20 32-36
-
-PreProcessing Time (secs) 36.5 45.8 57.8 47.7 58.7 71.6 56.8 77.1 88.2
-
-Query Exec Time (msecs) 1 1 2 1 1 2 1 1 3
-
-Incremental update (msecs) 18 23 28 19 23 29 19 26 29
-
-Table 3. Performance on Discovery Queries
-
-found is that the repository was cached after the first run and that explained the difference in the pre-processing time for subsequent runs. Table 3 shows performance results of our Composition algorithm on discovery queries and table 4 shows results of our algorithm on composition queries. The times shown in the tables are the wall clock times. The actual CPU time to pre-process the repository and execute the query should be less than or equal to the wall clock time. The results are plotted in figure 8. The graphs exhibit behavior consistent with our expectations: for a fixed repository size, the preprocessing time increases with the increase in number of input/output parameters. Similarly, for fixed input/output sizes, the preprocessing time is directly proportional to the size of the repository. However, what is surprising is the efficiency of service query processing, which is negligible (just 1 to 3 msecs) even for complex queries with large repositories.
+Programming Efficiency: The use of Constraint Logic
+Programming helped us in coming up with a simple and
+elegant code. We used a number of built-in features such as
+indexing, set operations, and constraints and hence did not
+have to spend time coding these ourselves. This made our
+approach efficient in terms of programming time as well.
+Not only the whole system is about 200 lines of code, but
+we also managed to develop it in less than 2 weeks.
+Scalability: Our system allows for incremental updates on
+the repository, i.e., once the pre-processing of a repository is
+done, adding a new service or updating an existing one will
+not need re-execution of the entire pre-processing phase.
+Instead we can easily update the existing list of CLP(FD)
+terms loaded in the memory and run discovery and composition queries. Our estimate is that this update time will
+be negligible, perhaps a few milliseconds. With real-world
+services, it is likely that new services will get added often
+or updates might be made on existing services. In such a
+case, avoiding repeated pre-processing of the entire repository will definitely be needed and incremental update will
+be of great practical use. The efficiency of the incremental
+update operation makes our system highly scalable.
+Use of external Database: In case the repository grows
+extremely large in size, then saving off results from the preprocessing phase into some external database might be useful. This is part of our future work. With extremely large
+repositories, holding all the results of pre-processing in the
+main memory may not be feasible. In such a case we can
+query a database where all the information is stored. Applying incremental updates to the database is easily possible
+thus avoiding recomputation of pre-processed data .
+Searching for Optimal Solution: If there are any properties with respect to which the solutions can be ranked,
+then setting up global constraints to get the optimal solution is relatively easy with the constraint based approach.
+For example, if each service has an associated cost, then the
+discovery and the composition problem can be redefined to
+find the solutions with the minimal cost. Our system can be
+easily extended to take these global constraints into account.
 
 6
 
+Repository Size
+(num of
+services)
+2000
+2000
+2000
+2500
+2500
+2500
+3000
+3000
+3000
+
+Number
+of I/O
+parameters
+4-8
+16-20
+32-36
+4-8
+16-20
+32-36
+4-8
+16-20
+32-36
+
+PreProcessing
+Time
+(secs)
+36.5
+45.8
+57.8
+47.7
+58.7
+71.6
+56.8
+77.1
+88.2
+
+Query
+Exec
+Time
+(msecs)
+1
+1
+2
+1
+1
+2
+1
+1
+3
+
+Incremental
+update
+(msecs)
+18
+23
+28
+19
+23
+29
+19
+26
+29
+
+Table 3. Performance on Discovery Queries
+
+found is that the repository was cached after the first run
+and that explained the difference in the pre-processing time
+for subsequent runs. Table 3 shows performance results of
+our Composition algorithm on discovery queries and table 4
+shows results of our algorithm on composition queries. The
+times shown in the tables are the wall clock times. The actual CPU time to pre-process the repository and execute the
+query should be less than or equal to the wall clock time.
+The results are plotted in figure 8. The graphs exhibit behavior consistent with our expectations: for a fixed repository size, the preprocessing time increases with the increase
+in number of input/output parameters. Similarly, for fixed
+input/output sizes, the preprocessing time is directly proportional to the size of the repository. However, what is surprising is the efficiency of service query processing, which
+is negligible (just 1 to 3 msecs) even for complex queries
+with large repositories.
+
 Performance
 
-We used repositories from WS-Challenge website[13], slightly modified to fit into USDL framework. They provide repositories of various sizes (thousands of services). These repositories contain WSDL descriptions of services. The queries and solutions are provided in an XML format. The semantic relations between various parameters are provided in an XML Schema file. We evaluated our approach on different size repositories and tabulated Preprocessing and Query Execution time. We noticed that there was a significant difference in pre-processing time between the first and subsequent runs (after deleting all the previous pre-processed data) on the same repository. What we
+We used repositories from WS-Challenge website[13],
+slightly modified to fit into USDL framework. They provide repositories of various sizes (thousands of services).
+These repositories contain WSDL descriptions of services.
+The queries and solutions are provided in an XML format. The semantic relations between various parameters
+are provided in an XML Schema file. We evaluated our
+approach on different size repositories and tabulated Preprocessing and Query Execution time. We noticed that there
+was a significant difference in pre-processing time between
+the first and subsequent runs (after deleting all the previous pre-processed data) on the same repository. What we
 
 Figure 7. Performance on Discovery Queries
 
-Figure 8. Queries Repository Size (num of services) 2000 2000 2000 3000 3000 3000 4000 4000 4000 Table 4. Queries
+Figure 8.
+Queries
+Repository Size
+(num of
+services)
+2000
+2000
+2000
+3000
+3000
+3000
+4000
+4000
+4000
+Table 4.
+Queries
+
+7
+
+Performance
+
+Number
+of I/O
+parameters
+4-8
+16-20
+32-36
+4-8
+16-20
+32-36
+4-8
+16-20
+32-36
+
+PreProcessing
+Time
+(secs)
+36.1
+47.1
+60.2
+58.4
+60.1
+102.1
+71.2
+87.9
+129.2
 
 Performance
 
@@ -241,37 +867,177 @@ on
 
 Composition
 
-Number of I/O parameters 4-8 16-20 32-36 4-8 16-20 32-36 4-8 16-20 32-36
+Query
+Exec
+Time
+(msecs)
+1
+1
+1
+1
+1
+1
+1
+1
+1
+on
 
-PreProcessing Time (secs) 36.1 47.1 60.2 58.4 60.1 102.1 71.2 87.9 129.2
-
-Query Exec Time (msecs) 1 1 1 1 1 1 1 1 1 on
-
-Incremental update (msecs) 18 23 30 19 20 34 18 22 32
-
-Performance
+Incremental
+update
+(msecs)
+18
+23
+30
+19
+20
+34
+18
+22
+32
 
 Composition
 
-7
-
 Related Work
 
-Composition of Web services has been active area of research recently [14, 15, 23, 18]. Most of these approaches are based on capturing the formal semantics of the service using an action description languages or some kind of logic (e.g., description logic). The service composition problem is reduced to a planning problem where the sub-services constitute atomic actions and the overall service desired is represented by the goal to be achieved using some combination of atomic actions. A planner is then used to determine the combination of actions needed to reach the goal. With this approach an explicit goal definition has to be provided, whereas such explicit goals are usually not available [17]. To the best of our knowledge, most of these approaches that use planning are restricted to sequential compositions (i.e.,
+Composition of Web services has been active area of research recently [14, 15, 23, 18]. Most of these approaches
+are based on capturing the formal semantics of the service
+using an action description languages or some kind of logic
+(e.g., description logic). The service composition problem
+is reduced to a planning problem where the sub-services
+constitute atomic actions and the overall service desired is
+represented by the goal to be achieved using some combination of atomic actions. A planner is then used to determine
+the combination of actions needed to reach the goal. With
+this approach an explicit goal definition has to be provided,
+whereas such explicit goals are usually not available [17].
+To the best of our knowledge, most of these approaches that
+use planning are restricted to sequential compositions (i.e.,
 
-a linear chain of services), rather than a directed acyclic graph. Our approach automatically selects atomic services from a repository and produces the composition flow in the form of a directed acyclic graph. The authors in [19, 20] present a composition technique by applying logical inferencing on pre-defined plan templates. Given a goal description, they use the logic programming language Golog to instantiate the appropriate plan for composing Web services. This approach also relies on a user-defined plan template which is created manually. There are industry solutions based on WSDL and BPEL4WS where the composition of the flow is obtained manually. A comparison of the approaches based on AI planning techniques and approach based on BPEL4WS is presented in [17]. This work shows that in both these approaches, the flow of the composition is determined manually. They do not assemble complex flows of atomic services based on a search process. They select appropriate services using a planner when an explicit flow is provided. In contrast, we have shown a technique to automatically determine these complex flows using semantic descriptions of atomic services. A process-level composition solution based on OWL-S is proposed in [21]. In this work the authors assume that they already have the appropriate individual services involved in the composition, i.e., they are not automatically discovered. They use the descriptions of these individual services to produce a process-level description of the composite service. They do not automatically discover/select the services involved in the composition, but instead assume that they already have the list of atomic services. In contrast, we automatically find the services that are suitable for composition based on the query requirements for the new composed service. In [22], a semi-automatic composition technique is presented in which atomic services are selected for each stage of composition. This selection process involves decision making by a human controller at each stage, i.e., the selection process requires some manual intervention. Another related area of research involves message conversation constraints, also known as behavioral signatures [16]. Behavior signature models do not stray far from the explicit description of the lexical form of messages, they expect the messages to be lexically and semantically correct prior to verification via model checking. Hence behavior signatures deal with low-level functional implementation constraints, while our approach deals with higher-level real world concepts. However, both these approaches can be regarded as complementary concepts when taken in the context of real world service composition, and both technologies are currently being used in the development of a commercial services integration tool [24]. Our most important, novel contribution in this paper is
+a linear chain of services), rather than a directed acyclic
+graph. Our approach automatically selects atomic services
+from a repository and produces the composition flow in the
+form of a directed acyclic graph.
+The authors in [19, 20] present a composition technique
+by applying logical inferencing on pre-defined plan templates. Given a goal description, they use the logic programming language Golog to instantiate the appropriate plan for
+composing Web services. This approach also relies on a
+user-defined plan template which is created manually.
+There are industry solutions based on WSDL and
+BPEL4WS where the composition of the flow is obtained
+manually. A comparison of the approaches based on AI
+planning techniques and approach based on BPEL4WS is
+presented in [17]. This work shows that in both these approaches, the flow of the composition is determined manually. They do not assemble complex flows of atomic services based on a search process. They select appropriate
+services using a planner when an explicit flow is provided.
+In contrast, we have shown a technique to automatically determine these complex flows using semantic descriptions of
+atomic services.
+A process-level composition solution based on OWL-S
+is proposed in [21]. In this work the authors assume that
+they already have the appropriate individual services involved in the composition, i.e., they are not automatically
+discovered. They use the descriptions of these individual
+services to produce a process-level description of the composite service. They do not automatically discover/select
+the services involved in the composition, but instead assume
+that they already have the list of atomic services. In contrast, we automatically find the services that are suitable for
+composition based on the query requirements for the new
+composed service.
+In [22], a semi-automatic composition technique is presented in which atomic services are selected for each stage
+of composition. This selection process involves decision
+making by a human controller at each stage, i.e., the selection process requires some manual intervention.
+Another related area of research involves message conversation constraints, also known as behavioral signatures
+[16]. Behavior signature models do not stray far from the
+explicit description of the lexical form of messages, they
+expect the messages to be lexically and semantically correct prior to verification via model checking. Hence behavior signatures deal with low-level functional implementation constraints, while our approach deals with higher-level
+real world concepts. However, both these approaches can
+be regarded as complementary concepts when taken in the
+context of real world service composition, and both technologies are currently being used in the development of a
+commercial services integration tool [24].
+Our most important, novel contribution in this paper is
 
-our technique for automatically selecting the services that are suitable for obtaining a composite service, based on the user query requirements. As far as we know, all the related approaches to this problem assume that they either already have information about the services involved or use human input on what services would be suitable for composition. Our technique also handles non-sequential compositions (i.e., composition where there can be more than one service involved at any stage, represented as a directed acyclic graph of services) rather than sequential composition (i.e, a linear chain of services) which is the case with most of the existing approaches.
+our technique for automatically selecting the services that
+are suitable for obtaining a composite service, based on the
+user query requirements. As far as we know, all the related approaches to this problem assume that they either already have information about the services involved or use
+human input on what services would be suitable for composition. Our technique also handles non-sequential compositions (i.e., composition where there can be more than
+one service involved at any stage, represented as a directed
+acyclic graph of services) rather than sequential composition (i.e, a linear chain of services) which is the case with
+most of the existing approaches.
 
 8
 
 Conclusions and Future Work
 
-To catalogue, search and compose Web services in a semi-automatic to fully-automatic manner we need infrastructure to publish Web services, document them, and query them for matching services. Our semantics-based approach uses semantic description of Web services (example USDL descriptions). Our composition engines find substitutable and composite services that best match the desired service. Given semantic description of Web services, our engine produces optimal results (based on criteria like cost of services, number of services in a composition, etc.). The composition flow is determined automatically without the need for any manual intervention. Our engine finds any sequential or non-sequential composition that is possible for a given query. We are able to apply many optimization techniques to our system so that it works efficiently even on large repositories. Use of Constraint Logic Programming helped greatly in obtaining an efficient implementation of this system. Our future work includes extending our engine to work with other web services description languages like OWLS, WSML, WSDL-S, etc. This should be possible as long as semantic relations between concepts are provided. It will involve extending the TripleGenerator, QueryReader, and SemanticRelationsGenerator modules. We would also like to extend our engine to support an external database to save off pre-processed data. This will be particularly useful when service repositories grow extremely large in size which can easily be the case in future. Future work also includes developing an industrial-strength system based on the research reported in this paper, in conjunction with a system that allows (semi-) automatic generation of USDL descriptions from code and documentation of a service [24].
+To catalogue, search and compose Web services in a
+semi-automatic to fully-automatic manner we need infrastructure to publish Web services, document them, and query
+them for matching services. Our semantics-based approach
+uses semantic description of Web services (example USDL
+descriptions). Our composition engines find substitutable
+and composite services that best match the desired service.
+Given semantic description of Web services, our engine produces optimal results (based on criteria like cost of services,
+number of services in a composition, etc.). The composition flow is determined automatically without the need for
+any manual intervention. Our engine finds any sequential
+or non-sequential composition that is possible for a given
+query. We are able to apply many optimization techniques
+to our system so that it works efficiently even on large
+repositories. Use of Constraint Logic Programming helped
+greatly in obtaining an efficient implementation of this system.
+Our future work includes extending our engine to work
+with other web services description languages like OWLS, WSML, WSDL-S, etc. This should be possible as long
+as semantic relations between concepts are provided. It
+will involve extending the TripleGenerator, QueryReader,
+and SemanticRelationsGenerator modules. We would also
+like to extend our engine to support an external database to
+save off pre-processed data. This will be particularly useful when service repositories grow extremely large in size
+which can easily be the case in future. Future work also
+includes developing an industrial-strength system based on
+the research reported in this paper, in conjunction with a
+system that allows (semi-) automatic generation of USDL
+descriptions from code and documentation of a service [24].
 
 References
-[1] A. Bansal, S. Kona, L. Simon, A. Mallya, G. Gupta, and T. Hite. A Universal Service-Semantics Description Language. In ECOWS, pp. 214-225, 2005. [2] S. Kona, A. Bansal, L. Simon, A. Mallya, G. Gupta, and T. Hite. USDL: A Service-Semantics Description Lan-
+[1] A. Bansal, S. Kona, L. Simon, A. Mallya, G. Gupta,
+and T. Hite. A Universal Service-Semantics Description Language. In ECOWS, pp. 214-225, 2005.
+[2] S. Kona, A. Bansal, L. Simon, A. Mallya, G. Gupta, and
+T. Hite. USDL: A Service-Semantics Description Lan-
 
-guage for Automatic Service Discovery and Composition. Tech. Report UTDCS-18-06. www.utdallas. edu/~sxk038200/USDL.pdf. [3] S. McIlraith, T.C. Son, H. Zeng. Semantic Web Services. In IEEE Intelligent Systems, pp. 46-53, Mar. '01. [4] OWL-S www.daml.org/services/owl-s/1. 0/owl-s.html. [5] WSML: Web Service Modeling Language. www. wsmo.org/wsml/. [6] WSDL-S: Web Service Semantics. http://www. w3.org/Submission/WSDL-S. [7] WSDL: Web Services Description Language. http: //www.w3.org/TR/wsdl. [8] A. Bansal, K. Patel, G. Gupta, B. Raghavachari, E. Harris, and J. Staves. Towards Intelligent Services. In ICWS, pp 751-758, '05. [9] OWL WordNet http://taurus.unine.ch/ knowler/wordnet.html. [10] K. Marriott, P. Stuckey. Prog. with Constraints: An Introduction. MIT Press, '98. [11] L. Sterling, S. Shapiro. The Art of Prolog. MIT Press. [12] OWL: Web Ontology Language Reference. http: //www.w3.org/TR/owl-ref. [13] WS Challenge 2006. http://insel.flp.cs. tu-berlin.de/wsc06. [14] U. Keller, R. Lara, H. Lausen, A. Polleres, D. Fensel. Automatic Location of Services. In ESWC, '05. [15] S. Grimm, B. Motik, and C. Preist Variance in eBusiness Service Discovery. In Workshop at ISWC, '04. [16] R. Hull and J. Su. Tools for design of composite Web services. In SIGMOD, '04. [17] B. Srivastava, J. Koehler. Web Services Composition - Current Solutions and Open Problems. In ICAPS, '03. [18] B. Srivastava. Automatic Web Services Composition using planning. In KBCS, pp 467-477. [19] S. McIlraith, T.C. Son Adapting golog for composition of Web services. In KRR, pp 482-493, '02. [20] S. McIlraith, S. Narayanan Simulation, verification and automated composition of services. In WWW, '02. [21] M. Pistore, P. Roberti, P. Traverso Process-Level Composition of Executable Services In ESWC, pp 6277, '05. [22] E. Sirin, J. Hendler, and B. Parsia Semi-automatic Composition of Web Services using Semantic Descriptions In Workshop at ICEIS, '02 . [23] M. Paolucci, T. Kawamura, T. Payne, and K. Sycara Semantic Matching of Web Service Capabilities. In ISWC, pp 333-347, '02. [24] Metallect IQ Server. http://metallect.com/ downloads/Metallect_Product_Brief_ IQServer.pdf
+guage for Automatic Service Discovery and Composition. Tech. Report UTDCS-18-06. www.utdallas.
+edu/Àúsxk038200/USDL.pdf.
+[3] S. McIlraith, T.C. Son, H. Zeng. Semantic Web Services. In IEEE Intelligent Systems, pp. 46-53, Mar. ‚Äô01.
+[4] OWL-S www.daml.org/services/owl-s/1.
+0/owl-s.html.
+[5] WSML: Web Service Modeling Language. www.
+wsmo.org/wsml/.
+[6] WSDL-S: Web Service Semantics. http://www.
+w3.org/Submission/WSDL-S.
+[7] WSDL: Web Services Description Language. http:
+//www.w3.org/TR/wsdl.
+[8] A. Bansal, K. Patel, G. Gupta, B. Raghavachari, E. Harris, and J. Staves. Towards Intelligent Services. In
+ICWS, pp 751-758, ‚Äô05.
+[9] OWL WordNet http://taurus.unine.ch/
+knowler/wordnet.html.
+[10] K. Marriott, P. Stuckey. Prog. with Constraints: An
+Introduction. MIT Press, ‚Äô98.
+[11] L. Sterling, S. Shapiro. The Art of Prolog. MIT Press.
+[12] OWL: Web Ontology Language Reference. http:
+//www.w3.org/TR/owl-ref.
+[13] WS Challenge 2006. http://insel.flp.cs.
+tu-berlin.de/wsc06.
+[14] U. Keller, R. Lara, H. Lausen, A. Polleres, D. Fensel.
+Automatic Location of Services. In ESWC, ‚Äô05.
+[15] S. Grimm, B. Motik, and C. Preist Variance in eBusiness Service Discovery. In Workshop at ISWC, ‚Äô04.
+[16] R. Hull and J. Su. Tools for design of composite Web
+services. In SIGMOD, ‚Äô04.
+[17] B. Srivastava, J. Koehler. Web Services Composition
+- Current Solutions and Open Problems. In ICAPS, ‚Äô03.
+[18] B. Srivastava. Automatic Web Services Composition
+using planning. In KBCS, pp 467-477.
+[19] S. McIlraith, T.C. Son Adapting golog for composition of Web services. In KRR, pp 482-493, ‚Äô02.
+[20] S. McIlraith, S. Narayanan Simulation, verification
+and automated composition of services. In WWW, ‚Äô02.
+[21] M. Pistore, P. Roberti, P. Traverso Process-Level
+Composition of Executable Services In ESWC, pp 6277, ‚Äô05.
+[22] E. Sirin, J. Hendler, and B. Parsia Semi-automatic
+Composition of Web Services using Semantic Descriptions In Workshop at ICEIS, ‚Äô02 .
+[23] M. Paolucci, T. Kawamura, T. Payne, and K. Sycara
+Semantic Matching of Web Service Capabilities. In
+ISWC, pp 333-347, ‚Äô02.
+[24] Metallect IQ Server. http://metallect.com/
+downloads/Metallect_Product_Brief_
+IQServer.pdf
 
 

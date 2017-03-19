@@ -1,334 +1,946 @@
-On Selecting a Conjunction Operation in Probabilistic Soft Logic
-Vladik Kreinovich
-Department of Computer Science University of Texas at El Paso vladik@cs.utep.edu
-
-Chitta Baral
-School of Computing, Informatics and DSE Arizona State University chitta@asu.edu
-
 arXiv:1611.06631v1 [cs.LO] 21 Nov 2016
 
+On Selecting a Conjunction Operation in Probabilistic Soft Logic
+Vladik Kreinovich
+
+Chitta Baral
+
+Department of Computer Science
+University of Texas at El Paso
+vladik@cs.utep.edu
+
+School of Computing, Informatics and DSE
+Arizona State University
+chitta@asu.edu
+
 Abstract
-Probabilistic Soft Logic has been proposed and used in several applications as an efficient way to deal with inconsistency, uncertainty and relational representation. In several applications, this approach has led to an adequate description of the corresponding human reasoning. In this paper, we provide a theoretical explanation for one of the semi-heuristic choices made in this approach: namely, we explain the choice of the corresponding conjunction operations. Our explanation leads to a more general family of operations which may be used in future applications of probabilistic soft logic.
+Probabilistic Soft Logic has been proposed and used in several applications as an efficient way to deal with inconsistency, uncertainty and relational representation. In several applications, this approach has led to an adequate description of
+the corresponding human reasoning. In this paper, we provide
+a theoretical explanation for one of the semi-heuristic choices
+made in this approach: namely, we explain the choice of the
+corresponding conjunction operations. Our explanation leads
+to a more general family of operations which may be used in
+future applications of probabilistic soft logic.
 
 Introduction and Motivation
-With the maturing of various sub-fields of AI we are now ready to combine approaches and techniques from multiple AI sub-fields to address broader issues. For example, we now have large bodies of knowledge that are available. An example such a knowledge base is ConceptNet (Liu and Singh 2004). Even in the same collection some of the knowledge may be manually curated, while parts may be automatically extracted. Sometimes all of the knowledge may be automatically obtained, such as the similarity knowledge based used in (Beltagy, Erk, and Mooney 2010) that is obtained using distributional semantics (Bruni, Tran, and Baroni 2014) of natural language. There may be inconsistencies lingering inside the knowledge base. For some of the knowledge, we may be able to assign weights. Learning part of this knowledge and reasoning with such knowledge requires approaches that can handle inconsistencies, uncertainty, structured information, and most importantly the approaches need to scale. Among the various approaches that have been proposed Probabilistic Soft Logic (PSL) (Bach et al. 2010; Bach et al. 2013; Kimmig et al. 2012) stands out as it can not only handle relational structure, inconsistencies and uncertainty, thus allowing one to express rich probabilistic graphical models (such as Hinge-loss Markov random fields), but it also seems to scale up better than its alternatives such as Markov Logic Networks (Richardson and Domingos 2006). Probabilistic soft logic (PSL) differs from most other probabilistic formalisms in that its ground atoms, instead
-Copyright c 2017, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved.
+With the maturing of various sub-fields of AI we are
+now ready to combine approaches and techniques from
+multiple AI sub-fields to address broader issues. For example, we now have large bodies of knowledge that
+are available. An example such a knowledge base is
+ConceptNet (Liu and Singh 2004). Even in the same collection some of the knowledge may be manually curated, while parts may be automatically extracted. Sometimes all of the knowledge may be automatically obtained, such as the similarity knowledge based used in
+(Beltagy, Erk, and Mooney 2010) that is obtained using distributional semantics (Bruni, Tran, and Baroni 2014) of natural language. There may be inconsistencies lingering inside
+the knowledge base. For some of the knowledge, we may be
+able to assign weights. Learning part of this knowledge and
+reasoning with such knowledge requires approaches that can
+handle inconsistencies, uncertainty, structured information,
+and most importantly the approaches need to scale. Among
+the various approaches that have been proposed Probabilistic Soft Logic (PSL) (Bach et al. 2010; Bach et al. 2013;
+Kimmig et al. 2012) stands out as it can not only handle relational structure, inconsistencies and uncertainty, thus allowing one to express rich probabilistic graphical models (such
+as Hinge-loss Markov random fields), but it also seems to
+scale up better than its alternatives such as Markov Logic
+Networks (Richardson and Domingos 2006).
+Probabilistic soft logic (PSL) differs from most other
+probabilistic formalisms in that its ground atoms, instead
+c 2017, Association for the Advancement of Artificial
+Copyright 
+Intelligence (www.aaai.org). All rights reserved.
 
-of having binary truth values, have continuous truth values in the interval [0,1]. In the original PSL (Bach et al. 2010; Bach et al. 2013; Kimmig et al. 2012) the syntactic structure of rules and the characterization of the logical operations have been chosen judiciously so that the space of interpretations with nonzero density forms a convex polytope. This makes inference in PSL a convex optimization problem in continuous space, which in turn allows efficient inference. The particular conjunction operation used in the above mentioned PSL is the Lukasiewicz t-norm (Klir and Yuan 1995). A different conjunction operation is used in (Beltagy, Erk, and Mooney 2010), where the resulting PSL is used for semantic textual similarity. PSL has been used in many different applications such as ones listed in(Bach et al. 2010; Bach et al. 2013; Beltagy, Erk, and Mooney 2010; Huang et al. 2012; Kimmig et al. 2012; Memory et al. 2012). However, none of these works precisely justify the particular selection of conjunction operation they use, beyond listing a few implications of using those operations. What we plan to do. In this paper, we provide a theoretical explanation of the conjunction operations that are used in (Bach et al. 2010; Bach et al. 2013; Beltagy, Erk, and Mooney 2010; Huang et al. 2012; Kimmig et al. 2012; Memory et al. 2012) and present a more general family of operations which may be used in future applications of probabilistic soft logic. Plan of the paper. In this section, we recalled and contextualized Probabilistic Soft Logic and which conjunction operations are usually selected in this logic. In the next sections, we provide our theoretical explanation for this selection.
+of having binary truth values, have continuous truth values
+in the interval [0,1]. In the original PSL (Bach et al. 2010;
+Bach et al. 2013; Kimmig et al. 2012) the syntactic structure of rules and the characterization of the logical
+operations have been chosen judiciously so that the space
+of interpretations with nonzero density forms a convex
+polytope. This makes inference in PSL a convex optimization problem in continuous space, which in turn allows
+efficient inference. The particular conjunction operation
+used in the above mentioned PSL is the Lukasiewicz t-norm
+(Klir and Yuan 1995). A different conjunction operation
+is used in (Beltagy, Erk, and Mooney 2010), where the
+resulting PSL is used for semantic textual similarity.
+PSL has been used in many different applications such
+as ones listed in(Bach et al. 2010; Bach et al. 2013;
+Beltagy, Erk, and Mooney 2010;
+Huang et al. 2012;
+Kimmig et al. 2012;
+Memory et al. 2012).
+However,
+none of these works precisely justify the particular selection
+of conjunction operation they use, beyond listing a few
+implications of using those operations.
+What we plan to do. In this paper, we provide a
+theoretical explanation of the conjunction operations
+that are used in (Bach et al. 2010; Bach et al. 2013;
+Beltagy, Erk, and Mooney 2010;
+Huang et al. 2012;
+Kimmig et al. 2012; Memory et al. 2012) and present a
+more general family of operations which may be used in
+future applications of probabilistic soft logic.
+Plan of the paper. In this section, we recalled and contextualized Probabilistic Soft Logic and which conjunction operations are usually selected in this logic. In the next sections,
+we provide our theoretical explanation for this selection.
 
-Rules, implications and the conjunction operation in Probabilistic Soft Logic
-The corresponding real-life problem. In many practical situations, we have rules r of the type a1 , . . . , an  b that connect facts ai and b. For each such rule r, we know its "degree of importance" r : the larger r , the larger our degree of confidence in this rule. If we simply combine all these rules (and ignore their degrees of importance), then usually, the resulting set of rules becomes inconsistent.
+Rules, implications and the conjunction
+operation in Probabilistic Soft Logic
+The corresponding real-life problem. In many practical
+situations, we have rules r of the type a1 , . . . , an → b that
+connect facts ai and b. For each such rule r, we know its “degree of importance” λr : the larger λr , the larger our degree
+of confidence in this rule.
+If we simply combine all these rules (and ignore their degrees of importance), then usually, the resulting set of rules
+becomes inconsistent.
 
-For example, sociologists known that in elections, a person tends to vote the same way as his friends. So, if a person B has a friend A1 who voted for an incumbent and a friend A2 who voted for a challenger, then: � for the first friend, the above sociological observation implies that B voted for the incumbent, while � for the second friend, the same sociological observation implies that B voted against the incumbent. In such situations, we cannot satisfy all the rules. So, it is reasonable to look for solutions in which an (appropriately defined) deviation from the ideal situation � when all the rules are satisfied � is the smallest possible. Need for probabilistic answers. If we have two conflicting rules, then we cannot be 100% sure which of them is not applicable in the current situation. If one of the rules is more important than the other one, i.e., if its degrees of importance r is higher (r > r ), then most probably the first rule is applicable � but it is also possible that in this particular situation, the second rule is applicable as well. Thus, from the inconsistent knowledge base, we cannot extract the exact conclusion about the corresponding facts. At best, we can estimate the probabilities that different facts are true. How to deal with implication. If a implies b, this means that b holds in all situations in which a holds � and, maybe, in other situations as well. Thus, the probability p(b) that b is true is larger than or equal to the probability p(a) that a is true: p(b)  p(a). From this viewpoint, if we know the probabilities p(a) and p(b) of two statements a and b, and p(a)  p(b) (i.e., the difference p(a) - p(b) is non-positive), then this inequality is consistent with the rule a  b. On the other hand, if p(a) > p(b) (i.e., if the difference p(a)-p(b) is positive), this clearly is inconsistent with the rule a  b. Intuitively, the larger the positive difference p(a) - p(b), the larger the violation. It is therefore reasonable to take max(p(a) - p(b), 0) as the measure of severity of the rule's violation. We want to minimize the overall loss of adequacy. Depending on the rule's degree of importance r , the same degree of rule's violation may lead to different severity. In general, this severity is a function of the rule's degree of importance r and of its degree of violation max(p(a) - p(b), 0): d = s(r , max(p(a) - p(b), 0)). We want to find the probabilities for which the overall loss of adequacy is the smallest possible. For rules r of the type ar  br , this means minimizing the sum s(r , max(p(ar ) - p(br ), 0)).
+For example, sociologists known that in elections, a person tends to vote the same way as his friends. So, if a person
+B has a friend A1 who voted for an incumbent and a friend
+A2 who voted for a challenger, then:
+• for the first friend, the above sociological observation implies that B voted for the incumbent, while
+• for the second friend, the same sociological observation
+implies that B voted against the incumbent.
+In such situations, we cannot satisfy all the rules. So, it is
+reasonable to look for solutions in which an (appropriately
+defined) deviation from the ideal situation – when all the
+rules are satisfied – is the smallest possible.
+Need for probabilistic answers. If we have two conflicting
+rules, then we cannot be 100% sure which of them is not
+applicable in the current situation. If one of the rules is more
+important than the other one, i.e., if its degrees of importance
+λr is higher (λr > λr′ ), then most probably the first rule
+is applicable – but it is also possible that in this particular
+situation, the second rule is applicable as well.
+Thus, from the inconsistent knowledge base, we cannot
+extract the exact conclusion about the corresponding facts.
+At best, we can estimate the probabilities that different facts
+are true.
+How to deal with implication. If a implies b, this means
+that b holds in all situations in which a holds – and, maybe,
+in other situations as well. Thus, the probability p(b) that b
+is true is larger than or equal to the probability p(a) that a is
+true: p(b) ≥ p(a).
+From this viewpoint, if we know the probabilities p(a)
+and p(b) of two statements a and b, and p(a) ≤ p(b) (i.e., the
+difference p(a)−p(b) is non-positive), then this inequality is
+consistent with the rule a → b. On the other hand, if p(a) >
+p(b) (i.e., if the difference p(a)−p(b) is positive), this clearly
+is inconsistent with the rule a → b. Intuitively, the larger the
+positive difference p(a) − p(b), the larger the violation. It
+is therefore reasonable to take max(p(a) − p(b), 0) as the
+measure of severity of the rule’s violation.
+We want to minimize the overall loss of adequacy. Depending on the rule’s degree of importance λr , the same degree of rule’s violation may lead to different severity. In general, this severity is a function of the rule’s degree of importance λr and of its degree of violation max(p(a) − p(b), 0):
+d = s(λr , max(p(a) − p(b), 0)).
+We want to find the probabilities for which the overall loss
+of adequacy is the smallest possible. For rules r of the type
+ar → br , this means minimizing the sum
+X
+s(λr , max(p(ar ) − p(br ), 0)).
+(1)
 r
 
-ar,1 & . . . & ar,nr . In other words, such rules have the form (ar,1 & . . . & ar,nr )  br . To find the degree qr to which the rule's condition ar is satisfied, it is not sufficient to know the probabilities of all the facts ar,i , we also need to know the dependence between these random events. For example, if p(ar,1 ) = p(ar2 ) = 0.5, then we can have three different situations: � if ar,1 and ar2 are independent, then p(ar,1 & ar2 ) = p(ar,1 ) � p(ar2 ) = 0.25; � if ar,2 is equivalent to ar,1 , then p(ar,1 & ar2 ) p(ar,1 ) = 0.5; and =
+In Probabilistic Soft Logic, the corresponding function
+s(λ, d) usually has the form s(λ, d) = λ · dp for some real
+number p. Most often, the value p = 1 is chosen. Sometimes
+(but less frequently), the value p = 2 is chosen.
+Need to deal with conjunction. In many rules, the condition ar is not a fact, but a conjunction of several facts
 
-� if ar,2 is equivalent to �ar,1 , then p(ar,1 & ar2 ) = p(ar,1 & �ar,1 ) = 0. In practice, we usually do not know the relation between the corresponding random events. In this case, we need to come up with some estimate of the probability p(ar,1 & . . . & ar,nr ) based only on the known values p(ar,i ). Let us denote the function corresponding to this estimating algorithm by (p1 , . . . , pn ). In terms of this function, once we know the probabilities pi = p(ar,i ), we estimate the probability of the conjunction ar,1 & . . . & ar,nr as (p1 , . . . , pnr ). Once we know the probabilities p(ar,i ) of individual events ar,i , the set of possible values of the probability echet inequalp(ar,1 & . . . & ar,nr ) is determined by the Fr� ities (see, e.g., (Nelsen 1999)) max(p(ar,1 ) + . . . + p(ar,nr ) - (nr - 1), 0)  p(ar,1 & . . . & ar,nr )  min(p(ar,1 ), . . . , p(ar,nr )). (2)
+ar,1 & . . . & ar,nr . In other words, such rules have the form
+(ar,1 & . . . & ar,nr ) → br .
+To find the degree qr to which the rule’s condition ar is
+satisfied, it is not sufficient to know the probabilities of all
+the facts ar,i , we also need to know the dependence between
+these random events. For example, if p(ar,1 ) = p(ar2 ) =
+0.5, then we can have three different situations:
+• if ar,1 and ar2 are independent, then p(ar,1 & ar2 ) =
+p(ar,1 ) · p(ar2 ) = 0.25;
+• if ar,2 is equivalent to ar,1 , then p(ar,1 & ar2 )
+p(ar,1 ) = 0.5; and
+
+=
+
+• if ar,2 is equivalent to ¬ar,1 , then p(ar,1 & ar2 ) =
+p(ar,1 & ¬ar,1 ) = 0.
+In practice, we usually do not know the relation between the corresponding random events. In this case, we
+need to come up with some estimate of the probability p(ar,1 & . . . & ar,nr ) based only on the known values
+p(ar,i ). Let us denote the function corresponding to this estimating algorithm by ∧(p1 , . . . , pn ). In terms of this funcdef
+
+tion, once we know the probabilities pi = p(ar,i ), we estimate the probability of the conjunction ar,1 & . . . & ar,nr
+as ∧(p1 , . . . , pnr ).
+Once we know the probabilities p(ar,i ) of individual
+events ar,i , the set of possible values of the probability
+p(ar,1 & . . . & ar,nr ) is determined by the Fréchet inequalities (see, e.g., (Nelsen 1999))
+max(p(ar,1 ) + . . . + p(ar,nr ) − (nr − 1), 0) ≤
+p(ar,1 & . . . & ar,nr ) ≤
+min(p(ar,1 ), . . . , p(ar,nr )).
+
+(2)
+
+Fréchet inequalities explained. To present a better understanding, we now describe where the inequalities (2) come
+from.
+On the one hand, in every situation in which the conjunction ar,1 & . . . & ar,nr holds, each event ar,i also holds.
+Thus, for every i, the class of all situations in which the conjunction holds is a subclass of the class of all the situations
+in which the i-th event ar,i holds. Therefore, the probability
+of the conjunction cannot exceed the probability of the i-th
+event:
+p(ar,1 & . . . & ar,nr ) ≤ p(ar,i ).
+The probability of the conjunction is hence smaller than
+or equal to n probabilities p(ar,1 ), . . . , p(ar,nr ). Thus, the
+probability of the conjunction cannot exceed the smallest of
+these n probabilities:
+p(ar,1 & . . . & ar,nr ) ≤ min(p(ar,1 ), . . . , p(ar,nr )).
+This explains the right-hand side of the inequality (2).
+On the other hand, for every two events A and B, we have
+p(A ∨ B) = p(A) + p(B) − p(A & B) and thus, p(A ∨ B) ≤
+p(A) + p(B). By induction, we can conclude that
+p(A1 ∨ . . . ∨ Anr ) ≤ p(A1 ) + . . . + p(Anr )
+
+for every natural number nr . In particular, for the events
 def
+Ai = ¬ar,i for which p(Ai ) = 1 − p(ar,i ), we get
 
-Fr� echet inequalities explained. To present a better understanding, we now describe where the inequalities (2) come from. On the one hand, in every situation in which the conjunction ar,1 & . . . & ar,nr holds, each event ar,i also holds. Thus, for every i, the class of all situations in which the conjunction holds is a subclass of the class of all the situations in which the i-th event ar,i holds. Therefore, the probability of the conjunction cannot exceed the probability of the i-th event: p(ar,1 & . . . & ar,nr )  p(ar,i ). The probability of the conjunction is hence smaller than or equal to n probabilities p(ar,1 ), . . . , p(ar,nr ). Thus, the probability of the conjunction cannot exceed the smallest of these n probabilities: p(ar,1 & . . . & ar,nr )  min(p(ar,1 ), . . . , p(ar,nr )). This explains the right-hand side of the inequality (2). On the other hand, for every two events A and B , we have p(A  B ) = p(A) + p(B ) - p(A & B ) and thus, p(A  B )  p(A) + p(B ). By induction, we can conclude that p(A1  . . .  Anr )  p(A1 ) + . . . + p(Anr )
+∧(p1 , . . . , pn ) = max(p1 + . . . + pn − (n − 1), 0). (4)
 
-(1)
+p((¬ar,1 ) ∨ . . . ∨ (¬ar,nr )) ≤
 
-In Probabilistic Soft Logic, the corresponding function s(, d) usually has the form s(, d) =  � dp for some real number p. Most often, the value p = 1 is chosen. Sometimes (but less frequently), the value p = 2 is chosen. Need to deal with conjunction. In many rules, the condition ar is not a fact, but a conjunction of several facts
+This operation clearly satisfies the inequality (3).
 
-for every natural number nr . In particular, for the events def Ai = �ar,i for which p(Ai ) = 1 - p(ar,i ), we get p((�ar,1 )  . . .  (�ar,nr ))  (1 - p(ar,1 )) + . . . + (1 - p(ar,nr )) = nr - (p(aa,1 + . . . + p(ar,nr ). Due to de Morgan laws, the disjunction (�ar,1 )  . . .  (�ar,nr ) is equivalent to �(ar,1 & . . . & ar,nr ). Thus, p((�ar,1 )  . . .  (�ar,nr )) = 1 - p(ar,1 & . . . & ar,nr ), and the above inequality takes the form 1 - p(ar,1 & . . . & ar,nr )  nr - (p(aa,1 ) + . . . + p(ar,nr )). Through simple algebraic manipulation we conclude that p(ar,1 & . . . & ar,nr )  p(aa,1 ) + . . . + p(ar,nr ) - (nr - 1). Since the probability is always non-negative, we have p(ar,1 & . . . & ar,nr )  0. Since the probability is larger than or equal to the two numbers, it is therefore larger than the largest of these two numbers: p(ar,1 & . . . & ar,nr )  max(p(aa,1 ) + . . . + p(ar,nr ) - (nr - 1), 0). This explains the first of the inequalities (2). Thus, Fr� echet inequalities have been explained. Comment: We have derived two inequalities (2). A natural question is: Can other unrelated inequalities be similarly derived? It turns out that the two inequalities (2) are the only limitation on the joint probability p(ar,1 & . . . & ar,nr ): namely, for every tuple of values p1 , . . . , pnr , and for every number p for which max(p1 + . . . + pnr - (nr - 1), 0)  p  min(p1 , . . . , pnr ), we can construct events aa,1 , . . . , ar,nr with probabilities pi = ar,i for which the joint probability is equal exactly to p: p(ar,1 & . . . & ar,nr ) = p. Conclusion - the first desired property of the conjunction operation: Fr� echet inequalities (2) implies that the desired conjunction operation (p1 , . . . , pn ) should satisfy the inequality max(p1 + . . . + pn - (n - 1), 0)  (p1 , . . . , pn )  min(p1 , . . . , pn ). (3)
+(1 − p(ar,1 )) + . . . + (1 − p(ar,nr )) =
 
-Kimmig et al. 2012) , usually, the following conjunction operation is used: (p1 , . . . , pn ) = max(p1 + . . . + pn - (n - 1), 0). (4) This operation clearly satisfies the inequality (3). Resulting formulation of the knowledge processing problems. Suppose that our knowledge base consists of R rules of the type (ar,1 & . . . & ar,nr )  br , r = 1, . . . , R, with weights r . Then, once we have selected the function s(, d) and the conjunction operation (p1 , . . . , pn ), we can now find the probabilities p(a) of different facts a by minimizing the sum
+Resulting formulation of the knowledge processing problems. Suppose that our knowledge base consists of R rules
+of the type (ar,1 & . . . & ar,nr ) → br , r = 1, . . . , R, with
+weights λr .
+Then, once we have selected the function s(λ, d) and the
+conjunction operation ∧(p1 , . . . , pn ), we can now find the
+probabilities p(a) of different facts a by minimizing the sum
+
+nr − (p(aa,1 + . . . + p(ar,nr ).
+Due to de Morgan laws, the disjunction
+(¬ar,1 ) ∨ . . . ∨ (¬ar,nr )
+is equivalent to ¬(ar,1 & . . . & ar,nr ). Thus,
+p((¬ar,1 ) ∨ . . . ∨ (¬ar,nr )) = 1 − p(ar,1 & . . . & ar,nr ),
+and the above inequality takes the form
+
 R
+X
 
-s(r , max((p(ar,1 , . . . , p(ar,nr ) - p(br ), 0)).
-r =1
+s(λr , max(∧(p(ar,1 , . . . , p(ar,nr ) − p(br ), 0)).
 
 (5)
 
-Comments: � The need to come up with some values for p(a & b) (and p(a  b)) when we only know the probabilities p(a) and p(b) is ubiquitous in practical applications. In particular, this need underlies the main ideas behind fuzzy logic, where the corresponding conjunction operation (p1 , p2 ) is known as a tnorm; see, e.g., (Klir and Yuan 1995; Kreinovich 1992; Nguyen and Kreinovich 1997; Nguyen and Walker 2006; Zadeh 1965). � So far, we only described the aspects of the Probabilistic Soft Logic that enable us to compute the "most reasonable" ("most probable") set of values p(a). In principle, these techniques also enable us to estimate the probability of other sets of values p (a) = p(a) (Bach et al. 2010; Bach et al. 2013; Beltagy, Erk, and Mooney 2010; Huang et al. 2012; Kimmig et al. 2012; Memory et al. 2012). However, as mentioned in (Beltagy, Erk, and Mooney 2010), the primary objective of the Probabilistic Soft Logic is to provide the most reasonable probabilities. Because of this, in the current paper, we will not describe how the auxiliary ("second-order") probabilities-of-probabilities can be computed. We need to make sure that the corresponding computations are efficient. Our goal is solve practical problems, and in practice, the number of rules can be large. It is therefore important to make sure that the corresponding optimization problem can be solved by a feasible algorithm. It is known that, in general, optimization problems are NP-hard (in some formulations, even algorithmically undecidable), but they become feasible if we restrict ourselves to convex objective functions; see, e.g., (Vavasis 1991). Moreover, in some reasonable sense, the class of convex objective functions is the largest possible class for which optimization is still feasible (Kearfott and Kreinovich 2005). Thus, we need to make sure that the objective function (5) is convex. Conclusion - the second desired property of the conjunction operation: Since the function max(x, 0) is convex, and
+r=1
 
-Comment: In many of the Probabilistic Soft Logic formulations (Bach et al. 2010; Bach et al. 2013;
+1 − p(ar,1 & . . . & ar,nr ) ≤
+nr − (p(aa,1 ) + . . . + p(ar,nr )).
+Through simple algebraic manipulation we conclude that
+p(ar,1 & . . . & ar,nr ) ≥
+p(aa,1 ) + . . . + p(ar,nr ) − (nr − 1).
+Since the probability is always non-negative, we have
+p(ar,1 & . . . & ar,nr ) ≥ 0. Since the probability is larger
+than or equal to the two numbers, it is therefore larger than
+the largest of these two numbers:
+p(ar,1 & . . . & ar,nr ) ≥
+max(p(aa,1 ) + . . . + p(ar,nr ) − (nr − 1), 0).
+This explains the first of the inequalities (2).
+Thus, Fréchet inequalities have been explained.
+Comment: We have derived two inequalities (2). A natural
+question is: Can other unrelated inequalities be similarly derived? It turns out that the two inequalities (2) are the only
+limitation on the joint probability p(ar,1 & . . . & ar,nr ):
+namely, for every tuple of values p1 , . . . , pnr , and for every
+number p for which
+max(p1 + . . . + pnr − (nr − 1), 0) ≤ p ≤
+min(p1 , . . . , pnr ),
+we can construct events aa,1 , . . . , ar,nr with probabilities
+pi = ar,i for which the joint probability is equal exactly
+to p: p(ar,1 & . . . & ar,nr ) = p.
+Conclusion - the first desired property of the conjunction operation: Fréchet inequalities (2) implies that the desired conjunction operation ∧(p1 , . . . , pn ) should satisfy the
+inequality
+max(p1 + . . . + pn − (n − 1), 0) ≤ ∧(p1 , . . . , pn ) ≤
+min(p1 , . . . , pn ).
 
-the superposition of convex functions is always convex, it is sufficient to make sure: � that the function s(, d) is a convex function of d  0, and � that the conjunction operations (p1 , . . . , pn ) are all convex. Comment: The choices made in Probabilistic Soft Logic are indeed convex: � the function s(, d) =  � dp is convex for all p  1, and � the conjunction operation (4) is convex as well. What we will do. We will show that not only is the conjunction operation (4) convex, it is the only possible logical convex conjunction operation. Comment: The computational problem becomes even easier when the objective function is not only convex, but also piece-wise linear, i.e., has the form f (x) = max(1 (x), 2 (x), . . .) for several linear functions 1 (x), 2 (x), . . . In this case, minimizing the objective function is equivalent to solving the corresponding linear programming problem of minimizing t under linear constraints t  1 (x), t  2 (x), . . . , and for linear programming problems, efficient algorithms are available. The function max(a, 0) is clearly piece-wise linear. Since superposition of linear functions is linear, superposition of piece-wise linear functions is piece-wise linear, so to make sure that the objective function is piece-wise linear, it is sufficient to make sure: � that the function s(, d) is a piece-wise linear function of d  0, and � that the conjunction operations (p1 , . . . , pn ) are all piece-wise linear. Comment: The choices usually made in Probabilistic Soft Logic are indeed convex and piece-wise linear: � the function s(, d) = �dp is piece-wise linear for p = 1, and � the conjunction operation (4) is piece-wise linear as well.
+Kimmig et al. 2012) , usually, the following conjunction operation is used:
 
-Discussion. This result explains why the probabilistic soft logic � that uses the operation (4) � allows for efficient computation of inference, learning, etc. (Bach et al. 2010; Bach et al. 2013; Beltagy, Erk, and Mooney 2010; Huang et al. 2012; Kimmig et al. 2012; Memory et al. 2012): indeed, the fact that this operation is convex makes computations efficient. This results also shows that the operation (4) is the only possible logical convex conjunction operation � which explains the use of this operation in Probabilistic Soft Logic. Proof. 1 . One can easily see that (4) is a logical conjunction operation, and that it is convex � as maximum of two linear (hence convex) functions p1 + . . . + pn - (n - 1) and 0. 2 . Let us now assume that a conjunction operation (p1 , . . . , pn ) is convex. Due to inequalities (3), for binary vectors t, in which each component is 0 or 1, we have (1, . . . , 1) = 1 and (t) = 0 for all t = (1, . . . , 1). In particular, for every i from 1 to n, we have (ti ) = 1 ti = (1, . . . , 1, 0, 1, . . . , 1), where 0 is in the i-th place. 3 . Let us show that every vector p = (p1 , . . . , pn ) with
-n n
+(3)
 
-pi = n - 1 can be represented as p =
-i=1 ai =
+Comment: In many of the Probabilistic Soft Logic
+formulations
+(Bach et al. 2010;
+Bach et al. 2013;
 
-ai � ti , with
-i=1
+Comments:
+• The need to come up with some values for p(a & b)
+(and p(a ∨ b)) when we only know the probabilities p(a) and p(b) is ubiquitous in practical applications. In particular, this need underlies the main
+ideas behind fuzzy logic, where the corresponding
+conjunction operation ∧(p1 , p2 ) is known as a tnorm; see, e.g., (Klir and Yuan 1995; Kreinovich 1992;
+Nguyen and Kreinovich 1997; Nguyen and Walker 2006;
+Zadeh 1965).
+• So far, we only described the aspects of the Probabilistic Soft Logic that enable us to compute the
+“most reasonable” (“most probable”) set of values
+p(a). In principle, these techniques also enable us
+to estimate the probability of other sets of values
+p′ (a) 6= p(a) (Bach et al. 2010; Bach et al. 2013;
+Beltagy, Erk, and Mooney 2010;
+Huang et al. 2012;
+Kimmig et al. 2012; Memory et al. 2012). However,
+as mentioned in (Beltagy, Erk, and Mooney 2010), the
+primary objective of the Probabilistic Soft Logic is to
+provide the most reasonable probabilities. Because of
+this, in the current paper, we will not describe how the
+auxiliary (“second-order”) probabilities-of-probabilities
+can be computed.
+We need to make sure that the corresponding computations are efficient. Our goal is solve practical problems, and
+in practice, the number of rules can be large. It is therefore
+important to make sure that the corresponding optimization
+problem can be solved by a feasible algorithm.
+It is known that, in general, optimization problems are
+NP-hard (in some formulations, even algorithmically undecidable), but they become feasible if we restrict ourselves to
+convex objective functions; see, e.g., (Vavasis 1991). Moreover, in some reasonable sense, the class of convex objective
+functions is the largest possible class for which optimization
+is still feasible (Kearfott and Kreinovich 2005).
+Thus, we need to make sure that the objective function (5)
+is convex.
+Conclusion - the second desired property of the conjunction operation: Since the function max(x, 0) is convex, and
 
-1 - pi .
-n n
+the superposition of convex functions is always convex, it is
+sufficient to make sure:
+• that the function s(λ, d) is a convex function of d ≥ 0,
+and
+• that the conjunction operations ∧(p1 , . . . , pn ) are all convex.
+Comment: The choices made in Probabilistic Soft Logic are
+indeed convex:
+• the function s(λ, d) = λ · dp is convex for all p ≥ 1, and
+• the conjunction operation (4) is convex as well.
+What we will do. We will show that not
+only is the conjunction operation (4) convex,
+it is the only possible logical convex conjunction operation.
+Comment: The computational problem becomes even easier when the objective function is not only convex,
+but also piece-wise linear, i.e., has the form f (x) =
+max(ℓ1 (x), ℓ2 (x), . . .) for several linear functions ℓ1 (x),
+ℓ2 (x), . . . In this case, minimizing the objective function is
+equivalent to solving the corresponding linear programming
+problem of minimizing t under linear constraints t ≥ ℓ1 (x),
+t ≥ ℓ2 (x), . . . , and for linear programming problems, efficient algorithms are available.
+The function max(a, 0) is clearly piece-wise linear. Since
+superposition of linear functions is linear, superposition of
+piece-wise linear functions is piece-wise linear, so to make
+sure that the objective function is piece-wise linear, it is sufficient to make sure:
+• that the function s(λ, d) is a piece-wise linear function of
+d ≥ 0, and
+• that the conjunction operations ∧(p1 , . . . , pn ) are all
+piece-wise linear.
+Comment: The choices usually made in Probabilistic Soft
+Logic are indeed convex and piece-wise linear:
+• the function s(λ, d) = λ·dp is piece-wise linear for p = 1,
+and
+• the conjunction operation (4) is piece-wise linear as well.
 
-Indeed, since pi  1, we have ai = 1 - pi  0 and the condition
-i=1
-
-pi = n - 1 implies that
-i=1
-
+Discussion. This result explains why the probabilistic soft logic – that uses the operation (4)
+– allows for efficient computation of inference,
+learning,
+etc.
+(Bach et al. 2010;
+Bach et al. 2013;
+Beltagy, Erk, and Mooney 2010;
+Huang et al. 2012;
+Kimmig et al. 2012; Memory et al. 2012): indeed, the
+fact that this operation is convex makes computations
+efficient.
+This results also shows that the operation (4) is the only
+possible logical convex conjunction operation – which explains the use of this operation in Probabilistic Soft Logic.
+Proof.
+1◦ . One can easily see that (4) is a logical conjunction operation, and that it is convex – as maximum of two linear
+(hence convex) functions p1 + . . . + pn − (n − 1) and 0.
+2◦ . Let us now assume that a conjunction operation
+∧(p1 , . . . , pn ) is convex. Due to inequalities (3), for binary
+vectors t, in which each component is 0 or 1, we have
+∧(1, . . . , 1) = 1 and ∧(t) = 0 for all t 6= (1, . . . , 1).
+In particular, for every i from 1 to n, we have ∧(ti ) = 1
+ti = (1, . . . , 1, 0, 1, . . . , 1), where 0 is in the i-th place.
+3◦ . Let us show that every vector p = (p1 , . . . , pn ) with
+n
+n
+P
+P
+ai · ti , with
+pi = n − 1 can be represented as p =
+Indeed, since pi ≤ 1, we have ai = 1 − pi ≥ 0 and the
+n
+n
+P
+P
 ai = 1. For each
+pi = n − 1 implies that
+condition
+
+min(p1 , . . . , pn ).
+
+(3)
+
+Proposition 1. The only convex logical conjunction operation is the function
+∧(p1 , . . . , pn ) = max(p1 + . . . + pn − (n − 1), 0). (4)
+
 n
+P
 
-index j , the j -th component sj of the sum the form
+(1 − pi ) · ti has
 
-(1 - pi ) � ti has
 i=1
 
-sj = (1 - p1 )+ . . . +(1 - pj -1 )+(1 - pj +1 )+ . . . +(1 - pn )
-n
+the form
 
+sj = (1−p1 )+. . .+(1−pj−1 )+(1−pj+1 )+. . .+(1−pn )
 =
-i=1
 
-(1 - pi ) - (1 - pj ).
+n
+X
+
+(1 − pi ) − (1 − pj ).
+
+i=1
 
 Here,
-n n
+n
+X
 
-(1 - pi ) = n -
-i=1 i=1
+Main Result
 
-pi = n - (n - 1) = 1,
+max(p1 + . . . + pn − (n − 1), 0) ≤ ∧(p1 , . . . , pn ) ≤
+
+i=1
+
+i=1
+
+index j, the j-th component sj of the sum
+
+i=1
+
+We start with formally defining a conjunction operation.
+Definition 1. A function ∧ : [0, 1]n → [0, 1] is called
+a logical conjunction operation if for all possible inputs
+p1 , . . . , pn , it satisfies the inequality
+
+i=1
+
+i=1
+
+ai = 1 − p i .
+
+(1 − pi ) = n −
+
+n
+X
+
+pi = n − (n − 1) = 1,
 
 (6)
 
-Main Result
-We start with formally defining a conjunction operation. Definition 1. A function  : [0, 1]n  [0, 1] is called a logical conjunction operation if for all possible inputs p1 , . . . , pn , it satisfies the inequality max(p1 + . . . + pn - (n - 1), 0)  (p1 , . . . , pn )  min(p1 , . . . , pn ). (3)
-
-hence sj = 1 - (1 - pj ) = pj . The statement is proven.
-n
-
-4 . Let us now prove that every vector p with
 i=1
 
-pi  n - 1
+hence sj = 1 − (1 − pj ) = pj . The statement is proven.
+4◦ . Let us now prove that every vector p with
 
-can be represented as a convex combination of the binary vectors t for which (t) = 01 . Indeed, let us start with such a vector p = (p1 , . . . , pn ).
-n n
+n
+P
 
-Let us consider two cases: 1+ Proposition 1. The only convex logical conjunction operation is the function (p1 , . . . , pn ) = max(p1 + . . . + pn - (n - 1), 0). (4) n - 1.
+pi ≤ n − 1
+
+i=1
+
+can be represented as a convex combination of the binary
+vectors t for which ∧(t) = 01 .
+Indeed, let us start with such a vector p = (p1 , . . . , pn ).
+n
+n
+P
+P
+Let us consider two cases: 1+ pi ≥ n−1 and 1+ pi <
+
+n − 1.
+
 i=2
 
-pi  n - 1 and 1+
 i=2
 
-pi <
-
-1 As usual, by a convex combination of the vectors ta , . . . , tb , we mean a linear combination in which all the coefficients are nonnegative and add up to 1: t = a � ta + . . . + b � tb , with a  0, . . . , b  0, and a + . . . + b = 1.
+1
+As usual, by a convex combination of the vectors ta , . . . , tb ,
+we mean a linear combination in which all the coefficients are nonnegative and add up to 1: t = αa · ta + . . . + αb · tb , with αa ≥ 0,
+. . . , αb ≥ 0, and αa + . . . + αb = 1.
 
 In the first case, for the vector (q1 , p2 , . . . , pn ), where
 n
-
-Indeed, since pi  1, we have ai = 1 - pi  0 and the
-n n n
-
-q1 = n - 1 -
+P
+pi > p1 , we have q1 +p2 +. . .+pn = n−1
+q1 = n−1−
 i=2
 
-pi > p1 , we have q1 + p2 + . . . + pn = n - 1
+and thus, due to Part 3 of this proof, this vector is a convex combination of the vectors t for which ∧(t) = 0. Here,
+0 < p1 ≤ q1 thus:
+• p1 is a convex combination of numbers 0 and q1 .
 
-condition
-i=1
-
-pi > n - 1 implies that
-i=1
-
+Indeed, since pi ≤ 1, we have ai = 1 − pi ≥ 0 and the
+n
+n
+n
+P
+P
+P
+(1 − pi ) <
 ai =
+pi > n − 1 implies that
+condition
 
-(1 - pi ) <
 i=1
 
-and thus, due to Part 3 of this proof, this vector is a convex combination of the vectors t for which (t) = 0. Here, 0 < p1  q1 thus: � p1 is a convex combination of numbers 0 and q1 . � So, the vector (p1 , . . . , pn ) is a convex combination of the vectors (0, p2 , . . . , pn ) and (q1 , p2 , . . . , pn ). � The first vector is a convex combination of binary vectors t = (0, . . .) for which (t) = 0. � Thus, the original vector p is also a convex combination of such vectors. In the second case, the original vector p is a convex combination of the vectors (0, p2 , . . . , pn ) and (1, p2 , . . . , pn ). Thus, if we prove that the second vector (1, p2 , . . . , pn ) can be represented as the desired convex combination, we will thus prove that the original vector p can also be represented in this way. For this new vector p = (1, p2 , . . . , pn ), we similarly check whether raising p2 to 1 will lead to the sum exceeding n - 1; if yes, we can similarly complete our proof. If not, then we reduce the problem to a yet new vector p = (1, 1, p3 , . . . , pn ), etc. Eventually, this procedure will stop, since when we already have (n - 2) 1s, then for the corresponding vector (1, . . . , 1, pn-1 , pn ) replacement with 1 clearly leads to a vector (1, . . . , 1, 1, pn ) in which the sum of components clearly exceeds n - 1. The statement is thus proven. 5 . According to Part 4 of this proof, every vector p with
+• So, the vector (p1 , . . . , pn ) is a convex combination of the
+vectors (0, p2 , . . . , pn ) and (q1 , p2 , . . . , pn ).
+
+sj = a0 +a1 +. . .+aj−1 +aj+1 +. . .+an =
+
+• Thus, the original vector p is also a convex combination
+of such vectors.
+In the second case, the original vector p is a convex combination of the vectors (0, p2 , . . . , pn ) and (1, p2 , . . . , pn ).
+Thus, if we prove that the second vector (1, p2 , . . . , pn ) can
+be represented as the desired convex combination, we will
+thus prove that the original vector p can also be represented
+in this way.
+For this new vector p′ = (1, p2 , . . . , pn ), we similarly
+check whether raising p2 to 1 will lead to the sum exceeding n − 1; if yes, we can similarly complete our proof.
+If not, then we reduce the problem to a yet new vector
+p′′ = (1, 1, p3 , . . . , pn ), etc. Eventually, this procedure will
+stop, since when we already have (n − 2) 1s, then for the
+corresponding vector (1, . . . , 1, pn−1 , pn ) replacement with
+1 clearly leads to a vector (1, . . . , 1, 1, pn ) in which the sum
+of components clearly exceeds n − 1. The statement is thus
+proven.
+5◦ . According to Part 4 of this proof, every vector p with
 n
-
-1, so a0  0. For each index j , the j -th component sj of the sum a0 +
-n
-
-ai � ti has the form
-i=1 n
-
-sj = a0 + a1 + . . . + aj -1 + aj +1 + . . . + an =
-i=0
-
-ai - aj = (9)
-
-1 - aj = 1 - (1 - pj ) = pj . The statement is proven.
-n
-
-7 . Due to convexity, when
+P
+pi ≤ n − 1 can be represented as a convex combination
 i=1
-
-pi > n - 1, Part 6 of the
-
-proof implies that
-n
-
-(p) =  a0 � t0 +
-i=1 n
-
-a i � ti
-
-
-
-a0 � (t0 ) +
-i=1
-
-ai � (ti ).
-
-(10)
-
-Here, (t0 ) = 1 and (ti ) = 0 for all i, thus,
-n
-
-(p)  a0 =
-i=1
-
-pi - (n - 1).
-
-(11)
-
-pi  n - 1 can be represented as a convex combination
-i=1
-
-On the other hand, due to the inequality (3), we have
-n
-
+P
 p =
+aα · tα of vectors tα with ∧(tα ) = 0. Thus, by
+α
 
+convexity,
 
-a � t of vectors t with (t ) = 0. Thus, by
+X
 
-(p)  max
-i=1 n
+∧(p) = ∧
 
-pi - (n - 1), 0 .
+α
 
-(12)
+a α · tα
 
-convexity, (p) = 
+≤
 
+X
 
-a  � t
-
-
-
-
-a � (t ) = 0.
+aα · ∧(tα ) = 0.
 
 (7)
 
-In this case, the difference
-i=1 n
+1 − aj = 1 − (1 − pj ) = pj .
 
-pi - (n - 1) is positive, so
-
-Since the value of the conjunction operation is always nonnegative, this implies that (p) = 0 for all such vectors p.
-n
-
-(p) 
 i=1
 
-pi - (n - 1).
+ai −aj =
+(9)
+
+The statement is proven.
+n
+P
+
+7◦ . Due to convexity, when
+
+pi > n − 1, Part 6 of the
+
+i=1
+
+proof implies that
+
+∧(p) = ∧ a0 · t0 +
+
+n
+X
+
+a i · ti
+
+i=1
+
+a0 · ∧(t0 ) +
+
+n
+X
+
+!
+
+ai · ∧(ti ).
+
+≤
+
+(10)
+
+i=1
+
+Here, ∧(t0 ) = 1 and ∧(ti ) = 0 for all i, thus,
+∧(p) ≤ a0 =
+
+n
+X
+
+pi − (n − 1).
+
+(11)
+
+i=1
+
+On the other hand, due to the inequality (3), we have
+!
+n
+X
+pi − (n − 1), 0 .
+(12)
+∧(p) ≥ max
+i=1
+
+In this case, the difference
+
+n
+P
+
+pi − (n − 1) is positive, so
+
+i=1
+
+α
+
+Since the value of the conjunction operation is always nonnegative, this implies that ∧(p) = 0 for all such vectors p.
+n
+P
+pi ≤ n − 1, the convex wedge operation
+So, when
+
+n
+X
+i=0
+
+• The first vector is a convex combination of binary vectors
+t = (0, . . .) for which ∧(t) = 0.
+
+!
+
+i=1
+
+i=1
+
+i=1
+
+1, so a0 ≥ 0.
+For each index j, the j-th component sj of the sum a0 +
+n
+P
+ai · ti has the form
+
+∧(p) ≥
+
+n
+X
+
+pi − (n − 1).
 
 (13)
 
-So, when
 i=1
-
-pi  n - 1, the convex wedge operation
-n
 
 From (11) and (13), we conclude that
+
+indeed coincides with the desired formula (4).
+6◦ . Let us now prove that every vector p with
+
 n
+P
 
-indeed coincides with the desired formula (4). 6 . Let us now prove that every vector p with
-i=1
+∧(p) =
 
-pi > n - 1
-
-(p) =
-i=1 n
-
-pi - (n - 1) =
-
-can be represented as a convex combination of the vector def t0 = (1, . . . , 1) and vectors ti , namely, that p = a0 � t0 +
-n
-
-ai � ti , with ai = 1 - pi and
-i=1 n n n
+pi > n − 1
 
 max
-i=1 n
 
-pi - (n - 1), 0 .
+a0 = 1 −
+
+i=1
+
+n
+n
+X
+X
+pi − (n − 1). (8)
+(1 − pi ) =
+ai = 1 −
+i=1
+
+i=1
+
+n
+X
+i=1
+
+i=1
+
+n
+X
+
+pi − (n − 1) =
+
+i=1
+
+i=1
+
+can be represented as a convex combination of the vector
+def
+t0 = (1, . . . , 1) and vectors ti , namely, that p = a0 · t0 +
+n
+P
+ai · ti , with ai = 1 − pi and
+
+n
+X
+
+So, when
+
+n
+P
+
+!
+
+pi − (n − 1), 0 .
 
 (14)
 
-a0 = 1 -
+pi > n − 1, the convex wedge operation
+
 i=1
 
-ai = 1 -
-i=1
+also coincides with the desired formula (4). The proposition
+is proven.
 
-(1 - pi ) =
-i=1
-
-pi - (n - 1). (8)
-
-So, when
-i=1
-
-pi > n - 1, the convex wedge operation
-
-also coincides with the desired formula (4). The proposition is proven.
-
-What If We Take into Account that Human "And" Is Somewhat Different from the Formal Conjunction
-Human "and" is somewhat different from formal "and". In formal logic, if one of the conditions a1 , . . . , an is not satisfied, then the whole conjunction a1 & . . . & an is false. For example, when a1 and a2 are true, but a3 is false, we get (1, 0, 1) = 0. In human reasoning, this is not always so. For example, when a department tries to hire a new faculty member, the usual requirement is that this person should be a good researcher (a1 ), a very good teacher (a2 ), and a good colleague (a3 . Ideally, this is who we want to hire: a person who satisfies the property a1 & a2 & a3 . Let us now assume that one of the candidates is an excellent researcher who is going to be a very good colleague, but whose teaching skills are not so good, i.e., for whom a1 = 1, a2 = 0, and a3 = 0. Formally, in this case, one of the conditions is not satisfied, so the conjunction a1 & a2 & a3 is false. However, in reality, this person has a reasonable chance of being hired � meaning that, according to our human reasoning, the original "and"-rule is to some extent satisfied, i.e., (1, 0, 1) > 0. How to formally describe this difference. To describe this difference, researchers have proposed several conjunction operations for which (1, 0, 1) > 0; see, e.g., (Kreinovich 2004; Trejo et al. 2002; Zimmermann and Zysno 1980). In the context of Probabilistic Soft Logic, the paper (Beltagy, Erk, and Mooney 2010) uses an operation 1 (p1 , . . . , pn ) = � n for which also (1, 0, 1) = 2/3 > 0. Which conjunction operation should we use: analysis of the problem. As we have mentioned earlier, the easiestto-process convex objective functions are piece-wise linear functions, i.e., maxima of several linear functions. The fewer linear functions we have, the easier it is to process this problem. For the operation (4), we have two linear functions, so let us use two linear functions here as well. Also, the simpler one of these functions, the easier it is to solve the corresponding linear programming problem. In the formal-"and" case, one of this functions was 0, so let us use 0 here as well. Thus, we are looking for a conjunction operation of the type (p) = max((p), 0) for some linear
-n n
-
-and the second condition means that c0 + n � c1 = 1. So, c0 = 1 - n � c1 , and the requirement that c0  0 means that 1 c1  . Thus, we arrive at the following recommendation. n What we propose. We propose to use the following conjunction operation (p1 , . . . , pn ) =
+What If We Take into Account that Human
+“And” Is Somewhat Different from the Formal
+Conjunction
+Human “and” is somewhat different from formal “and”.
+In formal logic, if one of the conditions a1 , . . . , an is not
+satisfied, then the whole conjunction a1 & . . . & an is false.
+For example, when a1 and a2 are true, but a3 is false, we get
+∧(1, 0, 1) = 0.
+In human reasoning, this is not always so. For example,
+when a department tries to hire a new faculty member, the
+usual requirement is that this person should be a good researcher (a1 ), a very good teacher (a2 ), and a good colleague
+(a3 . Ideally, this is who we want to hire: a person who satisfies the property a1 & a2 & a3 .
+Let us now assume that one of the candidates is an excellent researcher who is going to be a very good colleague, but
+whose teaching skills are not so good, i.e., for whom a1 = 1,
+a2 = 0, and a3 = 0. Formally, in this case, one of the conditions is not satisfied, so the conjunction a1 & a2 & a3 is false.
+However, in reality, this person has a reasonable chance of
+being hired – meaning that, according to our human reasoning, the original “and”-rule is to some extent satisfied, i.e.,
+∧(1, 0, 1) > 0.
+How to formally describe this difference. To describe this difference, researchers have proposed several conjunction operations for which ∧(1, 0, 1) > 0;
+see,
+e.g.,
+(Kreinovich 2004;
+Trejo et al. 2002;
+Zimmermann and Zysno 1980).
+In the context of Probabilistic Soft Logic, the paper
+(Beltagy, Erk, and Mooney 2010) uses an operation
 n
+1 X
+∧(p1 , . . . , pn ) = ·
+pi
+n i=1
 
-max c1 �
-i=1
+What we propose. We propose to use the following conjunction operation
+∧(p1 , . . . , pn ) =
+max c1 ·
+
+n
+X
 
 pi
 
-- (n � c1 - 1), 0 ,
+i=1
+
+where c1 ∈
+
+
+
+!
+
+!
+
+− (n · c1 − 1), 0 ,
 
 (16)
 
-where c1 
+
+1
+,1 .
+n
 
-1 ,1 . n
+Properties of the proposed operation. The proposed operation is convex – and thus, similarly to the operation (4), it
+leads to efficient optimization hence to efficient inference,
+learning, etc.
+However, this operation is no longer associative. For ex1
+ample, for c1 = , the operation (16) turns into the arithn
+metic average (15). For the arithmetic average,
+
+
+0.5 + 1
+= ∧(0, 0.75) =
+∧(0, ∧(0.5, 1)) = ∧ 0,
+2
+0 + 0.75
+= 0.375,
+2
+while
 
-Properties of the proposed operation. The proposed operation is convex � and thus, similarly to the operation (4), it leads to efficient optimization hence to efficient inference, learning, etc. However, this operation is no longer associative. For ex1 ample, for c1 = , the operation (16) turns into the arithn metic average (15). For the arithmetic average, (0, (0.5, 1)) =  0, 0 .5 + 1 2 = (0, 0.75) =
+(15)
 
-0 + 0.75 = 0.375, 2 while 0 + 0 .5 ,1 2
-
-pi
+for which also ∧(1, 0, 1) = 2/3 > 0.
+Which conjunction operation should we use: analysis of
+the problem. As we have mentioned earlier, the easiestto-process convex objective functions are piece-wise linear
+functions, i.e., maxima of several linear functions. The fewer
+linear functions we have, the easier it is to process this problem. For the operation (4), we have two linear functions, so
+let us use two linear functions here as well.
+Also, the simpler one of these functions, the easier it is
+to solve the corresponding linear programming problem. In
+the formal-“and” case, one of this functions was 0, so let us
+use 0 here as well. Thus, we are looking for a conjunction
+operation of the type ∧(p) = max(ℓ(p), 0) for some linear
+n
+P
+ci · p i .
+function ℓ(p) = c0 +
 i=1
 
-(15) ((0, 0.5), 1) = 
+and the second condition means that c0 + n · c1 = 1. So,
+c0 = 1 − n · c1 , and the requirement that c0 ≤ 0 means that
+1
+c1 ≥ . Thus, we arrive at the following recommendation.
+n
 
-= (0.25, 1) =
+In general, “a1 and a2 ” means the same as “a2 and a1 ”.
+Thus, the “truth value” ∧(p1 , . . . , pn ) should not change if
+we simply permute the inputs. Hence, the corresponding linear function should be permutation-invariant, which implies
+that c1 = c2 = . . . = cn .
+We should have ∧(0, . . . , 0) = 0 and ∧(1, . . . , 1) = 1.
+The fact that ∧(1, . . . , 1) > ∧(0, . . . , 0) implies that c1 > 0.
+The first condition ∧(0, . . . , 0) = 0 then means that c0 ≤ 0,
 
-0.25 + 1 = 0.625 = 0.375. 2 The proposed family of operations contains both currently used operations of Probabilistic Soft Logic. The 1 parameter c1 can take all possible values from to 1. n � On one extreme, for c1 = 1, we get the usual formal"and"-based operation (4) used in (Bach et al. 2010; Bach et al. 2013; Kimmig et al. 2012). 1 � At the other extreme, when c1 = , we get n the arithmetic average operation (15) used in (Beltagy, Erk, and Mooney 2010). Potential advantage of the proposed family of operations. In general, the family (16) provides an additional parameter c1 that we can adjust to hopefully get an even better match with human reasoning � while still retaining convexity and thus, retaining computational efficiency.
+∧(∧(0, 0.5), 1) = ∧
 
-function (p) = c0 +
-i=1
+
 
-ci � p i .
+0 + 0.5
+,1
+2
 
-In general, "a1 and a2 " means the same as "a2 and a1 ". Thus, the "truth value" (p1 , . . . , pn ) should not change if we simply permute the inputs. Hence, the corresponding linear function should be permutation-invariant, which implies that c1 = c2 = . . . = cn . We should have (0, . . . , 0) = 0 and (1, . . . , 1) = 1. The fact that (1, . . . , 1) > (0, . . . , 0) implies that c1 > 0. The first condition (0, . . . , 0) = 0 then means that c0  0,
+
+
+= ∧(0.25, 1) =
+
+0.25 + 1
+= 0.625 6= 0.375.
+2
+The proposed family of operations contains both currently used operations of Probabilistic Soft Logic. The
+1
+parameter c1 can take all possible values from to 1.
+n
+• On one extreme, for c1 = 1, we get the usual formal“and”-based operation (4) used in (Bach et al. 2010;
+Bach et al. 2013; Kimmig et al. 2012).
+1
+• At the other extreme, when c1 =
+, we get
+n
+the arithmetic average operation (15) used in
+(Beltagy, Erk, and Mooney 2010).
+Potential advantage of the proposed family of operations.
+In general, the family (16) provides an additional parameter
+c1 that we can adjust to hopefully get an even better match
+with human reasoning – while still retaining convexity and
+thus, retaining computational efficiency.
 
 Conclusion
-Probabilistic Soft Logic (PSL) is a probabilistic formalism that can be used in learning, representing and reasoning with uncertain and possibly inconsistent (when weights are not taken into account) knowledge, and it seems to scale up better than its alternatives. A key aspect of PSL is its use of continuous truth values. This necessitates alternatives to boolean conjunction operations and at least two such operations have been mentioned in the literature. In this paper we have presented formal justifications of two different conjunction operations used in various PSL formulations and applications. We first showed (in Proposition 1) that the conjunction operations used in the original PSL (Bach et al. 2010; Bach et al. 2013; Kimmig et al. 2012) is unique in that it is the only conjunction operation that satisfies a set of desired properties. Next we presented a family of conjunction operations (16) that satisfy a smaller set of desired properties. We show that this family of operations contain both the operation used in the original PSL (Bach et al. 2010; Bach et al. 2013; Kimmig et al. 2012) and the operation used in (Beltagy, Erk, and Mooney 2010). Our presentation of a family of operations gives us additional conjunction operations which may come in handy in other situations.
 
 References
-[Bach et al. 2010] Bach, S. H.; Broecheler, M.; Kok, S.; and Getoor, L. 2010. Decision-driven models with probabilistic soft logic. In Proceedings of the 2010 NIPS Workshop on Predictive Models in Personalized Medicine. [Bach et al. 2013] Bach, S. H.; Huang, B.; London, B.; and Getoor, L. 2013. Hinge-loss Markov random fields: convex inference for structured predictions. In Proceedings of the Twenty-Ninth Conference on Uncertainty in Artificial Intelligence UAI'2013. [Beltagy, Erk, and Mooney 2010] Beltagy, I.; Erk, K.; and Mooney, R. 2010. Probabilistic soft logic for semantic textual similarity. In Proceedings of the 52nd Annual Meeting of the Association for Computational Linguistics ACL'2014. [Bruni, Tran, and Baroni 2014] Bruni, E.; Tran, N.-K.; and Baroni, M. 2014. Multimodal distributional semantics. J. Artif. Intell. Res.(JAIR) 49(1-47). [Huang et al. 2012] Huang, B.; Kimmig, A.; Getoor, L.; and Golbeck, J. 2012. Probabilistic soft logic for trust analysis in social networks. In Proceedings of the 2012 International Workshop on Statistical Relational Artificial Intelligence StaRAI'2012. [Kearfott and Kreinovich 2005] Kearfott, R. B., and Kreinovich, V. 2005. Beyond convex? global optimization is feasible only for convex objective functions: a theorem. Journal of Global Optimization 33(4):617�624. [Kimmig et al. 2012] Kimmig, A.; Bah, S. H.; Broechelet, M.; Huang, B.; and Getoor, L. 2012. A short introduction to probabilistic soft logic. In Proceedings of the 2012 NIPS Workshop on Probabilistic Programming: Foundations and Applications. [Klir and Yuan 1995] Klir, G., and Yuan, B. 1995. Fuzzy Sets and Fuzzy Logic. Upper Saddle River, New Jersey: Prentice Hall. [Kreinovich 1992] Kreinovich, V. 1992. A review of "Uncertain Reasoning" by G. Shafer and J. Pearl (eds.). ACM SIGART Bulletin 3(4):23�27. [Kreinovich 2004] Kreinovich, V. 2004. Towards more realistic (e.g., non-associative) `and'- and `or'-operations in fuzzy logic. Soft Computing 8(4):274�280. [Liu and Singh 2004] Liu, H., and Singh, P. 2004. Conceptneta practical commonsense reasoning tool-kit. BT technology journal 22(4):211�226. [Memory et al. 2012] Memory, A.; Kimmig, A.; Bach, S. H.; Raschid, L.; and Getoor, L. 2012. Graph summarization in annotated data using probabilistic soft logic. In Proceedings of the 2012 International Workshop on Uncertainty Reasoning for the Semantic Web URSW'2012. [Nelsen 1999] Nelsen, R. B. 1999. An Introduction to Copulas. Berlin, Heidelberg, New York: Springer Verlag. [Nguyen and Kreinovich 1997] Nguyen, H. T., and Kreinovich, V. 1997. Applications of Continuous Mathematics to Computer Science. Dordrecht: Kluwer. [Nguyen and Walker 2006] Nguyen, H. T., and Walker, E. A. 2006. A First Course in Fuzzy Logic. Boca Raton, Florida: Chapman and Hall/CRC.
 
-[Richardson and Domingos 2006] Richardson, M., and Domingos, P. 2006. Markov logic networks. Machine Learning 62(1-2):107136. [Trejo et al. 2002] Trejo, R.; Kreinovich, V.; Goodman, I. R.; Martinez, J.; and Gonzalez, R. 2002. A realistic (nonassociative) logic and a possible explanations of 7�2 law. International Journal of Approximate Reasoning 29:235� 266. [Vavasis 1991] Vavasis, S. A. 1991. Nonlinear Optimization: Complexity Issues. New York: Oxford University Press. [Zadeh 1965] Zadeh, L. A. 1965. Fuzzy sets. Information and Control 8:338�353. [Zimmermann and Zysno 1980] Zimmermann, H. H., and Zysno, P. 1980. Latent connectives in human decision making. Fuzzy Sets and Systems 4:37�51.
+Probabilistic Soft Logic (PSL) is a probabilistic formalism
+that can be used in learning, representing and reasoning with
+uncertain and possibly inconsistent (when weights are not
+taken into account) knowledge, and it seems to scale up
+better than its alternatives. A key aspect of PSL is its use
+of continuous truth values. This necessitates alternatives to
+boolean conjunction operations and at least two such operations have been mentioned in the literature.
+In this paper we have presented formal justifications
+of two different conjunction operations used in various PSL formulations and applications. We first showed
+(in Proposition 1) that the conjunction operations used
+in the original PSL (Bach et al. 2010; Bach et al. 2013;
+Kimmig et al. 2012) is unique in that it is the only conjunction operation that satisfies a set of desired properties. Next we presented a family of conjunction operations (16) that satisfy a smaller set of desired properties. We show that this family of operations contain both
+the operation used in the original PSL (Bach et al. 2010;
+Bach et al. 2013; Kimmig et al. 2012) and the operation
+used in (Beltagy, Erk, and Mooney 2010). Our presentation
+of a family of operations gives us additional conjunction operations which may come in handy in other situations.
+
+[Bach et al. 2010] Bach, S. H.; Broecheler, M.; Kok, S.; and
+Getoor, L. 2010. Decision-driven models with probabilistic
+soft logic. In Proceedings of the 2010 NIPS Workshop on
+Predictive Models in Personalized Medicine.
+[Bach et al. 2013] Bach, S. H.; Huang, B.; London, B.; and
+Getoor, L. 2013. Hinge-loss Markov random fields: convex
+inference for structured predictions. In Proceedings of the
+Twenty-Ninth Conference on Uncertainty in Artificial Intelligence UAI’2013.
+[Beltagy, Erk, and Mooney 2010] Beltagy, I.; Erk, K.; and
+Mooney, R. 2010. Probabilistic soft logic for semantic textual similarity. In Proceedings of the 52nd Annual Meeting
+of the Association for Computational Linguistics ACL’2014.
+[Bruni, Tran, and Baroni 2014] Bruni, E.; Tran, N.-K.; and
+Baroni, M. 2014. Multimodal distributional semantics. J.
+Artif. Intell. Res.(JAIR) 49(1-47).
+[Huang et al. 2012] Huang, B.; Kimmig, A.; Getoor, L.; and
+Golbeck, J. 2012. Probabilistic soft logic for trust analysis in social networks. In Proceedings of the 2012 International Workshop on Statistical Relational Artificial Intelligence StaRAI’2012.
+[Kearfott and Kreinovich 2005] Kearfott, R. B., and
+Kreinovich, V. 2005. Beyond convex? global optimization is feasible only for convex objective functions: a
+theorem. Journal of Global Optimization 33(4):617–624.
+[Kimmig et al. 2012] Kimmig, A.; Bah, S. H.; Broechelet,
+M.; Huang, B.; and Getoor, L. 2012. A short introduction
+to probabilistic soft logic. In Proceedings of the 2012 NIPS
+Workshop on Probabilistic Programming: Foundations and
+Applications.
+[Klir and Yuan 1995] Klir, G., and Yuan, B. 1995. Fuzzy Sets
+and Fuzzy Logic. Upper Saddle River, New Jersey: Prentice
+Hall.
+[Kreinovich 1992] Kreinovich, V. 1992. A review of “Uncertain Reasoning” by G. Shafer and J. Pearl (eds.). ACM
+SIGART Bulletin 3(4):23–27.
+[Kreinovich 2004] Kreinovich, V. 2004. Towards more realistic (e.g., non-associative) ‘and’- and ‘or’-operations in
+fuzzy logic. Soft Computing 8(4):274–280.
+[Liu and Singh 2004] Liu, H., and Singh, P. 2004. Conceptneta practical commonsense reasoning tool-kit. BT technology journal 22(4):211–226.
+[Memory et al. 2012] Memory, A.; Kimmig, A.; Bach, S. H.;
+Raschid, L.; and Getoor, L. 2012. Graph summarization in
+annotated data using probabilistic soft logic. In Proceedings
+of the 2012 International Workshop on Uncertainty Reasoning for the Semantic Web URSW’2012.
+[Nelsen 1999] Nelsen, R. B. 1999. An Introduction to Copulas. Berlin, Heidelberg, New York: Springer Verlag.
+[Nguyen and Kreinovich 1997] Nguyen, H.
+T.,
+and
+Kreinovich, V.
+1997.
+Applications of Continuous
+Mathematics to Computer Science. Dordrecht: Kluwer.
+[Nguyen and Walker 2006] Nguyen, H. T., and Walker, E. A.
+2006. A First Course in Fuzzy Logic. Boca Raton, Florida:
+Chapman and Hall/CRC.
+
+[Richardson and Domingos 2006] Richardson, M., and
+Domingos, P. 2006. Markov logic networks. Machine
+Learning 62(1-2):107136.
+[Trejo et al. 2002] Trejo, R.; Kreinovich, V.; Goodman, I. R.;
+Martinez, J.; and Gonzalez, R. 2002. A realistic (nonassociative) logic and a possible explanations of 7±2 law.
+International Journal of Approximate Reasoning 29:235–
+266.
+[Vavasis 1991] Vavasis, S. A. 1991. Nonlinear Optimization:
+Complexity Issues. New York: Oxford University Press.
+[Zadeh 1965] Zadeh, L. A. 1965. Fuzzy sets. Information
+and Control 8:338–353.
+[Zimmermann and Zysno 1980] Zimmermann, H. H., and
+Zysno, P. 1980. Latent connectives in human decision making. Fuzzy Sets and Systems 4:37–51.
 
 

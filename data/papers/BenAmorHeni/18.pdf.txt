@@ -1,186 +1,783 @@
 Latent Space Policy Search for Robotics
 Kevin Sebastian Luck1 , Gerhard Neumann1 , Erik Berger2 , Jan Peters1,4 and Heni Ben Amor3
-Abstract-- Learning motor skills for robots is a hard task. In particular, a high number of degrees-of-freedom in the robot can pose serious challenges to existing reinforcement learning methods, since it leads to a highdimensional search space. However, complex robots are often intrinsically redundant systems and, therefore, can be controlled using a latent manifold of much smaller dimensionality. In this paper, we present a novel policy search method that performs efficient reinforcement learning by uncovering the low-dimensional latent space of actuator redundancies. In contrast to previous attempts at combining reinforcement learning and dimensionality reduction, our approach does not perform dimensionality reduction as a preprocessing step but naturally combines it with policy search. Our evaluations show that the new approach outperforms existing algorithms for learning motor skills with high-dimensional robots.
+Abstract— Learning motor skills for robots is a hard
+task. In particular, a high number of degrees-of-freedom
+in the robot can pose serious challenges to existing reinforcement learning methods, since it leads to a highdimensional search space. However, complex robots are
+often intrinsically redundant systems and, therefore, can
+be controlled using a latent manifold of much smaller
+dimensionality. In this paper, we present a novel policy
+search method that performs efficient reinforcement learning by uncovering the low-dimensional latent space of
+actuator redundancies. In contrast to previous attempts
+at combining reinforcement learning and dimensionality
+reduction, our approach does not perform dimensionality
+reduction as a preprocessing step but naturally combines
+it with policy search. Our evaluations show that the new
+approach outperforms existing algorithms for learning
+motor skills with high-dimensional robots.
 
-I. INTRODUCTION Creating autonomous robots that can adapt to the current task by interacting with their environment is an important vision of artificial intelligence. In recent years, many successful applications of reinforcement learning (RL) to complex robot tasks have been reported, including autonomous helicopter flight [1], robot table-tennis [2], or quadruped locomotion [3]. One of the most successful methods for learning such motor tasks is policy search [4]. Policy search tries to directly uncover the parameters of a given policy representation that yield high rewards. In this paper we focus on policy search for robots with a high number of degrees-of-freedom (DOF). Typically, the number of parameters of our control policy heavily depends on the number of DOFs of the robot. Hence, we generally need a large number of evaluations to learn acceptable policies. However, evaluating hundred thousands of different policies on a real robot is often infeasible due to wear and tear, the required logistics, or space and time constraints. At the same time, many
-1 Kevin S. Luck, Gerhard Neuman and Jan Peters are with the Department of Computer Science, Technische Universit� at Darmstadt, 64289 Darmstadt, Germany
-
-Fig. 1: A NAO robot learns to lift up one leg and stay balanced using a novel latent space policy search method. The co-articulation of the joints, needed for successful execution of the motor skill, is represented in the low-dimensional latent space.
-
-robot control tasks, such as motor skills, are highly redundant in the controlled DOFs. Typically, the intrinsic dimensionality of such movements is much smaller than the actual controlled number of DOFs. Hence, robot learning can be performed much more efficiently if we can determine the lower-dimensional latent space of the movement we want to learn. In this paper we present an efficient policy search algorithm for learning policies in low-dimensional latent spaces. The learning algorithm produces control signals for high-dimensional robot systems by estimating policies in a latent space with a significantly lower number of dimensions. The latent space encodes correlations between the controlled DOFs of the robot. The parameters of the policy as well as the projection parameters of the latent space are efficiently estimated from samples during the policy search iterations. The key insight to our algorithm is that policy search as well as dimensionality reduction can be integrated in an expectation-maximization (EM) framework. As a result,
+I. INTRODUCTION
+Creating autonomous robots that can adapt to the current
+task by interacting with their environment is an important vision of artificial intelligence. In recent years, many
+successful applications of reinforcement learning (RL)
+to complex robot tasks have been reported, including
+autonomous helicopter flight [1], robot table-tennis [2],
+or quadruped locomotion [3]. One of the most successful methods for learning such motor tasks is policy
+search [4].
+Policy search tries to directly uncover the parameters
+of a given policy representation that yield high rewards.
+In this paper we focus on policy search for robots with
+a high number of degrees-of-freedom (DOF). Typically,
+the number of parameters of our control policy heavily
+depends on the number of DOFs of the robot. Hence,
+we generally need a large number of evaluations to
+learn acceptable policies. However, evaluating hundred
+thousands of different policies on a real robot is often
+infeasible due to wear and tear, the required logistics,
+or space and time constraints. At the same time, many
+1 Kevin S. Luck, Gerhard Neuman and Jan Peters are with the
+Department of Computer Science, Technische Universität Darmstadt,
+64289 Darmstadt, Germany
 
 {luck, geri, peters}@ias.tu-darmstadt.de
-2 Erik Berger is with the Department of Mathematics and Computer Science, Technische Universit� at Bergakademie Freiberg, 09599 Freiberg, Germany
+2 Erik Berger is with the Department of Mathematics and Computer Science, Technische Universität Bergakademie Freiberg, 09599
+Freiberg, Germany
 
 Erik.Berger@informatik.tu-freiberg.de
-3 Heni Ben Amor is with the Institute for Robotics and Intelligent Machines, Georgia Institute of Technology, GA 30332, USA
+3 Heni Ben Amor is with the Institute for Robotics and Intelligent
+Machines, Georgia Institute of Technology, GA 30332, USA
 
 hbenamor@cc.gatech.edu
-4 Jan Peters is with the Max Planck Institute for Intelligent Systems, 72076 T� ubingen, Germany
+4 Jan Peters is with the Max Planck Institute for Intelligent Systems,
+72076 Tübingen, Germany
 
-we can formulate a coherent algorithmic approach that naturally combines policy search and dimensionality reduction. In contrast to previous attempts for combining reinforcement learning and dimensionality reduction for robotic applications, our approach does not perform dimensionality reduction as a preprocessing step. Instead, the parameters of the latent space are adapted based on the reward signal from the environment. II. Related Work Policy search has attracted considerable attention in the robot learning community. An excellent overview of the topic and detailed descriptions of various state-of-the-art algorithms can be found in [5] and [4]. Previous combinations of dimensionality reduction and policy search, typically use a clear separation between the reinforcement learning algorithm and the dimensionality reduction step. In [6], data from a simulator was used in a preprocessing step to identify a possible low-dimensional latent space of policies using Reduced Rank Regression. Learning on the real robot was then restricted to the extracted latent space. Similarly, Bitzer et al. [7] used user-provided training data to learn a low-dimensional subspace using linear and non-linear dimensionality reduction for robot learning. Using dimensionality reduction as a preprocessing step, or as an independent process that can be executed after several iterations of reinforcement learning, may lead to serious limitations. First, extracting the latent space as a preprocess requires a significantly large training set of (approximate) solutions, prior simulations, or human demonstrations. Even if such data is available, it can be counterproductive to use it, since the reinforcement learning algorithm cannot change the parameters of the latent space in these approaches. For example, when using human demonstrations, e.g., recorded joint configurations, to identify the latent space, the extracted latent space might not be appropriate for controlling the robot as we neglect the correspondence problem [8], i.e., there is no one-to-one mapping of the human joints to the robot joints. Hence, we need to adapt the projection of the latent space during the reinforcement learning process. Using dimensionality reduction as an independent process also leads to a decreased learning efficiency, since it neglects reward information when identifying subspaces. III. Policy Search In the following section, we will introduce the general problem statement for reinforcement learning and dimensionality reduction and introduce the notation that will be used throughout the paper. For a more detailed description of theses topics, the reader is referred to [9] and [10].
+Fig. 1: A NAO robot learns to lift up one leg and
+stay balanced using a novel latent space policy search
+method. The co-articulation of the joints, needed for
+successful execution of the motor skill, is represented
+in the low-dimensional latent space.
 
-A. Problem Statement Reinforcement learning methods can be used to autonomously learn robot control strategies through the interaction with an environment. Given the current state st  S a robot executes an action at  A, transitions into the state st+1 and receives a reward rt (st , at ). The action selection process is governed by the control policy (at |st , t), which is specified as conditional probability distribution over the actions given the current state st . Generally, RL algorithms try to determine an optimal policy which maximizes the expected reward. In this paper, we will focus on policy search methods. Policy search approaches typically use a parametrized stochastic policy represented by a  (at |st , t) with parameters . A typical representation of the policy in robotics is to use a Gaussian distribution as policy where the mean depends linearly on an observed feature vector  of the task, e.g., the location of an object to grasp. The goal of learning is to optimize the expected return of the policy with parameters  with J ( ) =
-T
+robot control tasks, such as motor skills, are highly
+redundant in the controlled DOFs. Typically, the intrinsic
+dimensionality of such movements is much smaller than
+the actual controlled number of DOFs. Hence, robot
+learning can be performed much more efficiently if we
+can determine the lower-dimensional latent space of the
+movement we want to learn.
+In this paper we present an efficient policy search
+algorithm for learning policies in low-dimensional latent
+spaces. The learning algorithm produces control signals for high-dimensional robot systems by estimating
+policies in a latent space with a significantly lower
+number of dimensions. The latent space encodes correlations between the controlled DOFs of the robot.
+The parameters of the policy as well as the projection
+parameters of the latent space are efficiently estimated
+from samples during the policy search iterations. The
+key insight to our algorithm is that policy search as
+well as dimensionality reduction can be integrated in an
+expectation-maximization (EM) framework. As a result,
 
-p () R () d,
+we can formulate a coherent algorithmic approach that
+naturally combines policy search and dimensionality
+reduction.
+In contrast to previous attempts for combining reinforcement learning and dimensionality reduction for
+robotic applications, our approach does not perform dimensionality reduction as a preprocessing step. Instead,
+the parameters of the latent space are adapted based on
+the reward signal from the environment.
+II. Related Work
+Policy search has attracted considerable attention in the
+robot learning community. An excellent overview of the
+topic and detailed descriptions of various state-of-the-art
+algorithms can be found in [5] and [4].
+Previous combinations of dimensionality reduction
+and policy search, typically use a clear separation between the reinforcement learning algorithm and the dimensionality reduction step. In [6], data from a simulator
+was used in a preprocessing step to identify a possible
+low-dimensional latent space of policies using Reduced
+Rank Regression. Learning on the real robot was then
+restricted to the extracted latent space. Similarly, Bitzer
+et al. [7] used user-provided training data to learn a
+low-dimensional subspace using linear and non-linear
+dimensionality reduction for robot learning. Using dimensionality reduction as a preprocessing step, or as an
+independent process that can be executed after several
+iterations of reinforcement learning, may lead to serious
+limitations. First, extracting the latent space as a preprocess requires a significantly large training set of
+(approximate) solutions, prior simulations, or human
+demonstrations. Even if such data is available, it can
+be counterproductive to use it, since the reinforcement
+learning algorithm cannot change the parameters of the
+latent space in these approaches. For example, when
+using human demonstrations, e.g., recorded joint configurations, to identify the latent space, the extracted
+latent space might not be appropriate for controlling the
+robot as we neglect the correspondence problem [8],
+i.e., there is no one-to-one mapping of the human
+joints to the robot joints. Hence, we need to adapt the
+projection of the latent space during the reinforcement
+learning process. Using dimensionality reduction as an
+independent process also leads to a decreased learning
+efficiency, since it neglects reward information when
+identifying subspaces.
+III. Policy Search
+In the following section, we will introduce the general
+problem statement for reinforcement learning and dimensionality reduction and introduce the notation that
+will be used throughout the paper. For a more detailed
+description of theses topics, the reader is referred to [9]
+and [10].
 
+A. Problem Statement
+Reinforcement learning methods can be used to autonomously learn robot control strategies through the
+interaction with an environment. Given the current state
+st ∈ S a robot executes an action at ∈ A, transitions
+into the state st+1 and receives a reward rt (st , at ). The
+action selection process is governed by the control policy
+π(at |st , t), which is specified as conditional probability
+distribution over the actions given the current state st .
+Generally, RL algorithms try to determine an optimal
+policy which maximizes the expected reward.
+In this paper, we will focus on policy search methods.
+Policy search approaches typically use a parametrized
+stochastic policy represented by a πθ (at |st , t) with parameters θ. A typical representation of the policy in robotics
+is to use a Gaussian distribution as policy where the
+mean depends linearly on an observed feature vector φ
+of the task, e.g., the location of an object to grasp. The
+goal of learning is to optimize the expected return of the
+policy with parameters θ with
+Z
+J (θ) = pθ (τ) R (τ) dτ,
 (1)
-
-where the expectation integrates over all possible trajectories  in the set T. Each trajectory  = [s1:T +1 , a1:T ] is specified by a sequence of length T of states and actions. The return R () of a trajectory is defined as the accumulated immediate rewards rt , i.e.,
 T
 
-R () =
-t=1
+where the expectation integrates over all possible trajectories τ in the set T. Each trajectory τ = [s1:T +1 , a1:T ]
+is specified by a sequence of length T of states and
+actions. The return R (τ) of a trajectory is defined as the
+accumulated immediate rewards rt , i.e.,
+R (τ) =
 
-rt (st , at ) + rT +1 ( sT +1 ),
+T
+X
+
+rt (st , at ) + rT +1 (sT +1 ),
 
 (2)
 
-where rT +1 denotes the final reward for reaching state sT +1 . Note that in many robot applications, the reward function and the policy are explicitly modelled to be time dependent. Due to the Markov property, the trajectory distribution p () can be written as
-T
-
-p () = p(s1 )
 t=1
 
-p (st+1 |st , at )  (at |st , t) .
+where rT +1 denotes the final reward for reaching state
+sT +1 . Note that in many robot applications, the reward
+function and the policy are explicitly modelled to be time
+dependent. Due to the Markov property, the trajectory
+distribution pθ (τ) can be written as
+pθ (τ) = p(s1 )
+
+T
+Y
+
+p (st+1 |st , at ) πθ (at |st , t) .
 
 (3)
 
-Reinforcement learning algorithms try to determine policy parameters  that maximize Equation 1. B. Expectation Maximization Approaches to Policy Search In contrast to traditional approaches to reinforcement learning, EM-based methods formalize the policy search problem as inference problem with latent variables. They transform the rewards into an improper probability distribution such that the reward can be interpreted as (unnormalized) probability of a binary reward event. In our discussion, we will assume that the rewards have already been transformed to such a improper probability distribution, i.e., the rewards are non-negative. As in
+t=1
 
-the standard EM-algorithm, we can now optimize a lower bound, that is in this case a lower bound on the expected return, instead of optimizing the original objective. According to Kober and Peters [11], the lower bound of the expected return (1) is given by Lold () = pold () R () log p () d  (4)  T         = IE p ()  Q (st , at , t) log  (at |st , t)  , 
+Reinforcement learning algorithms try to determine policy parameters θ that maximize Equation 1.
+B. Expectation Maximization Approaches to Policy
+Search
+In contrast to traditional approaches to reinforcement
+learning, EM-based methods formalize the policy search
+problem as inference problem with latent variables.
+They transform the rewards into an improper probability
+distribution such that the reward can be interpreted as
+(unnormalized) probability of a binary reward event. In
+our discussion, we will assume that the rewards have
+already been transformed to such a improper probability
+distribution, i.e., the rewards are non-negative. As in
+
+the standard EM-algorithm, we can now optimize a
+lower bound, that is in this case a lower bound on
+the expected return, instead of optimizing the original
+objective. According to Kober and Peters [11], the lower
+bound of the expected return (1) is given by
+Z
+Lθold (θ) = pθold (τ) R (τ) log pθ (τ) dτ
 T
+ (4)
+ T
+
+X π
+
+= IE pθ (τ) 
+Q (st , at , t) log πθ∗ (at |st , t) ,
 old
 
 t=1
 
-where Q is defined as the expected reward to come for time step t, when the robot is in state st and execute action at ,   T          Q (s, a, t) = IE     . (5)  rt~ (st~, at~) |st = s, at = a
-~=t t
+π
 
+where Q is defined as the expected reward to come for
+time step t, when the robot is in state st and execute
+action at ,
+
+ T
+
+X
+π
+
+Q (s, a, t) = IE  rt˜ (st˜, at˜) |st = s, at = a . (5)
+t˜=t
 
-
-the exploration of the policy in a lower dimensional latent space. This low-dimensional exploration z is then projected in to the high-dimensional original space by a projection matrix. In order to infer such a model with latent variables, we can again use the expectation maximization algorithm. This time we infer a structured policy from the weighted data points. More specifically we use the marginalization rule [15] to introduce a hidden variable z to our policy by specifying that p (at |st , t) = Z p (at , z|st , t) dz. This step leads to a new lower bound given by   T         IE p ()  Q (st , at , t) log p (at , z|st , t) dz   
-old
-
-IE pold
-
-     ()  
-
-t=1 T
-
+the exploration of the policy in a lower dimensional
+latent space. This low-dimensional exploration z is then
+projected in to the high-dimensional original space by
+a projection matrix. In order to infer such a model
+with latent variables, we can again use the expectation
+maximization algorithm. This time we infer a structured
+policy from the weighted data points. More specifically
+we use the marginalization rule [15] to introduce a
+hidden variable
+z to our policy by specifying that
+R
+pθ (at |st , t) = Z pθ (at , z|st , t) dz. This step leads to a new
+lower bound given by
+
+ T
+Z
+
+X π
+IE pθold (τ) 
+Q (st , at , t) log
+pθ (at , z|st , t) dz ≥
 Z
 
-t =1
+t=1
 
- (7)    Q (st , at , t) IEq(z|at ,st ) log p (at , z|st , t)   ,
+IE pθold
+
+
+ T
+X π
+
+(7)
+
+(s
+(a
+,
+a
+,
+t)
+IE
+log
+p
+,
+z|s
+,
+t)
+Q
+ ,
+t t
+q(z|at ,st )
+θ
+t
+t
+(τ) 
+
+t=1
+
+π
 
 In practice, Q (s, a, t) is estimated by a single rollout,
-i] [i] i.e, Q s[ t , at , t  T ~=t t i] rt[ ~ , where i denotes the index of
+
+ P
+T
+[i]
+i.e, Qπ s[i]
+rt[i]
+t , at , t ≈
+˜ , where i denotes the index of
+t˜=t
 
+the episode.
+An important advantage of this approach is that the
+policy update is formulated as a weighted maximum
+likelihood (ML) estimate for the parameters θ, where
+the reward to come Qπ (s, a, t) is used as weight for
+the samples. Due to the weighted ML update, there
+is no need for a user-specified learning rate which is
+often a critical factor for achieving good performance in
+policy gradient algorithms [12]. The policy is typically
+modelled as linear policy with Gaussian noise. In the
+PoWER [11] algorithm, this Gaussian noise is added to
+the parameter vector of the policy, i.e.,
+a = (M + E) φ.
 
+(6)
 
-the episode. An important advantage of this approach is that the policy update is formulated as a weighted maximum likelihood (ML) estimate for the parameters , where the reward to come Q (s, a, t) is used as weight for the samples. Due to the weighted ML update, there is no need for a user-specified learning rate which is often a critical factor for achieving good performance in policy gradient algorithms [12]. The policy is typically modelled as linear policy with Gaussian noise. In the PoWER [11] algorithm, this Gaussian noise is added to the parameter vector of the policy, i.e., a = (M + E) . (6)
+Mφ is the mean of the policy and Eφ denotes a
+Gaussian noise term that is either isotropic or anisotropically distributed. In our experiments, we will use the
+more commonly used isotropic version of the noise. In
+contrast to the standard formulation of PoWER [11],
+we use matrix-variate normal
+[13] for the
+ distributions
+
+exploration noise E ∼ Nd,p 0, σ2 I , where 0 has d rows
+and p columns. We will use the notation Nd,p (·, ·) for
+such matrix-variate normal distributions and N (·, ·) for
+multi-variate normal distributions.
+In the remainder of this paper, we will write the
+stochastic policy πθ (at |st , t) as pθ (at |st , t) to ensure consistent notation.
+C. Using Structured Policies with Latent Variables
+Another important advantage of weighted ML updates,
+is that we can use structured policy representations that
+again include latent variables z. For example, mixture
+models [14] or low-dimensional factor models can be
+used. In our specific case, the latent variable defines
 
-old where the distribution q(z|at , st ) = p (a |s ,t) is given old t t by the posterior of the latent variables given the old policy parameters old . In this lower bound, the EMalgorithm is applied twice. First, to derive the policy update by weighted maximum likelihood estimates. Second, we use EM to update the joint distribution p (at , z|st , t) instead of the marginal. While this lower bound can be used for any latent variable model, we will discuss our specific case of estimating projection parameters in more detail in the following section.
-
-p
+pθ
 
 (at ,z|st ,t)
 
-IV. The PePP C Er Algorithm In this section, we will describe the "Policy Search with Probabilistic Principle Component Exploration" Algorithm (PePP C Er) for policy search in low-dimensional latent spaces. We will first start with a short recap of Probabilistic PCA, explain the relevant probability distributions for the PePP C Er algorithm and derive the EM update equations. A. Revisiting Probabilistic PCA Probabilistic Principal Component Analysis (PPCA) is the probabilistic formulation of the PCA algorithm for performing linear dimensionality reduction. PPCA relates a d-dimensional data point x  Rd to a lowdimensional latent variable z  Rn through a linear Gaussian model x = Wz + � + (8)
+where the distribution q(z|at , st ) = pθold (at |st ,t) is given
+old
+by the posterior of the latent variables given the old
+policy parameters θold . In this lower bound, the EMalgorithm is applied twice. First, to derive the policy update by weighted maximum likelihood estimates.
+Second, we use EM to update the joint distribution
+pθ (at , z|st , t) instead of the marginal.
+While this lower bound can be used for any latent
+variable model, we will discuss our specific case of
+estimating projection parameters in more detail in the
+following section.
+IV. The PePPC Er Algorithm
+In this section, we will describe the “Policy Search with
+Probabilistic Principle Component Exploration” Algorithm (PePPC Er) for policy search in low-dimensional
+latent spaces. We will first start with a short recap
+of Probabilistic PCA, explain the relevant probability
+distributions for the PePPC Er algorithm and derive the
+EM update equations.
+A. Revisiting Probabilistic PCA
+Probabilistic Principal Component Analysis (PPCA) is
+the probabilistic formulation of the PCA algorithm for
+performing linear dimensionality reduction. PPCA relates a d-dimensional data point x ∈ Rd to a lowdimensional latent variable z ∈ Rn through a linear
+Gaussian model
+x = Wz + µ + 
 
-M is the mean of the policy and E denotes a Gaussian noise term that is either isotropic or anisotropically distributed. In our experiments, we will use the more commonly used isotropic version of the noise. In contrast to the standard formulation of PoWER [11], we use matrix-variate normal distributions [13] for the exploration noise E  Nd, p 0, 2 I , where 0 has d rows and p columns. We will use the notation Nd, p (�, �) for such matrix-variate normal distributions and N (�, �) for multi-variate normal distributions. In the remainder of this paper, we will write the stochastic policy  (at |st , t) as p (at |st , t) to ensure consistent notation. C. Using Structured Policies with Latent Variables Another important advantage of weighted ML updates, is that we can use structured policy representations that again include latent variables z. For example, mixture models [14] or low-dimensional factor models can be used. In our specific case, the latent variable defines
+(8)
 
-where the latent variable z  Rn is Gaussian distributed according to p (z) = N (0, I). The transformation matrix W  Rd�n maps each low-dimensional vector z to the high dimensional space. The matrix W spans a lowdimensional subspace and �  Rd is the mean of
+where the latent variable z ∈ Rn is Gaussian distributed
+according to p (z) = N (0, I). The transformation matrix
+W ∈ Rd×n maps each low-dimensional vector z to the
+high dimensional space. The matrix W spans a lowdimensional subspace and µ ∈ Rd is the mean of
 
-the high-dimensional distribution. A high dimensional isotropic noise  Rd with zero mean and 2 I variance is added to this projection. The parameters of this model are given by �, 2 and W and can efficiently be estimated using an EM algorithm (see [10] for details). However, PPCA is a unsupervised learning method while policy search is supervised. B. Deriving the Update Equations for PePP C Er Building on the insights from PPCA, we can decompose a stochastic policy into a low-dimensional distribution and projection parameters for generating the required high-dimensional action. More specifically, we can write a = W Z  + M + E,
-T
+the high-dimensional distribution. A high dimensional
+isotropic noise  ∈ Rd with zero mean and σ2 I variance
+is added to this projection. The parameters of this
+model are given by µ, σ2 and W and can efficiently be
+estimated using an EM algorithm (see [10] for details).
+However, PPCA is a unsupervised learning method
+while policy search is supervised.
+B. Deriving the Update Equations for PePPC Er
+Building on the insights from PPCA, we can decompose
+a stochastic policy into a low-dimensional distribution
+and projection parameters for generating the required
+high-dimensional action. More specifically, we can write
+
+
+a = W ZT φ + Mφ + Eφ,
+(9)
+where W is a projection matrix. The terms Mφ and Eφ
+are again the mean and the Gaussian noise term. The
+term ZT φ with Z ∼ N p,n (0, I) generates an exploration
+noise in a low-dimensional latent space, which is then
+projected into the high-dimensional space of actions
+via W. Due to the projection from the latent space
+to the original high dimensional state, the uncorrelated
+explorative action from the latent space becomes a correlated action in the high dimensional space. Hence, the
+projection matrix W can be understood as a matrix that
+defines synergies in the action space that are used for
+correlated exploration. Both, the mean M of the policy
+and the projection matrix W are learned by the policy
+search algorithm. Given the model in Equation 9, we
+can derive the expectation of our probability distribution
+p (a) in a straight-forward fashion
+h 
+i
+ 
+IE [a] = IE W ZT φ +Mφ + IE Eφ = Mφ.
+|
+{z
+}
+(10)
+| {z }
+0
 
-and p a|ZT  = N W ZT  + M, 2 tr T I , the posterior distribution can be written as pold ZT |a = N CWT (a - M) , C2 tr T , (15) -1 T 2 where C =  I + W W . Given this posterior distribution, we can now determine the equations of the expectation step IE p (ZT |a) ZT  = CWT (a - M) , old IE p (ZT |a) ZT  ZT  old
-T
+0
+
+Similarly, we can also use the properties of matrixvariate normal distributions [13] to get the covariance
+h
+i
+cov (a) = IE (a − IE [a]) (a − IE [a])T
+h
+i
+h
+i
+= IE WZT φφT ZWT + IE EφφT ET
+(11)
+
+
+
+= tr φφT WWT + σ2 I ,
+where tr (·) denotes the trace of a matrix. From Equation 10 and Equation 11 it follows that the prior distribution over actions is
+
+
+
+
+p (a) = N Mφ, tr φφT WWT + σ2 I .
+(12)
+Now, in order to apply EM, we have to determine
+the posterior distribution p (Z|a) over matrices Z. The
+posterior distribution can be simplified by treating ZT φ
+as a latent variable. Since the result of this product is a
+vector, we can use Bayes theorem for Gaussian variables
+
+
+[15, p.93] to derive the posterior distribution p ZT φ|a .
+Given both distributions
+
+
+
+
+ 
+p ZT φ = N 0, tr φφT I
+(13)
+
+and
+
+
+ 
+
+
+ 
+p a|ZT φ = N W ZT φ + Mφ, σ2 tr φφT I ,
 
 (14)
 
-(16) (17)
-
-= C2 tr T
+the posterior distribution can be written as
+
+
+
+
+
+pθold ZT φ|a = N CWT (a − Mφ) , Cσ2 tr φφT ,
+(15)
+
+−1
 T
-
-(9)
-
-where W is a projection matrix. The terms M and E are again the mean and the Gaussian noise term. The term ZT  with Z  N p,n (0, I) generates an exploration noise in a low-dimensional latent space, which is then projected into the high-dimensional space of actions via W. Due to the projection from the latent space to the original high dimensional state, the uncorrelated explorative action from the latent space becomes a correlated action in the high dimensional space. Hence, the projection matrix W can be understood as a matrix that defines synergies in the action space that are used for correlated exploration. Both, the mean M of the policy and the projection matrix W are learned by the policy search algorithm. Given the model in Equation 9, we can derive the expectation of our probability distribution p (a) in a straight-forward fashion IE [a] = IE W ZT  +M + IE E = M.
-0 0
-
-+IE p (ZT |a) ZT  IE p (ZT |a) ZT  . old old 1. Maximization Step for M We use a maximum likelihood estimate to identify the value of M in each iteration. To this end, we calculate the derivative of the log-likelihood function w.r.t. M,  ln p (a) = D-1 aT - MT , M (18)
-
-where D = tr T WWT + 2 I = DT . After inserting this result into the EM policy search framework and set the derivative to zero, we get  T     ln p (at ) Q   t     0 = IE pold ()  (19)     M t =1  T   T -1           at T Q T Q       t  t              M = IE pold ()  IE ( )        p    old T  T  tr  tr  t=1 t=1 such that M maximizes the log-likelihood function ln p (a). 2. Maximization Step for W For optimizing W we have to use the new lower bound given in Equation 7 and set the derivative of this term w.r.t W to zero. Accordingly the derivative can be written as  ln p a, ZT  W -a ZT 
-T
-
-(10)
-
-Similarly, we can also use the properties of matrixvariate normal distributions [13] to get the covariance cov (a) = IE (a - IE [a]) (a - IE [a])T = IE WZT T ZWT + IE ET ET = tr T WWT + 2 I , where tr (�) denotes the trace of a matrix. From Equation 10 and Equation 11 it follows that the prior distribution over actions is p (a) = N M, tr T WWT + 2 I . (12) (11)
-
-= - 2 tr T + WZT  ZT 
-T
-
--1 T
-
-+ M ZT 
-
+2
+where C = σ I + W W . Given this posterior distribution, we can now determine the equations of the
+expectation step
+h
+i
+(16)
+IE pθ (ZT φ|a) ZT φ = CWT (a − Mφ) ,
+old
+
+
+T 
+
+
+IE pθ (ZT φ|a) ZT φ ZT φ = Cσ2 tr φφT
+(17)
+old
+h
+i
+h
+iT
++IE pθ (ZT φ|a) ZT φ IE pθ (ZT φ|a) ZT φ .
+old
+old
+1. Maximization Step for M
+We use a maximum likelihood estimate to identify the
+value of M in each iteration. To this end, we calculate
+the derivative of the log-likelihood function w.r.t. M,
+
+∂ ln p (a)  −1  T
+= D aφ − MφφT ,
+(18)
+∂M
+
+
+
+where D = tr φφT WWT + σ2 I = DT . After inserting
+this result into the EM policy search framework and set
+the derivative to zero, we get
+ T
+
+X ∂ ln p (at ) Qπt 
+0 = IE pθold (τ) 
+(19)
+
+∂M
+t=1
+ T
+
+ T
+−1
+X at φT Qπ  
+X φφT Qπ 
+t 
+t 
+
+
+
+  IE pθold (τ) 
+
+ 
+⇔ M = IE pθold (τ) 
+T 
+T 
+t=1 tr φφ
+t=1 tr φφ
+such that M maximizes the log-likelihood function
+ln p (a).
+2. Maximization Step for W
+For optimizing W we have to use the new lower bound
+given in Equation 7 and set the derivative of this term
+w.r.t W to zero. Accordingly the derivative can be
+written as
+
+
+
+
+−1
+∂ ln p a, ZT φ
+= − σ2 tr φφT
+ ∂W
+
+T
+
+T
+
+T 
 (20)
-
-Now, in order to apply EM, we have to determine the posterior distribution p (Z|a) over matrices Z. The posterior distribution can be simplified by treating ZT  as a latent variable. Since the result of this product is a vector, we can use Bayes theorem for Gaussian variables [15, p.93] to derive the posterior distribution p ZT |a . Given both distributions p Z  = N 0, tr 
-T T
-
-from which follows that the optimal value of W that maximizes the log-likelihood is given by   T T   T (a - M) IE  t   pold (ZT |a) Z  Qt       W = IE pold ()      T   tr  t =1   -1 T        T IE p T ZT  ZT  Q     t  old (Z |at )                 IE .    pold ()      T         tr 
-t =1
-
-I
-
-(13)
+−a ZT φ + WZT φ ZT φ + Mφ ZT φ
+from which follows that the optimal value of W that
+maximizes the log-likelihood is given by
+
+
+h
+iT
+T
+π
+X
+T (a − Mφ) IE
+t
+
+pθold (ZT φ|a) Z φ Qt 
+
+
+
+
+W = IE pθold (τ) 
+T
+
+
+tr φφ
+t=1
+
+
+
+
+−1
+
+T
+T
+T
+π 
+
+X
+
+ T IE pθold (ZT φ|at ) Z φ Z φ Qt 
+IE pθ (τ) 
+ .
+
+
+
+ old 
+tr φφT
+t=1
 
 (21)
 
-3. Maximization Step for 2 Similarly to the estimation of W, we can also derivate the log-likelihood of ln p a, ZT  with respect to 2 in order to identify a new estimate of 2 with  ln p a, ZT 
--1 d 2 2 T + 2  tr  2 22 T T a - WZ  - M a - WZT  - M . (22)
+3. Maximization Step for σ2
+Similarly to the estimation
+ of W,
+ we can also derivate
+the log-likelihood of ln p a, ZT φ with respect to σ2 in
+order to identify a new estimate of σ2 with
 
-Input: Initialized parameters 2 0 , W0 and M0 and the dimensionality n of the low dimensional manifold. The function  (st , t) represents the feature vector for the policy. repeat
+Input: Initialized parameters σ20 , W0 and M0 and the
+dimensionality n of the low dimensional
+manifold. The function φ (st , t) represents the
+feature vector for the policy.
+repeat
 
-=-
+
 
-Setting the above derivative to zero leads to the following maximum-likelihood estimate of the variance:  T  -1 1  2  tr T  = IE pold ()    d t=1 (at - M)T (at - M) -2 (at - M)T WIE p (ZT |at ) ZT  old +tr IE p (ZT |at ) ZT T Z WT W Q t old   T -1               Qt      IE pold ()     . (23)
+
+∂ ln p a, ZT φ
+
+  2 
+−1
+d
+2
+T
++
+2
+σ
+tr
+φφ
+∂σ2
+2σ2
+
+T 
+
+T
+a − WZ φ − Mφ a − WZT φ − Mφ . (22)
+=−
+
+Setting the above derivative to zero leads to the following maximum-likelihood estimate of the variance:
+ T
+X   T −1
+1
+2
+tr φφ
+σ = IE pθold (τ) 
+d
+t=1
+
+(at − Mφ)T (at − Mφ)
+h
+i
+−2 (at − Mφ)T WIE pθ (ZT φ|at ) ZT φ
+old
+
+h
+i
+ #
+T
+T
+T
++tr IE pθ (ZT φ|at ) Z φφ Z W W Qπt
+old
+
+ T
+−1
+
+X π 
+Qt  . (23)
+IE pθ (τ) 
+
+Sampling:
+for h=1:H do # Sample the H rollouts
+for t=1:T do
+aht = Wi ZT φ + Mi φ + Eφ
+
+
+with Z ∼ N p,n (0, I) and E ∼ Nd,p 0, σ2i I
+Execute action aht
+
+
+Observe and store reward rt sht , aht
+Calculate weights:
+"
+#
+T
+P
+Qπ (s, a, t) = IE
+rt˜ (st˜, at˜) |st = s, at = a
+t˜=t
+
+Expectation:
+foreach aht do
+h
+i
+Compute IE pθ (ZT φ|aht ) ZT φ with (16).
+old
+
+
+T 
+Compute IE pθ (ZT φ|aht ) ZT φ ZT φ
+with (17).
+old
+
+old
+
 t=1
 
-Sampling: for h=1:H do # Sample the H rollouts for t=1:T do T ah t = Wi Z  + Mi  + E with Z  N p,n (0, I) and E  Nd, p 0, 2 iI Execute action ah t h Observe and store reward rt sh t , at Calculate weights: Q (s, a, t) = IE
-T ~=t t
+C. Complete Algorithm
+The resulting algorithm that implements all of the above
+steps can be found in Alg. 1. The initial values for the
+parameters σ2 , W and M can either be randomly chosen
+or initialized using a PPCA on a set of demonstrations.
+Additionally, the algorithm requires the number of latent
+dimensions n as input. After convergence, a policy is
+given by a weight matrix M which is multiplied by the
+feature vector φ (s, t) to receive an action for a given
+state and time.
+V. Experiments
+The PePPC Er Algorithm has been evaluated on a simulated and a real-world robot task. In this section, we will
+describe the experimental setup of these evaluations and
+present the achieved results in comparison to PoWER
+and the Covariance Matrix Adaptation Evolution Strategy (CMA-ES) [16] algorithm.
+A. Learning Inverse Kinematics
+In our first experiment, we will focus on learning inverse
+kinematics. A range of methods exist for analytically
+or numerically solving the inverse kinematics problem.
+However, various researchers have also looked at inverse
+kinematics from a machine learning point of view [17].
+In our experiment, we use a simulated robot with
+d hinge-joints and d + 1 segments. The goal of the
+simulated robot is to track the position of a sphere
+that is moving on a circle. Setting d to values higher
+than two results in a redundant system with more DOF
 
-rt~ (st~, at~) |st = s, at = a
+Maximization:
+Compute Mi+1 with (19).
+Compute Wi+1 with (21).
+Compute σ2i+1 with (23).
+until Mi ≈ Mi+1
+Output: Linear weights M for the feature vector φ.
 
-Expectation: foreach ah t do Compute IE p (ZT |ah ZT  with (16). t) old Compute IE p (ZT |ah ZT  ZT  t) old Maximization: Compute Mi+1 with (19). Compute Wi+1 with (21). Compute 2 i+1 with (23). until Mi  Mi+1 Output: Linear weights M for the feature vector .
-T
+Algorithm 1: Policy Search with Probabilistic Principle Component Exploration in the Action Space
+(PePPC Er)
 
-with (17).
+than required to accomplish the task. To learn inverse
+kinematics, we set the reward function to
+rt (st , at ) = e−D ,
 
-C. Complete Algorithm The resulting algorithm that implements all of the above steps can be found in Alg. 1. The initial values for the parameters 2 , W and M can either be randomly chosen or initialized using a PPCA on a set of demonstrations. Additionally, the algorithm requires the number of latent dimensions n as input. After convergence, a policy is given by a weight matrix M which is multiplied by the feature vector  (s, t) to receive an action for a given state and time. V. Experiments The PePP C Er Algorithm has been evaluated on a simulated and a real-world robot task. In this section, we will describe the experimental setup of these evaluations and present the achieved results in comparison to PoWER and the Covariance Matrix Adaptation Evolution Strategy (CMA-ES) [16] algorithm. A. Learning Inverse Kinematics In our first experiment, we will focus on learning inverse kinematics. A range of methods exist for analytically or numerically solving the inverse kinematics problem. However, various researchers have also looked at inverse kinematics from a machine learning point of view [17]. In our experiment, we use a simulated robot with d hinge-joints and d + 1 segments. The goal of the simulated robot is to track the position of a sphere that is moving on a circle. Setting d to values higher than two results in a redundant system with more DOF
+(24)
 
-Algorithm 1: Policy Search with Probabilistic Principle Component Exploration in the Action Space (PePP C Er)
-
-than required to accomplish the task. To learn inverse kinematics, we set the reward function to rt (st , at ) = e-D , (24)
-
-where D is the distance of the end-effector to the target, when action at is executed. Then, we use PePP C Er to determine a suitable policy for the task. During the optimization process, PePP C Er uncovers the redundancies of the system by determining the low-dimensional latent space of joint angle configurations that lead to touching the target. The latent space models the co-articulation of different links. An example result of a learned policy can be found in Fig. 2. As can be seen in the figure, a 20 linked robot arm successfully tracks the target along a circular path. We ran the explained setup with different specifications of policy search algorithms resulting in the graph depicted in Fig. 3. The graph depicts the sum
+where D is the distance of the end-effector to the
+target, when action at is executed. Then, we use PePPC Er
+to determine a suitable policy for the task. During the
+optimization process, PePPC Er uncovers the redundancies
+of the system by determining the low-dimensional latent
+space of joint angle configurations that lead to touching
+the target. The latent space models the co-articulation
+of different links. An example result of a learned policy
+can be found in Fig. 2. As can be seen in the figure, a
+20 linked robot arm successfully tracks the target along
+a circular path.
+We ran the explained setup with different specifications of policy search algorithms resulting in the
+graph depicted in Fig. 3. The graph depicts the sum
 
 60
 
+Sum. Distances
+
 50
 
-Sum. Distances
+Fig. 2: A tentacle-like robot with 20 links tracks a target
+along a circular path.
 
 40
 
 30
-
-Fig. 2: A tentacle-like robot with 20 links tracks a target along a circular path. of distances of the end-effector to the target positions. For a balance evaluation, we compared to two different implementations of the PoWER algorithm. In one implementation the 2 was static, while in the other implementation an automatic adaptation of a diagonal covariance matrix was performed. This feature was also implemented in the PePP C Er algorithm, which results in a slightly different update equation for 2 . In each iteration 30 samples were drawn and executed on a simulated 20-linked robot. As features we used 19 time-dependent Gaussians, so we had to estimate 380 parameters for 50 time steps. We repeated each experiment 10 times and calculated the mean (bold lines) and standard deviation of the results (light colors around the mean). The figure shows that PePP C Er outperforms CMA-ES and PoWER. In particular in the early iterations both policy search methods perform comparatively well. At the same time, we can see that both PoWER implementations start to stagnate at around 50 iterations. PePP C Er continues to reduce the distance to the targets.
 
 20
 
@@ -188,13 +785,38 @@ Fig. 2: A tentacle-like robot with 20 links tracks a target along a circular pat
 
 0
 
+of distances of the end-effector to the target positions.
+For a balance evaluation, we compared to two different implementations of the PoWER algorithm. In one
+implementation the σ2 was static, while in the other
+implementation an automatic adaptation of a diagonal
+covariance matrix was performed. This feature was also
+implemented in the PePPC Er algorithm, which results in
+a slightly different update equation for σ2 . In each iteration 30 samples were drawn and executed on a simulated
+20-linked robot. As features we used 19 time-dependent
+Gaussians, so we had to estimate 380 parameters for 50
+time steps. We repeated each experiment 10 times and
+calculated the mean (bold lines) and standard deviation
+of the results (light colors around the mean). The figure
+shows that PePPC Er outperforms CMA-ES and PoWER.
+In particular in the early iterations both policy search
+methods perform comparatively well. At the same time,
+we can see that both PoWER implementations start to
+stagnate at around 50 iterations. PePPC Er continues to
+reduce the distance to the targets.
+
 1
 
 2
 
 3
 
-4 5 6 7 8 9 Number of Latent Dimensions
+4
+5
+6
+7
+8
+9
+Number of Latent Dimensions
 
 10
 
@@ -202,16 +824,152 @@ Fig. 2: A tentacle-like robot with 20 links tracks a target along a circular pat
 
 12
 
-Fig. 4: The mean sum of distances and the standard deviation between the 450th and 500th iteration for an 12-linked robot. Five solutions were learned by PePP C Er for different values of the dimensionality n of the latent space. latent space was set to n = 5. In order to evaluate the effect of this parameter on the results, we repeated the evaluation of PePP C Er with varying values for n in an inverse kinematics task for a 12-linked robot, as can be seen in Fig. 4. In the depicted graph, we can see a bump in the average distance at around 5 and 9 dimensions. This is an interesting phenomenon of latent space policy search: too small a value for n restricts the search space, too high a value for n diminishes the effect of dimensionality reduction. In our specific example, the best value for n seems to be 4 or 5. B. Learning to Stand on One Leg We also performed a learning task on a real robot. More specifically, we used PePP C Er to learn policies for standing on one leg. The task of standing on one leg is a synergistic motor skill that requires the co-articulation of different body parts for successful execution. It is often used in biomechanical studies on synergies and low-dimensional control in humans, such as in [18]. In our experiment, we set the episodic reward of the robot proportional to the height of the right leg after execution of the policy. Furthermore, we have to consider in our reward function, that the head and the right foot of the robot should not move a lot. Hence, the reward function can be written as R(h, rf , lf ) = exp { � h +  � rf -  � lf - MAX } , (25) where , ,   R+ , h is the height of the head, rf the height of the right foot and lf the height of the left foot in the final position. The constant MAX is the maximal possible value of the first part of the sum. The height of the head is responsible for a low reward if the robot falls
+Fig. 4: The mean sum of distances and the standard
+deviation between the 450th and 500th iteration for an
+12-linked robot. Five solutions were learned by PePPC Er
+for different values of the dimensionality n of the latent
+space.
+latent space was set to n = 5. In order to evaluate
+the effect of this parameter on the results, we repeated
+the evaluation of PePPC Er with varying values for n in
+an inverse kinematics task for a 12-linked robot, as
+can be seen in Fig. 4. In the depicted graph, we can
+see a bump in the average distance at around 5 and 9
+dimensions. This is an interesting phenomenon of latent
+space policy search: too small a value for n restricts the
+search space, too high a value for n diminishes the effect
+of dimensionality reduction. In our specific example, the
+best value for n seems to be 4 or 5.
+B. Learning to Stand on One Leg
 
-Fig. 3: Comparison between PePP C Er, PoWER and CMA-ES on the inverse kinematics task with a 20linked robot. In each iteration we executed 30 different joint configurations on the simulated robot. For the static PoWER we set  = 15. For the dynamic PoWER and PePP C Er we computed the diagonal covariance matrix. In the above experiment, the dimensionality of the
+Fig. 3: Comparison between PePPC Er, PoWER and
+CMA-ES on the inverse kinematics task with a 20linked robot. In each iteration we executed 30 different
+joint configurations on the simulated robot. For the static
+PoWER we set σ = 15. For the dynamic PoWER and
+PePPC Er we computed the diagonal covariance matrix.
+In the above experiment, the dimensionality of the
 
-Acknowledgment The research leading to these results has received funding from the European Union under grant agreement #270327 (CompLACS). References
-[1] A. Y. Ng, A. Coates, M. Diel, V. Ganapathi, J. Schulte, B. Tse, E. Berger, and E. Liang, "Autonomous inverted helicopter flight via reinforcement learning," in Proceedings of the International Symposium on Experimental Robotics, 2004, pp. 363�372. [2] K. Muelling, J. Kober, O. Kroemer, and J. Peters, "Learning to select and generalize striking movements in robot table tennis," International Journal of Robotics Research, no. 3, pp. 263�279, 2013. [3] J. Zico Kolter and A. Y. Ng, "The stanford littledog: A learning and rapid replanning approach to quadruped locomotion," Int. J. Rob. Res., vol. 30, no. 2, pp. 150�174, Feb. 2011. [4] J. Kober and J. Peters, "Reinforcement learning in robotics: a survey," in Reinforcement Learning. Springer Berlin Heidelberg, 2012, pp. 579�610. [5] M. P. Deisenroth, G. Neumann, and J. Peters, "A survey on policy search for robotics," Foundations and Trends in Robotics, vol. 2, no. 12, pp. 1�142, 2013. [6] J. Z. Kolter and A. Y. Ng, "Learning omnidirectional path following using dimensionality reduction," in in Proceedings of Robotics: Science and Systems, 2007. [7] S. Bitzer, M. Howard, and S. Vijayakumar, "Using dimensionality reduction to exploit constraints in reinforcement learning," in Intelligent Robots and Systems (IROS), 2010 IEEE/RSJ International Conference on, Oct 2010, pp. 3219�3225. [8] C. L. Nehaniv and K. Dautenhahn, "Imitation in animals and artifacts," K. Dautenhahn and C. L. Nehaniv, Eds. Cambridge, MA, USA: MIT Press, 2002, ch. The Correspondence Problem, pp. 41�61. [9] R. S. Sutton and A. G. Barto, Reinforcement Learning: An Introduction. MIT Press, 1998. [10] M. E. Tipping and C. M. Bishop, "Probabilistic principal component analysis," Journal of the Royal Statistical Society, Series B, vol. 61, pp. 611�622, 1999. [11] J. Kober and J. Peters, "Policy search for motor primitives in robotics," Machine Learning, vol. 84, no. 1-2, pp. 171�203, 2011. [12] J. Peters and S. Schaal, "Reinforcement learning of motor skills with policy gradients," Neural networks, vol. 21, no. 4, pp. 682� 697, 2008. [13] A. K. Gupta and D. K. Nagar, Matrix variate distributions. CRC Press, 2000, vol. 104. [14] C. Daniel, G. Neumann, and J. Peters, "Learning concurrent motor skills in versatile solution spaces," in Intelligent Robots and Systems (IROS), 2012 IEEE/RSJ International Conference on, Oct 2012, pp. 3591�3597. [15] C. M. Bishop and N. M. Nasrabadi, Pattern recognition and machine learning. Springer New York, 2006, vol. 1. [16] N. Hansen, S. Muller, and P. Koumoutsakos, "Reducing the time complexity of the derandomized evolution strategy with covariance matrix adaptation (CMA-ES)." Evolutionary Computation, vol. 11, no. 1, pp. 1�18, 2003. [17] K. Grochow, S. L. Martin, A. Hertzmann, and Z. Popovi� c, "Stylebased inverse kinematics," ACM Trans. Graph., vol. 23, no. 3, pp. 522�531, Aug. 2004. [18] G. Torres-Oviedo and L. H. Ting, "Subject-specific muscle synergies in human balance control are consistent across different biomechanical contexts," Journal of neurophysiology, vol. 103, no. 6, pp. 3084�3098, 2010.
-Policy 2 Policy 1
+We also performed a learning task on a real robot.
+More specifically, we used PePPC Er to learn policies for
+standing on one leg. The task of standing on one leg is
+a synergistic motor skill that requires the co-articulation
+of different body parts for successful execution. It is
+often used in biomechanical studies on synergies and
+low-dimensional control in humans, such as in [18]. In
+our experiment, we set the episodic reward of the robot
+proportional to the height of the right leg after execution
+of the policy. Furthermore, we have to consider in our
+reward function, that the head and the right foot of the
+robot should not move a lot. Hence, the reward function
+can be written as
+R(h, rf , lf ) = exp {α · h + β · rf − γ · lf − λMAX } , (25)
+where α, β, γ ∈ R+ , h is the height of the head, rf the
+height of the right foot and lf the height of the left foot
+in the final position. The constant λMAX is the maximal
+possible value of the first part of the sum. The height of
+the head is responsible for a low reward if the robot falls
 
-Fig. 5: Two different policies for standing on one leg learned using latent space policy search. Only 100 samples were needed to learn policy 1.
+Acknowledgment
+Policy 1
 
-during learning. As features, time-dependent Gaussians were used in this experiment.Actions were represented by the change in the 25 robot joint angles between two consecutive time steps. The goal in robot learning is to learn from few trials. We therefore restricted the maximum number of samples (executions on the robot) to 600 samples. For automation and repeatability purposes, learning was performed in a physics-based simulator. However, we want to stress that, given the relatively small number of trials needed by PePP C Er to learn a policy, we can also perform learning directly on the real robot. Fig. 5 shows two learned policies acquired using PePP C Er. Learning started from random initializations and did not require any demonstrations. Policy 1 was learned using a sample size of 20 samples and 5 iterations, i.e., 100 execution on the robot in total. We can see, that it results in a smooth and stable motor skill. Policy 2 required 600 evaluations in total and allows the robot to lift the leg even higher. VI. CONCLUSIONS In this paper we presented a novel policy search algorithm for robotics applications. The PePP C Er algorithm determines the correlations between different joints of the robot and uses the information for fast and efficient reinforcement learning. The presented method combines policy search and dimensionality reduction in a natural way and has been derived from basic principles. Applications on a simulated and a real robot indicate that the approach can be employed to learn new motor skills for complex, redundant robots using a relatively small number of trials on the robot. In our future work we want to combine the introduced approach with imitation learning, in order to start in a good region of the search space. Additionally, we want to investigate methods for identifying the dimensionality of the current task.
+The research leading to these results has received
+funding from the European Union under grant agreement
+#270327 (CompLACS).
+
+Policy 2
+
+References
+
+Fig. 5: Two different policies for standing on one leg
+learned using latent space policy search. Only 100
+samples were needed to learn policy 1.
+
+during learning. As features, time-dependent Gaussians
+were used in this experiment.Actions were represented
+by the change in the 25 robot joint angles between two
+consecutive time steps.
+The goal in robot learning is to learn from few trials.
+We therefore restricted the maximum number of samples
+(executions on the robot) to 600 samples. For automation
+and repeatability purposes, learning was performed in
+a physics-based simulator. However, we want to stress
+that, given the relatively small number of trials needed
+by PePPC Er to learn a policy, we can also perform
+learning directly on the real robot. Fig. 5 shows two
+learned policies acquired using PePPC Er. Learning started
+from random initializations and did not require any
+demonstrations. Policy 1 was learned using a sample
+size of 20 samples and 5 iterations, i.e., 100 execution
+on the robot in total. We can see, that it results in a
+smooth and stable motor skill. Policy 2 required 600
+evaluations in total and allows the robot to lift the leg
+even higher.
+VI. CONCLUSIONS
+In this paper we presented a novel policy search algorithm for robotics applications. The PePPC Er algorithm
+determines the correlations between different joints of
+the robot and uses the information for fast and efficient
+reinforcement learning. The presented method combines
+policy search and dimensionality reduction in a natural
+way and has been derived from basic principles. Applications on a simulated and a real robot indicate that
+the approach can be employed to learn new motor skills
+for complex, redundant robots using a relatively small
+number of trials on the robot. In our future work we
+want to combine the introduced approach with imitation
+learning, in order to start in a good region of the search
+space. Additionally, we want to investigate methods for
+identifying the dimensionality of the current task.
+
+[1] A. Y. Ng, A. Coates, M. Diel, V. Ganapathi, J. Schulte, B. Tse,
+E. Berger, and E. Liang, “Autonomous inverted helicopter flight
+via reinforcement learning,” in Proceedings of the International
+Symposium on Experimental Robotics, 2004, pp. 363–372.
+[2] K. Muelling, J. Kober, O. Kroemer, and J. Peters, “Learning to
+select and generalize striking movements in robot table tennis,”
+International Journal of Robotics Research, no. 3, pp. 263–279,
+2013.
+[3] J. Zico Kolter and A. Y. Ng, “The stanford littledog: A learning
+and rapid replanning approach to quadruped locomotion,” Int. J.
+Rob. Res., vol. 30, no. 2, pp. 150–174, Feb. 2011.
+[4] J. Kober and J. Peters, “Reinforcement learning in robotics: a
+survey,” in Reinforcement Learning. Springer Berlin Heidelberg,
+2012, pp. 579–610.
+[5] M. P. Deisenroth, G. Neumann, and J. Peters, “A survey on policy
+search for robotics,” Foundations and Trends in Robotics, vol. 2,
+no. 12, pp. 1–142, 2013.
+[6] J. Z. Kolter and A. Y. Ng, “Learning omnidirectional path
+following using dimensionality reduction,” in in Proceedings of
+Robotics: Science and Systems, 2007.
+[7] S. Bitzer, M. Howard, and S. Vijayakumar, “Using dimensionality reduction to exploit constraints in reinforcement learning,”
+in Intelligent Robots and Systems (IROS), 2010 IEEE/RSJ International Conference on, Oct 2010, pp. 3219–3225.
+[8] C. L. Nehaniv and K. Dautenhahn, “Imitation in animals and
+artifacts,” K. Dautenhahn and C. L. Nehaniv, Eds. Cambridge,
+MA, USA: MIT Press, 2002, ch. The Correspondence Problem,
+pp. 41–61.
+[9] R. S. Sutton and A. G. Barto, Reinforcement Learning: An
+Introduction. MIT Press, 1998.
+[10] M. E. Tipping and C. M. Bishop, “Probabilistic principal component analysis,” Journal of the Royal Statistical Society, Series
+B, vol. 61, pp. 611–622, 1999.
+[11] J. Kober and J. Peters, “Policy search for motor primitives in
+robotics,” Machine Learning, vol. 84, no. 1-2, pp. 171–203, 2011.
+[12] J. Peters and S. Schaal, “Reinforcement learning of motor skills
+with policy gradients,” Neural networks, vol. 21, no. 4, pp. 682–
+697, 2008.
+[13] A. K. Gupta and D. K. Nagar, Matrix variate distributions. CRC
+Press, 2000, vol. 104.
+[14] C. Daniel, G. Neumann, and J. Peters, “Learning concurrent
+motor skills in versatile solution spaces,” in Intelligent Robots
+and Systems (IROS), 2012 IEEE/RSJ International Conference
+on, Oct 2012, pp. 3591–3597.
+[15] C. M. Bishop and N. M. Nasrabadi, Pattern recognition and
+machine learning. Springer New York, 2006, vol. 1.
+[16] N. Hansen, S. Muller, and P. Koumoutsakos, “Reducing the time
+complexity of the derandomized evolution strategy with covariance matrix adaptation (CMA-ES).” Evolutionary Computation,
+vol. 11, no. 1, pp. 1–18, 2003.
+[17] K. Grochow, S. L. Martin, A. Hertzmann, and Z. Popović, “Stylebased inverse kinematics,” ACM Trans. Graph., vol. 23, no. 3,
+pp. 522–531, Aug. 2004.
+[18] G. Torres-Oviedo and L. H. Ting, “Subject-specific muscle
+synergies in human balance control are consistent across different
+biomechanical contexts,” Journal of neurophysiology, vol. 103,
+no. 6, pp. 3084–3098, 2010.
 
 
