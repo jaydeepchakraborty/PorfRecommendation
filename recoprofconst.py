@@ -33,6 +33,15 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy import sparse
 
+from sklearn.model_selection import LeaveOneOut
+
+
+import matplotlib.pyplot as plt
+
+from sklearn.decomposition import PCA
+
+from sklearn.cluster import KMeans
+
 
 
 
@@ -41,3 +50,9 @@ prof_topic_file_path = "data/latenteq/"
 prof_pdf_path = "data/papers/"
 prof_topic_vis_path = "data/topicvisual/"
 prof_topic_dist_path = "data/topicdist/"
+prof_topic_matrix_path = "data/topicmatrix/"
+
+
+#constants
+topics = 30
+words = 20
