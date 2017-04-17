@@ -2,11 +2,11 @@
 This file is for generating similar professor
 '''
 from recoprofconst import *
+from sklearn.cluster.hierarchical import AgglomerativeClustering
 
 lsa_csv = prof_topic_matrix_path+"lsa-topic-matrix.csv"
 lda_csv = prof_topic_matrix_path+"lda-topic-matrix.csv"
 hdp_csv = prof_topic_matrix_path+"hdp-topic-matrix.csv"
-num_cluster = 5
 
 def reduceDimension(prof_data,prof_nm_lst_np,figure_nm):
     #pca  = PCA(0.72)#I want 95% data is to be preserved
@@ -25,33 +25,22 @@ def reduceDimension(prof_data,prof_nm_lst_np,figure_nm):
      
 
 def predictClusterIndex(prof_data,prof_nm_lst_np):
-   
-   standardized_prof_data = preprocessing.scale(prof_data)
    normalized_prof_data = preprocessing.normalize(prof_data)
-   
+   standardized_prof_data = preprocessing.scale(prof_data)
    
    reduceDimension(prof_data,prof_nm_lst_np,'actual')
    reduceDimension(normalized_prof_data,prof_nm_lst_np,'normalized')
    reduceDimension(standardized_prof_data,prof_nm_lst_np,'standardized')
-   
-   km = KMeans(n_clusters=num_cluster, random_state=0).fit(normalized_prof_data)
-   pred_cluster = km.predict(normalized_prof_data)
-   
-   
-   #silhouette score of kmeans clustering
-   silhouette_avg = silhouette_score(normalized_prof_data,pred_cluster)
-   print("silhouette_avg is --> "+str(silhouette_avg))
-   
-   return pred_cluster
+
+   indices = pairwise_distances(prof_data,metric='cosine')
+  # print(indices)
+   return indices
    
 
 
-def func_kmeans():
+def func_us_knn():
     try: 
         prof_data = np.genfromtxt(hdp_csv, delimiter=',')
-        
-        print("mean of the data --> "+str(np.mean(np.array(prof_data))))
-        print("standard deviation of the data --> "+str(np.std(np.array(prof_data))))
        
         
         prof_nm_lst = []
@@ -60,18 +49,18 @@ def func_kmeans():
         
      
         prof_nm_lst_np = np.array(prof_nm_lst)
-        pred = predictClusterIndex(prof_data,prof_nm_lst_np)
-        for clust_ind in range(num_cluster):
-            i, = np.where( pred == clust_ind)
-            print("-------------------------In cluster "+str(clust_ind)+"-------------------------")
-            print(prof_nm_lst_np[i])
-        
-        print("--------------------------------------------------")
-        print(pred)
+        preds = predictClusterIndex(prof_data,prof_nm_lst_np)
+        for pred in preds:
+            print(pred)
+            np_pred = np.argsort(np.array(pred))[:6]
+            print(np_pred)
+            for pred_val in np_pred:
+                print(prof_nm_lst[pred_val] + " -- ")
+            print('\n')
     except:
         traceback.print_exc()
 
-func_kmeans()   
+func_us_knn()   
 
 print("---END---")
 

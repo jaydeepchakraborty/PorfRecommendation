@@ -2,6 +2,7 @@
 This file is for generating similar professor
 '''
 from recoprofconst import *
+from sklearn.cluster.hierarchical import AgglomerativeClustering
 
 lsa_csv = prof_topic_matrix_path+"lsa-topic-matrix.csv"
 lda_csv = prof_topic_matrix_path+"lda-topic-matrix.csv"
@@ -25,17 +26,15 @@ def reduceDimension(prof_data,prof_nm_lst_np,figure_nm):
      
 
 def predictClusterIndex(prof_data,prof_nm_lst_np):
-   
-   standardized_prof_data = preprocessing.scale(prof_data)
    normalized_prof_data = preprocessing.normalize(prof_data)
-   
+   standardized_prof_data = preprocessing.scale(prof_data)
    
    reduceDimension(prof_data,prof_nm_lst_np,'actual')
    reduceDimension(normalized_prof_data,prof_nm_lst_np,'normalized')
    reduceDimension(standardized_prof_data,prof_nm_lst_np,'standardized')
    
-   km = KMeans(n_clusters=num_cluster, random_state=0).fit(normalized_prof_data)
-   pred_cluster = km.predict(normalized_prof_data)
+   hierar_clust = AgglomerativeClustering(n_clusters=num_cluster)
+   pred_cluster = hierar_clust.fit_predict(normalized_prof_data)
    
    
    #silhouette score of kmeans clustering
@@ -46,12 +45,9 @@ def predictClusterIndex(prof_data,prof_nm_lst_np):
    
 
 
-def func_kmeans():
+def func_hierarchical_clust():
     try: 
         prof_data = np.genfromtxt(hdp_csv, delimiter=',')
-        
-        print("mean of the data --> "+str(np.mean(np.array(prof_data))))
-        print("standard deviation of the data --> "+str(np.std(np.array(prof_data))))
        
         
         prof_nm_lst = []
@@ -71,7 +67,7 @@ def func_kmeans():
     except:
         traceback.print_exc()
 
-func_kmeans()   
+func_hierarchical_clust()   
 
 print("---END---")
 

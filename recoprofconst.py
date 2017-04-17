@@ -37,11 +37,15 @@ from sklearn.model_selection import LeaveOneOut
 
 
 import matplotlib.pyplot as plt
+from sklearn import preprocessing
+
+from sklearn.metrics import silhouette_score
 
 from sklearn.decomposition import PCA
 
 from sklearn.cluster import KMeans
-
+from sklearn.metrics.pairwise import pairwise_distances
+from sklearn.neighbors import NearestNeighbors
 
 
 
