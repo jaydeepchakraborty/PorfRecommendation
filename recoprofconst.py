@@ -1,3 +1,8 @@
+from threading import Thread
+
+from selenium import webdriver
+from selenium.webdriver.support.wait import WebDriverWait
+
 import traceback
 from threading import Thread
 #sudo pip3 install -U nltk
@@ -27,36 +32,50 @@ import os
 
 import time
 
+import pprint
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from sklearn.metrics.pairwise import cosine_similarity
-from scipy import sparse
-
 from sklearn.model_selection import LeaveOneOut
-
-
-import matplotlib.pyplot as plt
 from sklearn import preprocessing
-
-from sklearn.metrics import silhouette_score
-
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.metrics import silhouette_score,calinski_harabaz_score
 from sklearn.decomposition import PCA
-
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.neighbors import NearestNeighbors
 
 
+from scipy.spatial.distance import cdist
+from scipy.spatial.distance import pdist
+from scipy import sparse
+from scipy.cluster.hierarchy import dendrogram,linkage
 
-prof_lst_file_nm = "data/faculty_list.txt"
+
+import itertools
+
+import dblp_scrapper
+
+
+paper_nm_path = "data/papernm/"
+# prof_lst_file_nm = "data/faculty_list.txt"
+prof_lst_file_nm = "data/faculty_list_tmp.txt"
 prof_topic_file_path = "data/latenteq/"
 prof_pdf_path = "data/papers/"
 prof_topic_vis_path = "data/topicvisual/"
 prof_topic_dist_path = "data/topicdist/"
 prof_topic_matrix_path = "data/topicmatrix/"
 
+driver_name = "webdriver.chrome.driver"
+#sudo apt-get install chromium-chromedriver
+driver_path = "/usr/lib/chromium-browser/chromedriver"
+
+dblp_url = "http://dblp.uni-trier.de/"
+
 
 #constants
 topics = 30
 words = 20
+time_to_wait = 30
