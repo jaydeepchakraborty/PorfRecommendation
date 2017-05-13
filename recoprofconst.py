@@ -58,6 +58,8 @@ import itertools
 
 import dblp_scrapper
 
+from lxml import etree
+
 
 paper_nm_path = "data/papernm/"
 # prof_lst_file_nm = "data/faculty_list.txt"
