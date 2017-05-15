@@ -56,6 +56,8 @@ from scipy.cluster.hierarchy import dendrogram,linkage
 
 import itertools
 
+import urllib
+
 import dblp_scrapper
 
 from lxml import etree
