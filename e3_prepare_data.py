@@ -19,13 +19,13 @@ try:
             prof_nm_lst.append("".join(prof.split()))
     
     for prof in prof_nm_lst:
-        final_outfile = open(prof_pdf_path+prof+"/"+prof+".dat", 'w')
+        final_outfile = open(prof_pdf_path+prof+".dat", 'w+')
         final_outfile.seek(0)
         final_outfile.truncate()
-        for file in os.listdir(prof_pdf_path+prof):
+        for file in os.listdir(prof_local_pdf_path+prof):
             if file.endswith(".pdf"):
-                input=os.path.abspath(prof_pdf_path+prof+"/"+file)
-                output=os.path.abspath(prof_pdf_path+prof+"/"+file)+".txt"
+                input=os.path.abspath(prof_local_pdf_path+prof+"/"+file)
+                output=os.path.abspath(prof_local_pdf_path+prof+"/"+file)+".txt"
                 #sudo apt-get install poppler-utils   ---> install with this command
                 #which pdftotext ---> Get the path of  pdftotext
                 subprocess.call("/usr/bin/pdftotext %s %s" % (input,output), shell=True)
