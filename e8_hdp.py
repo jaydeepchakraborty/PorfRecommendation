@@ -16,7 +16,7 @@ def writeProbEq(proflst):
     #list all the documents(only texts) for a professor  
     prof_doc_set = []
     for prof in proflst:
-        with open(prof_pdf_path + prof + "/" + prof+".dat", 'r', encoding='latin-1') as prof_file:
+        with open(prof_pdf_path + prof +".dat", 'r', encoding='latin-1') as prof_file:
                 prof_doc_set.append(prof_file.read().replace('\n', ' '))
     
     
@@ -64,10 +64,11 @@ def writeProbEq(proflst):
         for model in hdp_model.show_topics(formatted=True,num_topics=topics,num_words=words):
             hdp_latent_topic_file.write(str(model))
             hdp_latent_topic_file.write("\n")
-          
+        print("hdp.txt is done")  
         hdp_data = pyLDAvis.gensim.prepare(hdp_model,corpus,dictionary)
         pyLDAvis.display(hdp_data)
         pyLDAvis.save_html(hdp_data, prof_topic_vis_file_nm+"hdp.html")
+        print("hdp.html is done")
     except:
         traceback.print_exc()
         pass 
@@ -84,7 +85,7 @@ def writeProbEq(proflst):
         topic_dist_hdp_file.write(str(prof+","+str(prof_topics_hdp_dist)))
         topic_dist_hdp_file.write("\n")
 
-
+    print("hdp-topic-dist.txt is done")
 
 
 prof_nm_lst = []

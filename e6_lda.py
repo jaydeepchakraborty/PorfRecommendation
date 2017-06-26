@@ -16,7 +16,7 @@ def writeProbEq(proflst):
     #list all the documents(only texts) for a professor  
     prof_doc_set = []
     for prof in proflst:
-        with open(prof_pdf_path + prof + "/" + prof+".dat", 'r', encoding='latin-1') as prof_file:
+        with open(prof_pdf_path + prof+".dat", 'r', encoding='latin-1') as prof_file:
                 prof_doc_set.append(prof_file.read().replace('\n', ' '))
     
     

@@ -19,8 +19,9 @@ with open(prof_topic_dist_path +"hdp-topic-dist.txt", 'r', encoding='latin-1') a
                 txt_line_arr = line[frst_ind+1:last_ind]
                 tmp_arr = txt_line_arr.split(",")
                 arr_index = int(tmp_arr[0])
-                arr_value = float(tmp_arr[1].strip())
-                line_arr[arr_index] = arr_value
+                if arr_index<topics:
+                    arr_value = float(tmp_arr[1].strip())
+                    line_arr[arr_index] = arr_value
             hdp_arr.append(line_arr)
 
 hdp_np_arr =  np.asarray(hdp_arr)

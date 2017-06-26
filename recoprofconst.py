@@ -91,7 +91,7 @@ dblp_url = "http://dblp.uni-trier.de/"
 
 
 #constants
-topics = 30
+topics = 15
 words = 20
 time_to_wait = 30
 time_to_download = 60
