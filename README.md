@@ -144,8 +144,8 @@ We have plotted the data in 2d space by using PCA (Principal Component Analysis)
   </tr>
 </table>
 
-We have plotted the histogram of each attribute or column for each algorithm to check the data distribution.
-LSA Data Histogram
+We have plotted the histogram of each attribute or column for each algorithm to check the data distribution.</br>
+- LSA Data Histogram
 <table>
   <tr>
     <td><img width="150" height="200" alt="LSA_V1" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V1.jpeg"></td>
@@ -169,3 +169,56 @@ LSA Data Histogram
     <td><img width="150" height="200" alt="LSA_V15" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V15.jpeg"></td>
   </tr>
 </table>
+
+- LDA Data Histogram
+
+<table>
+  <tr>
+    <td><img width="150" height="200" alt="LDA_V1" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V1.jpeg"></td>
+    <td><img width="150" height="200" alt="LDA_V2" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V2.jpeg"></td>
+    <td><img width="150" height="200" alt="LDA_V3" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V3.jpeg"></td>
+     <td><img width="150" height="200" alt="LDA_V4" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V4.jpeg"></td>
+    <td><img width="150" height="200" alt="LDA_V5" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V5.jpeg"></td>
+  </tr>
+  <tr>
+    <td><img width="150" height="200" alt="LDA_V6" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V6.jpeg"></td>
+    <td><img width="150" height="200" alt="LDA_V7" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V7.jpeg"></td>
+    <td><img width="150" height="200" alt="LDA_V8" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V8.jpeg"></td>
+     <td><img width="150" height="200" alt="LDA_V9" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V9.jpeg"></td>
+    <td><img width="150" height="200" alt="LDA_V10" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V10.jpeg"></td>
+  </tr>
+  <tr>
+    <td><img width="150" height="200" alt="LDA_V11" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V11.jpeg"></td>
+    <td><img width="150" height="200" alt="LDA_V12" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V12.jpeg"></td>
+    <td><img width="150" height="200" alt="LDA_V13" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V13.jpeg"></td>
+     <td><img width="150" height="200" alt="LDA_V14" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V14.jpeg"></td>
+    <td><img width="150" height="200" alt="LDA_V15" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_V15.jpeg"></td>
+  </tr>
+</table>
+
+- HDP Data Histogram
+
+<table>
+  <tr>
+    <td><img width="150" height="200" alt="HDP_V1" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V1.jpeg"></td>
+    <td><img width="150" height="200" alt="HDP_V2" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V2.jpeg"></td>
+    <td><img width="150" height="200" alt="HDP_V3" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V3.jpeg"></td>
+     <td><img width="150" height="200" alt="HDP_V4" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V4.jpeg"></td>
+    <td><img width="150" height="200" alt="HDP_V5" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V5.jpeg"></td>
+  </tr>
+  <tr>
+    <td><img width="150" height="200" alt="HDP_V6" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V6.jpeg"></td>
+    <td><img width="150" height="200" alt="HDP_V7" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V7.jpeg"></td>
+    <td><img width="150" height="200" alt="HDP_V8" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V8.jpeg"></td>
+     <td><img width="150" height="200" alt="HDP_V9" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V9.jpeg"></td>
+    <td><img width="150" height="200" alt="HDP_V10" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V10.jpeg"></td>
+  </tr>
+  <tr>
+    <td><img width="150" height="200" alt="HDP_V11" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V11.jpeg"></td>
+    <td><img width="150" height="200" alt="HDP_V12" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V12.jpeg"></td>
+    <td><img width="150" height="200" alt="HDP_V13" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V13.jpeg"></td>
+     <td><img width="150" height="200" alt="HDP_V14" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V14.jpeg"></td>
+    <td><img width="150" height="200" alt="HDP_V15" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_V15.jpeg"></td>
+  </tr>
+</table>
+
