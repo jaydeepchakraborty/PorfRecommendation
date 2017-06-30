@@ -143,3 +143,29 @@ We have plotted the data in 2d space by using PCA (Principal Component Analysis)
     <td><img width="250" height="250" alt="HDP_2D_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_2D_PLOT.jpeg"></td>
   </tr>
 </table>
+
+We have plotted the histogram of each attribute or column for each algorithm to check the data distribution.
+LSA Data Histogram
+<table>
+  <tr>
+    <td><img width="150" height="200" alt="LSA_V1" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V1.jpeg"></td>
+    <td><img width="150" height="200" alt="LSA_V2" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V2.jpeg"></td>
+    <td><img width="150" height="200" alt="LSA_V3" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V3.jpeg"></td>
+     <td><img width="150" height="200" alt="LSA_V4" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V4.jpeg"></td>
+    <td><img width="150" height="200" alt="LSA_V5" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V5.jpeg"></td>
+  </tr>
+  <tr>
+    <td><img width="150" height="200" alt="LSA_V6" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V6.jpeg"></td>
+    <td><img width="150" height="200" alt="LSA_V7" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V7.jpeg"></td>
+    <td><img width="150" height="200" alt="LSA_V8" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V8.jpeg"></td>
+     <td><img width="150" height="200" alt="LSA_V9" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V9.jpeg"></td>
+    <td><img width="150" height="200" alt="LSA_V10" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V10.jpeg"></td>
+  </tr>
+  <tr>
+    <td><img width="150" height="200" alt="LSA_V11" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V11.jpeg"></td>
+    <td><img width="150" height="200" alt="LSA_V12" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V12.jpeg"></td>
+    <td><img width="150" height="200" alt="LSA_V13" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V13.jpeg"></td>
+     <td><img width="150" height="200" alt="LSA_V14" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V14.jpeg"></td>
+    <td><img width="150" height="200" alt="LSA_V15" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_V15.jpeg"></td>
+  </tr>
+</table>
