@@ -241,6 +241,38 @@ We have plotted the corelation matrix for each algorithm
 </table>
 
 2. *K-means clustering*
+  In K-means algorithm, to find the optimal value of K, we have used the following methods
+  1. Elbow method
+  Here we have plotted within-cluster sum of square (WSS) and try to find out minimum value of WSS keeping the cluster value(K) lowest.
+  <table>
+  <tr>
+    <td><img width="250" height="250" alt="LSA_WSS_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_WSS_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_WSS_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_WSS_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_WSS_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_WSS_PLOT.jpeg"></td>
+  </tr>
+</table>
+
+  2. Maximum average silhouette score
+  Here we have plotted average silhouette score (Kaufman and Rousseeuw [1990]) for a range of cluster. The optimal number of clusters k is the one that maximize the average silhouette over a range of possible values for k 
+  
+  <table>
+  <tr>
+    <td><img width="250" height="250" alt="LSA_SIL_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_SIL_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_SIL_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_SIL_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_SIL_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_SIL_PLOT.jpeg"></td>
+  </tr>
+</table>
+
+The next images are cluster plots for each algorithm.
+
+<table>
+  <tr>
+    <td><img width="250" height="250" alt="LSA_CLUST_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_CLUST_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_CLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_CLUST_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_CLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_CLUST_PLOT.jpeg"></td>
+  </tr>
+</table>
+
 
 3. *Hierarchical clustering (Agglomerative)*
 
