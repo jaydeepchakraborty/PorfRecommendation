@@ -3,8 +3,14 @@ Professor recommendation is a system where we are trying to find out the similar
 
 ## Module1 : Data Collection
 
-##### Tools
+#### Tools
 - Python
 - Selenium
+
+#### Data Sources
+- ASU CIDSE faculty directory: - http://cidse.engineering.asu.edu/facultyandresearch/directory/faculty/
+- DBLP: - http://dblp.uni-trier.de/
+- Google scholar: - https://scholar.google.com/
+- IEEE, Springer, ACM, Sciencedirect, arxiv
 
 
