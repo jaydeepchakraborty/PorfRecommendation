@@ -87,7 +87,7 @@ We have followed the following steps for all the three algorithms.
 - Apply all three algorithms to find out latent topics (Here, we have considered 15 topics)
 - In the last step we have find out the probability of topic distribution among the documents.
 
-At the end of these steps we have a dataset like following 
+At the end of these steps we have a dataset like following for each three algorithms.
 <table>
   <tr>
     <td></td>
@@ -127,6 +127,10 @@ At the end of these steps we have a dataset like following
 ## Module4 : Clustering
 Clustering is grouping of data based on their similarities. We have used the following clustering method.
 1. K-means clustering
-2. Hierarchical clustering(Agglomerative)
+2. Hierarchical clustering (Agglomerative)
 
+#### Tools
+- R (https://cran.r-project.org/)
 
+#### Steps
+1. *Data Analysis*
