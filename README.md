@@ -230,3 +230,12 @@ We have plotted the boxplot for each algorithm
     <td><img width="250" height="250" alt="HDP_BOX_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_BOX_PLOT.jpeg"></td>
   </tr>
 </table>
+
+We have plotted the corelation matrix for each algorithm
+<table>
+  <tr>
+    <td><img width="250" height="250" alt="LSA_COR_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_COR_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_COR_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_COR_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_COR_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_COR_PLOT.jpeg"></td>
+  </tr>
+</table>
