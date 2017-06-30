@@ -241,8 +241,10 @@ We have plotted the corelation matrix for each algorithm
 </table>
 
 2. *K-means clustering*
+
   In K-means algorithm, to find the optimal value of K, we have used the following methods
   1. Elbow method
+  
   Here we have plotted within-cluster sum of square (WSS) and try to find out minimum value of WSS keeping the cluster value(K) lowest.
   <table>
   <tr>
@@ -253,6 +255,7 @@ We have plotted the corelation matrix for each algorithm
 </table>
 
   2. Maximum average silhouette score
+  
   Here we have plotted average silhouette score (Kaufman and Rousseeuw [1990]) for a range of cluster. The optimal number of clusters k is the one that maximize the average silhouette over a range of possible values for k 
   
   <table>
@@ -275,4 +278,6 @@ The next images are cluster plots for each algorithm.
 
 
 3. *Hierarchical clustering (Agglomerative)*
+
+
 
