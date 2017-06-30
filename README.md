@@ -86,3 +86,47 @@ We have followed the following steps for all the three algorithms.
 - Convert tokenized documents into document - term matrix
 - Apply all three algorithms to find out latent topics (Here, we have considered 15 topics)
 - In the last step we have find out the probability of topic distribution among the documents.
+
+At the end of these steps we have a dataset like following 
+<table>
+  <tr>
+    <td></td>
+    <td>Topic1</td>
+    <td>Topic2</td>
+    <td>....</td>
+    <td>Topic15</td>
+  </tr>
+  <tr>
+    <td>Prof1</td>
+    <td>39%</td>
+    <td>15%</td>
+    <td>....</td>
+    <td>18%</td>
+  </tr>
+  <tr>
+    <td>Prof2</td>
+    <td>70%</td>
+    <td>2%</td>
+    <td>....</td>
+    <td>9%</td>
+  </tr>
+  <tr>
+    <td>....</td>
+    <td>....</td>
+    <td>....</td>
+    <td>....</td>
+    <td>....</td>
+  </tr>
+  <td>Prof60</td>
+    <td>10%</td>
+    <td>12%</td>
+    <td>....</td>
+    <td>67%</td>
+</table>
+
+## Module4 : Clustering
+Clustering is grouping of data based on their similarities. We have used the following clustering method.
+1. K-means clustering
+2. Hierarchical clustering(Agglomerative)
+
+
