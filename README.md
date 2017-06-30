@@ -139,11 +139,7 @@ We have plotted the data in 2d space by using PCA (Principal Component Analysis)
 <table>
   <tr>
     <td><img width="250" height="250" alt="LSA_2D_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_2D_PLOT.jpeg"></td>
-  </tr>
-  <tr>
     <td><img width="250" height="250" alt="LDA_2D_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_2D_PLOT.jpeg"></td>
-  </tr>
-  <tr>
     <td><img width="250" height="250" alt="HDP_2D_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_2D_PLOT.jpeg"></td>
   </tr>
 </table>
