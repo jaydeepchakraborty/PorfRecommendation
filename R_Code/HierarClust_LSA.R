@@ -79,3 +79,7 @@ clusplot(lsa.data.clust, lsa.data.clust$lsa.data.op,
          labels=0, lines=0)
 dev.off()
 ############ Hierarchical cluster End ##############
+
+############ Writting to output file Start ##############
+write.csv(lsa.data.clust, file = "LSA_HCLUST_OP.csv")
+############ Writting to output file End ################

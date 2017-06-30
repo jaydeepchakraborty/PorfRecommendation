@@ -76,3 +76,7 @@ clusplot(hdp.data.clust, hdp.data.clust$hdp.data.op,
          color=TRUE, shade=TRUE,
          labels=0, lines=0)
 dev.off()
+
+############ Writting to output file Start ##############
+write.csv(hdp.data.clust, file = "HDP_HCLUST_OP.csv")
+############ Writting to output file End ################

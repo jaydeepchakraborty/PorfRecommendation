@@ -100,3 +100,7 @@ clusplot(hdp.data.clust, hdp.data.clust$hdp.data.km.cluster,
          labels=0, lines=0)
 dev.off()
 ############ KMeans cluster End ##############
+
+############ Writting to output file Start ##############
+write.csv(hdp.data.clust, file = "HDP_KCLUST_OP.csv")
+############ Writting to output file End ################

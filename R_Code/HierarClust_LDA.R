@@ -78,3 +78,7 @@ clusplot(lda.data.clust, lda.data.clust$lda.data.op,
          color=TRUE, shade=TRUE,
          labels=0, lines=0)
 dev.off()
+
+############ Writting to output file Start ##############
+write.csv(lda.data.clust, file = "LDA_HCLUST_OP.csv")
+############ Writting to output file End ################

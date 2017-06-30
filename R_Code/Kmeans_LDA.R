@@ -100,3 +100,7 @@ clusplot(lda.data.clust, lda.data.clust$lda.data.km.cluster,
          labels=0, lines=0)
 dev.off()
 ############ KMeans cluster End ##############
+
+############ Writting to output file Start ##############
+write.csv(lda.data.clust, file = "LDA_KCLUST_OP.csv")
+############ Writting to output file End ################

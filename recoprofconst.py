@@ -34,12 +34,18 @@ import wordcloud
 import matplotlib.pyplot as plt
 
 
+#sudo pip3 install xlrd
+import xlrd
+from xlrd.sheet import ctype_text
+
 import subprocess
 import os
 
 import time
 
 import pprint
+
+import pandas as pd
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -73,8 +79,7 @@ from lxml import etree
 
 
 paper_nm_path = "data/papernm/"
-# prof_lst_file_nm = "data/faculty_list.txt"
-prof_lst_file_nm = "data/faculty_list_tmp.txt"
+prof_lst_file_nm = "data/faculty_list.txt"
 prof_topic_file_path = "data/latenteq/"
 prof_pdf_path = "data/papers/"
 prof_local_pdf_path = "/home/local/ASUAD/jchakra1/Desktop/pdfs/"
