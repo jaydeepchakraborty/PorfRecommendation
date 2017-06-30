@@ -222,3 +222,11 @@ We have plotted the histogram of each attribute or column for each algorithm to 
   </tr>
 </table>
 
+We have plotted the boxplot for each algorithm
+<table>
+  <tr>
+    <td><img width="250" height="250" alt="LSA_BOX_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_BOX_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_BOX_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_BOX_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_BOX_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_BOX_PLOT.jpeg"></td>
+  </tr>
+</table>
