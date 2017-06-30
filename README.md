@@ -37,3 +37,33 @@ We have collected total 5000 research papers for 60 professors.At the end of the
     <td>159 research papers</td>
   </tr>
 </table>
+
+## Module2 : Data Preparation
+- We have converted each research paper into text file and combined them for each professor.
+
+At the end of this step we have a dataset like following 
+<table>
+  <tr>
+    <td>prof1</td>
+    <td>1 text file [concatenation or combination of 101 research papers]</td>
+  </tr>
+  <tr>
+    <td>prof2</td>
+    <td>1 text file [concatenation or combination of 67 research papers]</td>
+  </tr>
+  <tr>
+    <td>....</td>
+    <td>....</td>
+  </tr>
+  <tr>
+    <td>prof60</td>
+    <td>1 text file [concatenation or combination of 159 research papers]</td>
+  </tr>
+</table>
+
+## Module3 : Topic Modelling
+Topic modelling is a statisticalmodeling  which  helps  to  discover  latent  or  hidden  topics in  a  text  or  bag  of  words. In topic modelling, we have used the following algorithms.
+
+1. Latent Semantic Analysis (LSA)
+2. Latent  Dirichlet  allocation (LDA)
+3. Hierarchical  Dirichlet  process (HDP) 
