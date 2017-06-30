@@ -239,3 +239,8 @@ We have plotted the corelation matrix for each algorithm
     <td><img width="250" height="250" alt="HDP_COR_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_COR_PLOT.jpeg"></td>
   </tr>
 </table>
+
+2. *K-means clustering*
+
+3. *Hierarchical clustering (Agglomerative)*
+
