@@ -4,8 +4,7 @@ Professor recommendation is a system where we are trying to find out the similar
 ## Module1 : Data Collection
 
 #### Tools
-- Python
-- Selenium
+- Python : Selenium (http://selenium-python.readthedocs.io/)
 
 #### Data Sources
 - ASU CIDSE faculty directory: - http://cidse.engineering.asu.edu/facultyandresearch/directory/faculty/
@@ -67,3 +66,23 @@ Topic modelling is a statisticalmodeling  which  helps  to  discover  latent  or
 1. Latent Semantic Analysis (LSA)
 2. Latent  Dirichlet  allocation (LDA)
 3. Hierarchical  Dirichlet  process (HDP) 
+
+#### Tools
+- Python : gensim (https://radimrehurek.com/gensim/)
+- Python : scikit-learn (http://scikit-learn.org/stable/)
+- Python : nltk (http://www.nltk.org/index.html#)
+
+#### Steps
+We have followed the following steps for all the three algorithms.
+- We have read the text file for each professor
+- Tokenize the entire data by words.
+- Remove stop words from the tokenized data.
+  a. common english stop words. (stop-words is available on PyPi; stop-words 2015.2.23.1)
+  b. non english words.
+  c. digits.
+  d. custom stop words. To create the custom stop words, we have used wordcloud (wordcloud 1.3.1) and pyLDAvis (pyLDAvis 2.1.1). We manually checked all the words which are unnecessary and added those to custom stop word list.
+- Stemming the tokenized data. It is a process to convert the words to their roots. (http://www.nltk.org/api/nltk.stem.html)
+- Convert tokenized documents into a id <-> term dictionary.
+- Convert tokenized documents into document - term matrix
+- Apply all three algorithms to find out latent topics (Here, we have considered 15 topics)
+- In the last step we have find out the probability of topic distribution among the documents.
