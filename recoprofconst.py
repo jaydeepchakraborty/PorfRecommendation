@@ -33,6 +33,7 @@ import wordcloud
 
 import matplotlib.pyplot as plt
 
+import csv
 
 #sudo pip3 install xlrd
 import xlrd
@@ -66,6 +67,7 @@ from scipy.spatial.distance import pdist
 from scipy import sparse
 from scipy.cluster.hierarchy import dendrogram,linkage
 
+from collections import Counter
 
 import itertools
 
