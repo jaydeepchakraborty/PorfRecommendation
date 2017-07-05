@@ -37,7 +37,7 @@ def createTmpFeedback():
                     prof_nm_lst.append("".join(cell_obj.value.split()))  
               
             num_cols = xl_sheet.ncols - 1
-            num_rows = xl_sheet.nrows - 1
+            num_rows = xl_sheet.nrows
             
             
             with open(tmp_curr_feedback_file, "w") as csv_file:
@@ -97,6 +97,6 @@ def crtGoldCopy():
 #createTmpFeedback()
 #mergeTmpFeedback(mrg_feedback_list[0],mrg_feedback_list[1],2)
 #pruneMrgFeedback()
-crtGoldCopy()
+#crtGoldCopy()
 
 print("---END---")

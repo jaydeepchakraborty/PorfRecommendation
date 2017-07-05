@@ -44,6 +44,7 @@ for i in range(0, count,3):
         
         with open(csv_op_fl_nm, 'w+') as out:
             writer = csv.writer(out)
+            writer.writerow(["id", "value"])
             for outer_num in range(0,total_prof_num):
                 for inner_num in range(outer_num+1,total_prof_num):
                     if op_col[outer_num] == op_col[inner_num]:
