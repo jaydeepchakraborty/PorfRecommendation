@@ -283,9 +283,26 @@ We have plotted dendogram for each algorithm
 
 <table>
   <tr>
-    <td><img width="250" height="250" alt="LSA_DENDO_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_DENDO_PLOT.jpeg"></td>
-    <td><img width="250" height="250" alt="LDA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_DENDO_PLOT.jpeg"></td>
-    <td><img width="250" height="250" alt="HDP_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_DENDO_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_DENDO_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_DENDO_PLOT_single.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_DENDO_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_DENDO_PLOT_average.jpeg"></td>
+  </tr>
+</table>
+
+
+<table>
+  <tr>
+    <td><img width="250" height="250" alt="LDA_DENDO_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_DENDO_PLOT_single.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_DENDO_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_DENDO_PLOT_average.jpeg"></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td><img width="250" height="250" alt="HDP_DENDO_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_DENDO_PLOT_single.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_DENDO_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_DENDO_PLOT_average.jpeg"></td>
   </tr>
 </table>
 
@@ -293,9 +310,25 @@ We have plotted heatmap for each algorithm
 
 <table>
   <tr>
-    <td><img width="250" height="250" alt="LSA_HEATMAP_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HEATMAP_PLOT.jpeg"></td>
-    <td><img width="250" height="250" alt="LDA_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HEATMAP_PLOT.jpeg"></td>
-    <td><img width="250" height="250" alt="HDP_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HEATMAP_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_HEATMAP_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HEATMAP_PLOT_single.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HEATMAP_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HEATMAP_PLOT_average.jpeg"></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td><img width="250" height="250" alt="LDA_HEATMAP_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HEATMAP_PLOT_single.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HEATMAP_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HEATMAP_PLOT_average.jpeg"></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td><img width="250" height="250" alt="HDP_HEATMAP_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HEATMAP_PLOT_single.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HEATMAP_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HEATMAP_PLOT_average.jpeg"></td>
   </tr>
 </table>
 
@@ -303,8 +336,24 @@ The next images are cluster plots for each algorithm.
 
 <table>
   <tr>
-    <td><img width="250" height="250" alt="LSA_HCLUST_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HCLUST_PLOT.jpeg"></td>
-    <td><img width="250" height="250" alt="LDA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT.jpeg"></td>
-    <td><img width="250" height="250" alt="HDP_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HCLUST_PLOT.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_HCLUST_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HCLUST_PLOT_single.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HCLUST_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HCLUST_PLOT_average.jpeg"></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td><img width="250" height="250" alt="LDA_HCLUST_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_single.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_average.jpeg"></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td><img width="250" height="250" alt="HDP_HCLUST_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HCLUST_PLOT_single.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HCLUST_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HCLUST_PLOT_average.jpeg"></td>
   </tr>
 </table>
