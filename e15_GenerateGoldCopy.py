@@ -3,13 +3,16 @@ from recoprofconst import *
 crt_feedback_list = [
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Guru_Survey.xlsx",
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Guru_Survey_tmp.csv",
-    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey.xlsx",
-    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey_tmp.csv"]
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ashutosh_Survey.xlsx",
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ashutosh_Survey_tmp.csv",
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey.xlsx",
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey_tmp.csv"]
 
 
 mrg_feedback_list = [
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Guru_Survey_tmp.csv",
-    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey_tmp.csv"]
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ashutosh_Survey_tmp.csv",
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey_tmp.csv"]
 
 merged_feedback = "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/merged_feedback.csv"
 final_merged_file = "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/final_merged_feedback.csv"
@@ -62,7 +65,7 @@ def mergeTmpFeedback(file1,file2,ind):
     df2 = pd.read_csv(file2)
     merged = df1.merge(df2, on="id", how="outer").fillna("")
     merged.to_csv(merged_feedback, index=False)
-    if(ind<=len(mrg_feedback_list)):
+    if(ind<len(mrg_feedback_list)):
         mergeTmpFeedback(mrg_feedback_list[ind],merged_feedback,ind) 
     
 #-------------------------------------mergeTmpFeedback STOP----------------------------------------  
@@ -95,8 +98,8 @@ def crtGoldCopy():
 
 
 #createTmpFeedback()
-#mergeTmpFeedback(mrg_feedback_list[0],mrg_feedback_list[1],2)
+#mergeTmpFeedback(mrg_feedback_list[0],mrg_feedback_list[1],1)
 #pruneMrgFeedback()
-#crtGoldCopy()
+crtGoldCopy()
 
 print("---END---")
