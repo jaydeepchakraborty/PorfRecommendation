@@ -6,13 +6,16 @@ crt_feedback_list = [
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ashutosh_Survey.xlsx",
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ashutosh_Survey_tmp.csv",
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey.xlsx",
-    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey_tmp.csv"]
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey_tmp.csv",
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey.xlsx",
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey_tmp.csv"]
 
 
 mrg_feedback_list = [
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Guru_Survey_tmp.csv",
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ashutosh_Survey_tmp.csv",
-    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey_tmp.csv"]
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey_tmp.csv",
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey_tmp.csv"]
 
 merged_feedback = "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/merged_feedback.csv"
 final_merged_file = "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/final_merged_feedback.csv"
@@ -27,6 +30,9 @@ def createTmpFeedback():
         curr_feedback_file = crt_feedback_list[i]
         tmp_curr_feedback_file = crt_feedback_list[i+1]
         
+        rater = curr_feedback_file.split("/")[-1]
+        rater = rater[:-12]
+        
         prof_nm_lst = []
         out_dict = {}
         
@@ -37,7 +43,8 @@ def createTmpFeedback():
             row = xl_sheet.row(0)
             for idx, cell_obj in enumerate(row):
                     cell_type_str = ctype_text.get(cell_obj.ctype, 'unknown type')
-                    prof_nm_lst.append("".join(cell_obj.value.split()))  
+                    cell_val = cell_obj.value.strip()
+                    prof_nm_lst.append("".join(cell_val.split()))  
               
             num_cols = xl_sheet.ncols - 1
             num_rows = xl_sheet.nrows
@@ -45,12 +52,13 @@ def createTmpFeedback():
             
             with open(tmp_curr_feedback_file, "w") as csv_file:
                 writer = csv.writer(csv_file, delimiter=',')
-                writer.writerow(["id", "value"])
+                writer.writerow(["id", rater])
                 for row_idx in range(1,num_cols):
                     for col_idx in range(row_idx+1, num_rows):
                         cell_obj = xl_sheet.cell(row_idx, col_idx)
                         key = prof_nm_lst[row_idx]+"--"+prof_nm_lst[col_idx]
-                        writer.writerow([key, cell_obj.value])
+                        call_val = cell_obj.value.strip() if cell_obj.value.strip() != 'NA' else 'N'
+                        writer.writerow([key, call_val])
             
         except:
             traceback.print_exc()
@@ -97,9 +105,9 @@ def crtGoldCopy():
 #-------------------------------------crtGoldCopy STOP---------------------------------------- 
 
 
-#createTmpFeedback()
-#mergeTmpFeedback(mrg_feedback_list[0],mrg_feedback_list[1],1)
-#pruneMrgFeedback()
+createTmpFeedback()
+mergeTmpFeedback(mrg_feedback_list[0],mrg_feedback_list[1],1)
+pruneMrgFeedback()
 crtGoldCopy()
 
 print("---END---")
