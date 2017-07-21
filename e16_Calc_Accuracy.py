@@ -44,7 +44,8 @@ def calAcc():
             print("F1 score:- "+str(f1_score(y_true, y_pred,labels=[0, 1], average='micro')))
             print("Precision score:- "+str(precision_score(y_true, y_pred, labels=[0, 1], average='micro')))
             print("Recall score:- "+str(recall_score(y_true, y_pred, labels=[0, 1], average='micro')))
-            print("Accuracy score:- "+str(accuracy_score(y_true, y_pred)))   
+            print("Accuracy score:- "+str(accuracy_score(y_true, y_pred))) 
+            print("Cohen Kappa score:- "+str(cohen_kappa_score(y_true, y_pred)))   
         except:
             traceback.print_exc()
 #-------------------------------------calAcc STOP----------------------------------------
