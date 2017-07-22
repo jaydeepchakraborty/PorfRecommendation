@@ -18,7 +18,7 @@ def calAcc():
         reader = csv.reader(f, delimiter=',')
         next(reader)
         for row in reader:
-            if row[4] == "Y":
+            if row[4].strip() == "Y":
                 y_true.append(1)
             else:
                 y_true.append(0)
@@ -34,18 +34,22 @@ def calAcc():
                 reader = csv.reader(f, delimiter=',')
                 next(reader)
                 for row in reader:
-                    if row[1] == "Y":
+                    if row[1].strip() == "Y":
                         y_pred.append(1)
                     else:
                         y_pred.append(0)
             
             #print(y_pred)
             print("--------------"+output_file+"--------------")        
-            print("F1 score:- "+str(f1_score(y_true, y_pred,labels=[0, 1], average='micro')))
-            print("Precision score:- "+str(precision_score(y_true, y_pred, labels=[0, 1], average='micro')))
-            print("Recall score:- "+str(recall_score(y_true, y_pred, labels=[0, 1], average='micro')))
+            print("F1 score:- "+str(f1_score(y_true, y_pred, average='binary')))
+            print("Precision score:- "+str(precision_score(y_true, y_pred,  average='binary')))
+            print("Recall score:- "+str(recall_score(y_true, y_pred, average='binary')))
             print("Accuracy score:- "+str(accuracy_score(y_true, y_pred))) 
-            print("Cohen Kappa score:- "+str(cohen_kappa_score(y_true, y_pred)))   
+            #print("Cohen Kappa score:- "+str(cohen_kappa_score(y_true, y_pred)))
+            print(confusion_matrix(y_true, y_pred))  
+            #in binary classification, the count of 
+            #true negatives is C_{0,0} and false positives is C_{0,1}
+            #false negatives is C_{1,0} and true positives is C_{1,1}. 
         except:
             traceback.print_exc()
 #-------------------------------------calAcc STOP----------------------------------------
