@@ -18,7 +18,7 @@ def calAcc():
         reader = csv.reader(f, delimiter=',')
         next(reader)
         for row in reader:
-            if row[4].strip() == "Y":
+            if row[5].strip() == "Y":#0,1,2,3,4,5 --> 5 is GOLD
                 y_true.append(1)
             else:
                 y_true.append(0)
@@ -45,7 +45,7 @@ def calAcc():
             print("Precision score:- "+str(precision_score(y_true, y_pred,  average='binary')))
             print("Recall score:- "+str(recall_score(y_true, y_pred, average='binary')))
             print("Accuracy score:- "+str(accuracy_score(y_true, y_pred))) 
-            #print("Cohen Kappa score:- "+str(cohen_kappa_score(y_true, y_pred)))
+            print("Cohen Kappa score:- "+str(cohen_kappa_score(y_true, y_pred)))
             print(confusion_matrix(y_true, y_pred))  
             #in binary classification, the count of 
             #true negatives is C_{0,0} and false positives is C_{0,1}

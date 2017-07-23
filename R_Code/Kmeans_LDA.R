@@ -1,8 +1,10 @@
 #setting the workspace
-setwd("/Users/jaydeep/jaydeep_workstation/Workplace/Kaggle/ProfSim")
+ws = "/home/local/ASUAD/jchakra1/workspace/RecoProf/R_Code"
+#ws = "/Users/jaydeep/jaydeep_workstation/Workplace/Kaggle/ProfSim"
+setwd(ws)
 
 ######################### Variable Declaration Start #########################
-img_dir = "/Users/jaydeep/jaydeep_workstation/Workplace/Kaggle/ProfSim/images/"
+img_dir = paste(ws,"/images/",sep = "")
 img_extn  = ".jpeg"
 ######################### Variable Declaration End ###########################
 
@@ -80,8 +82,8 @@ dev.off()
 
 ############ KMeans cluster Start ##############
 
-#aplying kmeans for 14 clusters
-lda.data.km <- kmeans(lda.data.stand, 14, nstart = 20)
+#aplying kmeans for 15 clusters
+lda.data.km <- kmeans(lda.data.stand,15, nstart = 20)
 
 lda.data.km$cluster
 lda.data.km$size

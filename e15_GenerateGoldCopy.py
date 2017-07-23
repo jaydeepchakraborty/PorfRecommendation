@@ -99,7 +99,11 @@ def crtGoldCopy():
         for row in csv.reader(inp):
             max_feedback = Counter(row).most_common(1)
             max_feedback_tup = max_feedback[0]
-            row.append(max_feedback_tup[0])
+            row_val = max_feedback_tup[0]
+            if row_val in ("id", "Ram", "Dhananjay", "Guru", "Ashutosh"):
+                row.append("Gold")
+            else:
+                row.append(row_val)
             writer.writerow(row)
     
 #-------------------------------------crtGoldCopy STOP---------------------------------------- 

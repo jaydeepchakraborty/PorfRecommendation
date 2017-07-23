@@ -1,8 +1,10 @@
 #setting the workspace
-setwd("/Users/jaydeep/jaydeep_workstation/Workplace/Kaggle/ProfSim")
+ws = "/home/local/ASUAD/jchakra1/workspace/RecoProf/R_Code"
+#ws = "/Users/jaydeep/jaydeep_workstation/Workplace/Kaggle/ProfSim"
+setwd(ws)
 
 ######################### Variable Declaration Start #########################
-img_dir = "/Users/jaydeep/jaydeep_workstation/Workplace/Kaggle/ProfSim/images/"
+img_dir = paste(ws,"/images/",sep = "")
 img_extn  = ".jpeg"
 ######################### Variable Declaration End ###########################
 
@@ -19,8 +21,8 @@ lda.data.stand <- as.data.frame(scale(lda.data))
 ############ Hierarchical cluster Start ##############
 #This will calculate distance matrix, by default euclidean
 lda.data.dist = dist(lda.data.stand, method = 'euclidean')
-#Hierarchical Clustering, method can be various like single, complete, average
-lda.data.hclust = hclust(lda.data.dist,method = "complete")
+#Hierarchical Clustering, method can be various like ward.D,ward.D2,single, complete, average
+lda.data.hclust = hclust(lda.data.dist,method = "ward.D")
 ############ Hierarchical cluster End ##############
 
 
@@ -62,7 +64,7 @@ dev.off()
 
 
 #getting the clusters based on height we have choosen
-lda.data.op = cutree(lda.data.hclust,h=4)
+lda.data.op = cutree(lda.data.hclust,h=6)
 #getting the clusters based on number of clusters we have choosen
 #lda.data.op = cutree(lda.data.hclust,k=15)
 
