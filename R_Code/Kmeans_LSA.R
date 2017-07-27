@@ -1,5 +1,6 @@
 #setting the workspace
 setwd("/Users/jaydeep/jaydeep_workstation/Workplace/Kaggle/ProfSim")
+topic_matrix_ws = "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/topicmatrix/"
 
 ######################### Variable Declaration Start #########################
 img_dir = "/Users/jaydeep/jaydeep_workstation/Workplace/Kaggle/ProfSim/images/"
@@ -7,7 +8,8 @@ img_extn  = ".jpeg"
 ######################### Variable Declaration End ###########################
 
 ######################### Loading the Data Start #########################
-lsa.data <- read.csv(file="lsa-topic-matrix.csv", header = F)
+matrix_file <- paste(topic_matrix_ws,"lsa-topic-matrix.csv",sep = "")
+lsa.data <- read.csv(file=matrix_file, header = F)
 lsa.data <- lsa.data - min(lsa.data)
 ######################### Loading the Data End ###########################
 
