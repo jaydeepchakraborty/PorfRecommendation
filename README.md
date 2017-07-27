@@ -384,7 +384,7 @@ The next images are cluster plots for each algorithm.
     <td>LDA clustering with average linkage</td>
   </tr>
   <tr>
-    <td><img width="250" height="250" alt="LDA_HCLUST_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_single.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_HCLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_single.jpeg"></td>
     <td><img width="250" height="250" alt="LDA_HCLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_complete.jpeg"></td>
     <td><img width="250" height="250" alt="LDA_HCLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_average.jpeg"></td>
   </tr>
@@ -402,3 +402,80 @@ The next images are cluster plots for each algorithm.
     <td><img width="250" height="250" alt="HDP_HCLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HCLUST_PLOT_average.jpeg"></td>
   </tr>
 </table>
+
+
+## Module5 : Survey and Creation of Gold Copy
+
+To evaluate our system, we took help from some experts. We have setup a survey form where experts are asked two professors or scholars are similar or not. All of the experts filled up the survey based on their knowledge. As our experiment is Binary classification so in order to measure the performance we have created a gold standard copy. We have considered most votes for a particular professor or scholar pair i.e if 50% or more than 50% said yes then we considered that scholar or professor pair is similar in gold standard copy otherwise dissimilar.
+
+We have used Krippendorff's alpha reliability to measure the inter reliability among experts. (https://rdrr.io/cran/irr/man/kripp.alpha.html). Ideally Krippendorff's alpha's value should be => 80%. But unfortunetly we got 34%. In our case it does not that matter because we are counting max vote for a professor pair. But if we do any regression insted of classification then this Krippendorff's alpha matters most. 
+
+
+## Module6 : Calculate Accuracy
+It is a binary classification problem, we have used following measures. This two links are very informative about accuracy calculation(1) http://scikit-learn.org/stable/modules/model_evaluation.html# and 2) http://scikit-learn.org/stable/modules/clustering.html#clustering-performance-evaluation)
+
+For Kmeans algorithm
+<table>
+<tr>
+    <td></td>
+    <td>F1 score</td>
+    <td>Precision score</td>
+    <td>Recall score</td>
+    <td>Accuracy score</td>
+  </tr>
+  <tr>
+    <td>LSA</td>
+    <td>0.0972404730618</td>
+    <td>0.0547337278107</td>
+    <td>0.435294117647</td>
+    <td>0.61186440678</td>
+  </tr>
+  <tr>
+    <td>LDA</td>
+    <td>0.176470588235</td>
+    <td>0.128342245989</td>
+    <td>0.282352941176</td>
+    <td>0.873446327684</td>
+  </tr>
+  <tr>
+    <td>HDP</td>
+    <td>0.127272727273</td>
+    <td>0.103703703704</td>
+    <td>0.164705882353</td>
+    <td>0.891525423729</td>
+  </tr>
+</table>
+
+
+For Hierarchical Clustering algorithm
+<table>
+<tr>
+    <td></td>
+    <td>F1 score</td>
+    <td>Precision score</td>
+    <td>Recall score</td>
+    <td>Accuracy score</td>
+  </tr>
+  <tr>
+    <td>LSA</td>
+    <td>0.095717884131</td>
+    <td>0.0535966149506</td>
+    <td>0.447058823529</td>
+    <td>0.594350282486</td>
+  </tr>
+  <tr>
+    <td>LDA</td>
+    <td>0.180904522613</td>
+    <td>0.157894736842</td>
+    <td>0.211764705882</td>
+    <td>0.90790960452</td>
+  </tr>
+  <tr>
+    <td>HDP</td>
+    <td>0.133828996283</td>
+    <td>0.0978260869565</td>
+    <td>0.211764705882</td>
+    <td>0.868361581921</td>
+  </tr>
+</table>
+
