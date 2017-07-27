@@ -282,20 +282,25 @@ The next images are cluster plots for each algorithm.
 We have plotted dendogram for each algorithm
 
 <table>
+<tr>
+    <td>LSA Dendogram with single linkage</td>
+    <td>LSA Dendogram with complete linkage</td>
+    <td>LSA Dendogram with average linkage</td>
+  </tr>
   <tr>
     <td><img width="250" height="250" alt="LSA_DENDO_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_DENDO_PLOT_single.jpeg"></td>
     <td><img width="250" height="250" alt="LSA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_DENDO_PLOT_complete.jpeg"></td>
     <td><img width="250" height="250" alt="LSA_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_DENDO_PLOT_average.jpeg"></td>
   </tr>
-  <tr>
-    <td>LSA Dendogram with single linkage </td>
-    <td>LSA Dendogram with complete linkage ></td>
-    <td>LSA Dendogram with average linkage</td>
-  </tr>
 </table>
 
 
 <table>
+<tr>
+    <td>LDA Dendogram with single linkage</td>
+    <td>LDA Dendogram with complete linkage</td>
+    <td>LDA Dendogram with average linkage</td>
+  </tr>
   <tr>
     <td><img width="250" height="250" alt="LDA_DENDO_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_DENDO_PLOT_single.jpeg"></td>
     <td><img width="250" height="250" alt="LDA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_DENDO_PLOT_complete.jpeg"></td>
@@ -304,6 +309,11 @@ We have plotted dendogram for each algorithm
 </table>
 
 <table>
+<tr>
+    <td>HDP Dendogram with single linkage</td>
+    <td>HDP Dendogram with complete linkage</td>
+    <td>HDP Dendogram with average linkage</td>
+  </tr>
   <tr>
     <td><img width="250" height="250" alt="HDP_DENDO_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_DENDO_PLOT_single.jpeg"></td>
     <td><img width="250" height="250" alt="HDP_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_DENDO_PLOT_complete.jpeg"></td>
@@ -314,6 +324,11 @@ We have plotted dendogram for each algorithm
 We have plotted heatmap for each algorithm
 
 <table>
+<tr>
+    <td>LSA Heatmap with single linkage</td>
+    <td>LSA Heatmap with complete linkage</td>
+    <td>LSA Heatmap with average linkage</td>
+  </tr>
   <tr>
     <td><img width="250" height="250" alt="LSA_HEATMAP_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HEATMAP_PLOT_single.jpeg"></td>
     <td><img width="250" height="250" alt="LSA_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HEATMAP_PLOT_complete.jpeg"></td>
@@ -322,6 +337,11 @@ We have plotted heatmap for each algorithm
 </table>
 
 <table>
+<tr>
+    <td>LDA Heatmap with single linkage</td>
+    <td>LDA Heatmap with complete linkage</td>
+    <td>LDA Heatmap with average linkage</td>
+  </tr>
   <tr>
     <td><img width="250" height="250" alt="LDA_HEATMAP_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HEATMAP_PLOT_single.jpeg"></td>
     <td><img width="250" height="250" alt="LDA_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HEATMAP_PLOT_complete.jpeg"></td>
@@ -330,6 +350,11 @@ We have plotted heatmap for each algorithm
 </table>
 
 <table>
+<tr>
+    <td>HDP Heatmap with single linkage</td>
+    <td>HDP Heatmap with complete linkage</td>
+    <td>HDP Heatmap with average linkage</td>
+  </tr>
   <tr>
     <td><img width="250" height="250" alt="HDP_HEATMAP_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HEATMAP_PLOT_single.jpeg"></td>
     <td><img width="250" height="250" alt="HDP_HEATMAP_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HEATMAP_PLOT_complete.jpeg"></td>
@@ -340,25 +365,40 @@ We have plotted heatmap for each algorithm
 The next images are cluster plots for each algorithm.
 
 <table>
+<tr>
+    <td>LSA clustering with single linkage</td>
+    <td>LSA clustering with complete linkage</td>
+    <td>LSA clustering with average linkage</td>
+  </tr>
   <tr>
     <td><img width="250" height="250" alt="LSA_HCLUST_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HCLUST_PLOT_single.jpeg"></td>
-    <td><img width="250" height="250" alt="LSA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HCLUST_PLOT_complete.jpeg"></td>
-    <td><img width="250" height="250" alt="LSA_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HCLUST_PLOT_average.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_HCLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HCLUST_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="LSA_HCLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_HCLUST_PLOT_average.jpeg"></td>
   </tr>
 </table>
 
 <table>
+<tr>
+    <td>LDA clustering with single linkage</td>
+    <td>LDA clustering with complete linkage</td>
+    <td>LDA clustering with average linkage</td>
+  </tr>
   <tr>
     <td><img width="250" height="250" alt="LDA_HCLUST_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_single.jpeg"></td>
-    <td><img width="250" height="250" alt="LDA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_complete.jpeg"></td>
-    <td><img width="250" height="250" alt="LDA_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_average.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_HCLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="LDA_HCLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LDA_HCLUST_PLOT_average.jpeg"></td>
   </tr>
 </table>
 
 <table>
+<tr>
+    <td>HDP clustering with single linkage</td>
+    <td>HDP clustering with complete linkage</td>
+    <td>HDP clustering with average linkage</td>
+  </tr>
   <tr>
     <td><img width="250" height="250" alt="HDP_HCLUST_PLOT"    src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HCLUST_PLOT_single.jpeg"></td>
-    <td><img width="250" height="250" alt="HDP_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HCLUST_PLOT_complete.jpeg"></td>
-    <td><img width="250" height="250" alt="HDP_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HCLUST_PLOT_average.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_HCLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HCLUST_PLOT_complete.jpeg"></td>
+    <td><img width="250" height="250" alt="HDP_HCLUST_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/HDP_HCLUST_PLOT_average.jpeg"></td>
   </tr>
 </table>
