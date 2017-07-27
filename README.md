@@ -479,3 +479,149 @@ For Hierarchical Clustering algorithm
   </tr>
 </table>
 
+For Kmeans algorithm
+<table>
+<tr>
+    <td></td>
+    <td>TN</td>
+    <td>FP</td>
+    <td>FN</td>
+    <td>TP</td>
+  </tr>
+  <tr>
+    <td>LSA</td>
+    <td>1046</td>
+    <td>639</td>
+    <td>48</td>
+    <td>37</td>
+  </tr>
+  <tr>
+    <td>LDA</td>
+    <td>1522</td>
+    <td>163</td>
+    <td>61</td>
+    <td>24</td>
+  </tr>
+  <tr>
+    <td>HDP</td>
+    <td>1564</td>
+    <td>121</td>
+    <td>71</td>
+    <td>14</td>
+  </tr>
+</table>
+
+For Hierarchical clustering algorithm
+<table>
+<tr>
+    <td></td>
+    <td>TN</td>
+    <td>FP</td>
+    <td>FN</td>
+    <td>TP</td>
+  </tr>
+  <tr>
+    <td>LSA</td>
+    <td>1014</td>
+    <td>671</td>
+    <td>47</td>
+    <td>38</td>
+  </tr>
+  <tr>
+    <td>LDA</td>
+    <td>1589</td>
+    <td>96</td>
+    <td>67</td>
+    <td>18</td>
+  </tr>
+  <tr>
+    <td>HDP</td>
+    <td>1519</td>
+    <td>166</td>
+    <td>67</td>
+    <td>18</td>
+  </tr>
+</table>
+
+For Kmeans algorithm
+<table>
+<tr>
+    <td></td>
+    <td>Cohen Kappa score</td>
+    <td>V measure score</td>
+    <td>Adjusted Rand Index</td>
+  </tr>
+  <tr>
+    <td>LSA</td>
+    <td>0.000699402667944</td>
+    <td>0.00459466788655</td>
+    <td>0.0130351852603</td>
+  </tr>
+  <tr>
+    <td>LDA</td>
+    <td>0.118247525853</td>
+    <td>0.0232230523619</td>
+    <td>0.100703683798</td>
+  </tr>
+  <tr>
+    <td>HDP</td>
+    <td>0.009473945673</td>
+    <td>0.0636292624162</td>
+    <td>0.0726156365125</td>
+  </tr>
+</table>
+
+For Hierarchical clustering algorithm
+<table>
+<tr>
+    <td></td>
+    <td>Cohen Kappa score</td>
+    <td>V measure score</td>
+    <td>Adjusted Rand Index</td>
+  </tr>
+  <tr>
+    <td>LSA</td>
+    <td>0.000518929665546</td>
+    <td>0.00329845464859</td>
+    <td>0.0108884305561</td>
+  </tr>
+  <tr>
+    <td>LDA</td>
+    <td>0.133213159081</td>
+    <td>0.0281293548164</td>
+    <td>0.119429450267</td>
+  </tr>
+  <tr>
+    <td>HDP</td>
+    <td>0.00963934402175</td>
+    <td>0.0616611244637</td>
+    <td>0.0729234573452</td>
+  </tr>
+</table>
+
+ROC Curve for Kmeans and Hierarchical clustering algorithm
+
+<table>
+<tr>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+  </tr>
+  </table
+  
+ Precision - Recall Curve for Kmeans and Hierarchical clustering algorithm
+
+<table>
+<tr>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+  </tr>
+  </table
+
