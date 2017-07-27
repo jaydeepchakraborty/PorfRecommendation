@@ -287,6 +287,11 @@ We have plotted dendogram for each algorithm
     <td><img width="250" height="250" alt="LSA_DENDO_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_DENDO_PLOT_complete.jpeg"></td>
     <td><img width="250" height="250" alt="LSA_DENDOT_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/LSA_DENDO_PLOT_average.jpeg"></td>
   </tr>
+  <tr>
+    <td>LSA Dendogram with single linkage </td>
+    <td>LSA Dendogram with complete linkage ></td>
+    <td>LSA Dendogram with average linkage</td>
+  </tr>
 </table>
 
 
