@@ -1,65 +1,51 @@
-'''
-This file is for generating similar professor
-'''
 from recoprofconst import *
-from sklearn.cluster.hierarchical import AgglomerativeClustering
 
-lsa_csv = prof_topic_matrix_path+"lsa-topic-matrix.csv"
-lda_csv = prof_topic_matrix_path+"lda-topic-matrix.csv"
-hdp_csv = prof_topic_matrix_path+"hdp-topic-matrix.csv"
 
-def reduceDimension(prof_data,prof_nm_lst_np,figure_nm):
-    #pca  = PCA(0.72)#I want 95% data is to be preserved
-    #print(pca.n_components_)
-    pca  = PCA(2)#project to @ D data
-    reduced_data = pca.fit_transform(prof_data)
+csv_file_nm = "/Users/jaydeep/jaydeep_workstation/Workplace/Kaggle/ProfSim/LDA_KCLUST_OP_F.csv"
+prof_nm_lst = []
+
+try:
+    for prof in open("faculty_list.txt",'rt', encoding='utf8'):
+        prof_nm_lst.append("".join(prof.split()))
+    total_prof_num = len(prof_nm_lst)
     
-    reduced_data_np = np.array(reduced_data)
-    dim_1 = reduced_data_np[:,0]
-    dim_2 = reduced_data_np[:,1]
-    plt.figure(figure_nm)
-    plt.scatter(dim_1,dim_2)
-#     for i, txt in enumerate(prof_nm_lst_np):
-#         plt.annotate(txt,(dim_1[i],dim_2[i]))
-    plt.show()
-     
+    
+    csv_file = pd.read_csv(csv_file_nm)
+    #prof_data = np.array(csv_file.iloc[:, 1:10])
+    prof_data = np.array(csv_file.iloc[:, 1:15])
+    #prof_data = np.array(csv_file.iloc[:, 1:20])
+    #prof_data_cluster = [[],[],[],[],[],[],[],[],[],[]]
+    prof_data_cluster = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
+    #prof_data_cluster = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
 
-def predictClusterIndex(prof_data,prof_nm_lst_np):
-    normalized_prof_data = preprocessing.normalize(prof_data)
-    standardized_prof_data = preprocessing.scale(prof_data)
-   
-#    reduceDimension(prof_data,prof_nm_lst_np,'actual')
-#    reduceDimension(normalized_prof_data,prof_nm_lst_np,'normalized')
-#    reduceDimension(standardized_prof_data,prof_nm_lst_np,'standardized')
-
-   
-    nbrs = NearestNeighbors(n_neighbors=5, algorithm='ball_tree')
-    nbrs.fit(normalized_prof_data)
-    distances, indices = nbrs.kneighbors(normalized_prof_data)
-    return indices
-   
-
-
-def func_us_knn():
-    try: 
-        prof_data = np.genfromtxt(lsa_csv, delimiter=',')
-       
+    #print(prof_data_cluster)
+    threshold = 0.2
+    for i in range(0,60):
+        row = prof_data[i,]
+        for j in range(0,14):#9/14/19 for 10/15/20 cluster
+#             print(row[j])
+#             print(row[j] > threshold)
+            if row[j] > threshold and i not in prof_data_cluster[j]:
+                prof_data_cluster[j].append(i)
         
-        prof_nm_lst = []
-        for prof in open(prof_lst_file_nm,'rt', encoding='latin1'):
-                prof_nm_lst.append("".join(prof.split()))
-        
-     
-        prof_nm_lst_np = np.array(prof_nm_lst)
-        preds = predictClusterIndex(prof_data,prof_nm_lst_np)
-        for pred in preds:
-            for pred_val in pred:
-                print(prof_nm_lst[pred_val] + " -- ")
-            print('\n')
-    except:
-        traceback.print_exc()
-
-func_us_knn()   
+    csv_op_fl_nm = "lda_fuzzy_op.csv"
+    with open(csv_op_fl_nm, 'w+') as out:
+        writer = csv.writer(out)
+        writer.writerow(["id", "value"])
+        for outer_num in range(0,total_prof_num):
+            for inner_num in range(outer_num+1,total_prof_num):
+                ind = False
+                for cluster in range(0,len(prof_data_cluster)):
+                    if outer_num in prof_data_cluster[cluster] and inner_num in prof_data_cluster[cluster]: 
+                        ind = True
+                        break
+                if ind:
+                    row = [prof_nm_lst[outer_num] + "--" + prof_nm_lst[inner_num],"Y"]
+                else:
+                    row = [prof_nm_lst[outer_num] + "--" + prof_nm_lst[inner_num],"N"]
+                writer.writerow(row)
+except:
+    traceback.print_exc()
+#-------------------------------------STOP----------------------------------------
 
 print("---END---")
-

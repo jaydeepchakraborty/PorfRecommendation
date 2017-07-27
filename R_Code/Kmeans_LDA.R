@@ -2,6 +2,7 @@
 ws = "/home/local/ASUAD/jchakra1/workspace/RecoProf/R_Code"
 #ws = "/Users/jaydeep/jaydeep_workstation/Workplace/Kaggle/ProfSim"
 setwd(ws)
+topic_matrix_ws = "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/topicmatrix/"
 
 ######################### Variable Declaration Start #########################
 img_dir = paste(ws,"/images/",sep = "")
@@ -9,16 +10,27 @@ img_extn  = ".jpeg"
 ######################### Variable Declaration End ###########################
 
 ######################### Loading the Data Start #########################
-lda.data <- read.csv(file="lda-topic-matrix.csv", header = F)
-lda.data <- lda.data*100
+matrix_file <- paste(topic_matrix_ws,"lda-topic-matrix.csv",sep = "")
+lda.data <- read.csv(file=matrix_file, header = F)
+lda.data <- (lda.data)*100 #delta value to deal with 0
 ######################### Loading the Data End ###########################
 
 
 ######################### Data Preparation Start #########################
 #Standardize the data 
 lda.data.stand <- as.data.frame(scale(lda.data))
+lda.data.stand[is.na(lda.data.stand)] <- 0.00001
 ######################### Data Preparation End ###########################
 
+
+#lda.pca <- prcomp(lda.data.stand)
+#plot(lda.pca)
+#plot(lda.pca, type='l')
+
+#lda.data.pca <- as.data.frame(lda.pca$x)
+
+
+#lda.data.stand <- data.frame(lda.data.pca[,1:7])
 
 ############ Within groups sum of squares Calculation Start ############
 
@@ -83,7 +95,7 @@ dev.off()
 ############ KMeans cluster Start ##############
 
 #aplying kmeans for 15 clusters
-lda.data.km <- kmeans(lda.data.stand,15, nstart = 20)
+lda.data.km <- kmeans(lda.data.stand,10, nstart = 20)
 
 lda.data.km$cluster
 lda.data.km$size

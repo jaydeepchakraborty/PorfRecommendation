@@ -8,14 +8,17 @@ crt_feedback_list = [
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey.xlsx",
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey_tmp.csv",
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey.xlsx",
-    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey_tmp.csv"]
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey_tmp.csv",
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Prof_Survey.xlsx",
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Prof_Survey_tmp.csv"]
 
 
 mrg_feedback_list = [
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Guru_Survey_tmp.csv",
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ashutosh_Survey_tmp.csv",
     "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Dhananjay_Survey_tmp.csv",
-    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey_tmp.csv"]
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Ram_Survey_tmp.csv",
+    "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/Prof_Survey_tmp.csv"]
 
 merged_feedback = "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/merged_feedback.csv"
 final_merged_file = "/home/local/ASUAD/jchakra1/workspace/RecoProf/data/feedback/final_merged_feedback.csv"
@@ -100,7 +103,7 @@ def crtGoldCopy():
             max_feedback = Counter(row).most_common(1)
             max_feedback_tup = max_feedback[0]
             row_val = max_feedback_tup[0]
-            if row_val in ("id", "Ram", "Dhananjay", "Guru", "Ashutosh"):
+            if row_val in ("id", "Ram", "Dhananjay", "Guru", "Ashutosh", "Prof"):
                 row.append("Gold")
             else:
                 row.append(row_val)

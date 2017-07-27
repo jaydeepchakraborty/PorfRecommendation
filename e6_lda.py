@@ -60,7 +60,7 @@ def writeProbEq(proflst):
         lda_latent_topic_file = open(prof_lda_topic_file_nm, "w", encoding='latin1')
          
         lda_model = models.ldamodel.LdaModel(corpus=corpus, id2word=dictionary, num_topics=topics, 
-                                           update_every=1, chunksize=10000, passes=20)
+                                           update_every=1, chunksize=no_chunksize, passes=no_passes)
         for model in lda_model.show_topics(num_topics=topics,num_words=words,formatted=True):
             lda_latent_topic_file.write(str(model))
             lda_latent_topic_file.write("\n")

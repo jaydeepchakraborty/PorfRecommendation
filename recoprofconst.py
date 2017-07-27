@@ -61,7 +61,10 @@ from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import pairwise_distances
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, classification_report, confusion_matrix, cohen_kappa_score
-
+from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import precision_recall_curve
+from sklearn.metrics.cluster import v_measure_score
+from sklearn.metrics.cluster import adjusted_rand_score
 
 from scipy.spatial.distance import cdist
 from scipy.spatial.distance import pdist
@@ -101,5 +104,7 @@ dblp_url = "http://dblp.uni-trier.de/"
 #constants
 topics = 15
 words = 20
+no_chunksize = 10000
+no_passes = 20 
 time_to_wait = 30
 time_to_download = 60
