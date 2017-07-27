@@ -607,8 +607,8 @@ ROC Curve for Kmeans and Hierarchical clustering algorithm
     <td></td>
   </tr>
   <tr>
-    <td></td>
-    <td></td>
+    <td><img width="250" height="250" alt="LSA_2D_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/ROC_Kmeans.png"></td>
+    <td><img width="250" height="250" alt="LSA_2D_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/ROC_HClust.png"></td>
   </tr>
   </table
   
@@ -620,8 +620,8 @@ ROC Curve for Kmeans and Hierarchical clustering algorithm
     <td></td>
   </tr>
   <tr>
-    <td></td>
-    <td></td>
+    <td><img width="250" height="250" alt="LSA_2D_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/Precision_Recall_Kmeans.png"></td>
+    <td><img width="250" height="250" alt="LSA_2D_PLOT" src="https://github.com/jaydeepchakraborty/PorfRecommendation/blob/dev/data/tmp/images/Precision_Recall_HClust.png"></td>
   </tr>
   </table
 
